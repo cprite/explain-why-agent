@@ -7,6 +7,8 @@ repository contained no source code, data or configuration before the window ope
 | Path | What it is | Origin |
 |---|---|---|
 | `docs/BRIEF.md` | Working brief: rules, dates, scoring, sponsor technology notes, project idea | Written by the team, 6 Oct 2026 |
+| `docs/architecture.md` | Design of the system to be built: agents, engines, interfaces, evaluation | Written by the team, 6 Oct 2026 |
+| `docs/build-plan.md` | Task breakdown for the build window with a check per task | Written by the team, 6 Oct 2026 |
 | `docs/research/olist-dataset-and-incident-plan.md` | Dataset research and the design of the evaluation incidents | Written by the team, 6 Oct 2026 |
 | `docs/organiser-docs/` | Six participant documents (welcome guide, overview, calendar, FAQ, journey map, solutioning guide) | Provided by the organisers |
 | `docs/platform-resources/` | The Resources hub documents from HackOS, including the Meterless engine guides | Provided by the organisers and sponsors, copied 6 Oct 2026 |
