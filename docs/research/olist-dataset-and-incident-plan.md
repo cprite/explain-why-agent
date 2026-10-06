@@ -319,6 +319,139 @@ Indeterminate-by-design: 9, 10 (2, as required).
 
 ---
 
+## Revision 1 — three gaps closed (2026-10-06, after Nikolay's re-measurement check)
+
+All numbers below are freshly measured from the same downloaded dataset, not reused
+from Part 1 without re-checking.
+
+### Gap 1 — the sample was too thin for state/quarter-level incidents
+
+The fix is **not** a bigger blanket percentage — it's per-incident targeted retention,
+sized to what each incident's statistics actually need. Measured minimums:
+
+- **Incident 1 (Black Friday, real).** Narrowed window 20–27 Nov 2017 = **3,411 orders**,
+  keep 100%. Also measured: 383 distinct sellers sold on 24 Nov vs 108–162 on nearby
+  normal days — confirms the spike is broad (see Gap 2).
+- **Incident 2 (strike, real).** Purchase-date window alone undercounts — orders placed
+  up to ~3 weeks before the strike were still *in transit* when it hit. Widened to
+  23 Apr–11 Jun 2018 = **11,039 orders**, keep 100%. (Purchase-only window would have
+  been 5,606 — wrong number, would have cut the in-transit orders that carry the
+  evidence.)
+- **Incident 3 (seller collapse).** Needs a seller with real, steady weekly volume so a
+  2-week zero-out isn't lost in normal seller noise (most sellers do ~1/week). Found
+  seller `f8db351d8c4c4c22c6835c19a46f01b0`: 8.1 orders/week avg, 82 active weeks,
+  **667 lifetime orders** — keep 100% of this one seller's history. (See Gap 3 for a
+  redesign of this incident's evidence, not just its size.)
+- **Incident 4 (RJ freight surcharge).** RJ freight_value has mean $20.96, stdev $14.35
+  (CV 0.68). A 25% effect needs **n≈150/month** to clear noise at a 4–5x
+  signal-to-noise margin (n=12, what 2% gave us, was only 1.3x — not detectable). RJ
+  runs ~609 orders/month, so retaining **2 full months of RJ (~1,218 orders)** covers
+  baseline + surcharge month comfortably.
+- **Incident 5 (payment-mix shift, MG).** MG baseline boleto share is 19.0%. Detecting a
+  shift to ~10% needs ~300–500 orders/period. MG runs ~130 orders/week, so **6 weeks
+  full retention (3 baseline + 3 incident) ≈ 780 orders**.
+- **Incident 6 (category review dip).** Picked `relogios_presentes` (watches/gifts,
+  232 reviews/month — mid-size, not the biggest or smallest category). **3 months full
+  retention ≈ 700 orders** (1 baseline + 1 incident + 1 after, comfortably above the
+  ~100–150 floor).
+- **Incident 7 (marketing cohort).** All 842 closed-deal sellers ever, across all
+  origins, generated **4,512 lifetime orders total** — keep all of them, trivial cost.
+  Add a same-size **control group of ~1,875 non-cohort sellers' orders** in the same
+  months, so "the expected bump never came" has an honest comparison, not just an
+  absence.
+- **Incident 8 (compounding, two causes).** A 15%-sized effect (smaller than incident
+  4's 25%, because two causes share the movement) needs **n≈330+** to clear the same
+  noise floor — a single week in any one state (RJ: ~131/week) isn't enough. **Widened
+  this incident's window from 1 week to 1 month**, and placed it in RJ's 3rd retained
+  month (piggybacking on incident 4's retention) — no extra state needed, just one more
+  RJ month, ~609 orders.
+- **Incident 9 (tiny seller, intentionally thin).** By design this one *should* stay
+  thin — it's the "cannot be determined, sample too small" case. No change: keep that
+  one seller's ~10 orders. Padding it would defeat its purpose.
+- **Incident 10 (macro quarter drift).** This is the expensive one. To let the agent
+  rule out every segment (state, category, payment type, marketing cohort) with
+  confidence, each segment needs the same ~100–150/month floor as the other incidents.
+  Full national retention for a quarter would be ~22,000–24,000 orders (e.g. Jan–Mar
+  2018 ran 7,672–8,217 order-items/month). **Recommended cheaper alternative:
+  stratified retention** — guarantee ≥150 orders/month for each of the top 8 states and
+  top 10 categories rather than keeping every row — estimated **~6,000–8,000 orders**
+  (not independently simulated; this is a sizing estimate, flagged as such, not a
+  measured number like the others — would need the actual stratified sampler written
+  and checked before trusting it at build time).
+
+**Resulting total and size** (sum of the above, before removing cross-window
+duplicate orders, so this is a safe upper bound): **~31,800–33,800 orders** out of
+99,441 (roughly a third of the full dataset — a legitimate number now, not an
+accident of wide monthly windows like Revision 0's flawed estimate, which landed on a
+similar-looking 33% for the wrong reason). Using the original files' bytes/row
+(orders 178 B, items 137 B, payments 56 B, reviews 146 B, customers 91 B, combining to
+~629 B/order across those five files) plus the deduped geolocation (~1.16 MB) and
+filtered products/sellers/marketing-funnel tables (~1–1.5 MB combined):
+
+- **Plain CSV total: ~22–24 MB**
+- **Gzipped: ~5–6 MB** (estimated at a conservative 4–5x text-compression ratio; not
+  independently measured since the sample itself doesn't exist yet)
+
+Biggest cost drivers: incident 10 (quarter drift, ~6–8k) and incident 7's control
+group (~1,875). If 22–24 MB is still too big for comfort, the two cuts that cost the
+least accuracy are: drop incident 7's control group (saves ~1,875, weakens but doesn't
+break the comparison — the cohort's own before/after is still informative) and narrow
+incident 10's stratification to the top 5 states/categories instead of 8–10 (likely
+cuts it to ~4,000–5,000).
+
+### Gap 2 — real events need a provable answer, not just a label
+
+Neither "Black Friday" nor "the truck drivers' strike" appears anywhere in the four
+data sources — the agent can see the *effect* but has no textual label for the
+*name* of the cause. Re-measured to check whether the data at least supports a correctly
+**scoped** causal claim:
+
+- **Incident 1:** 383 distinct sellers sold something on 24 Nov 2017, vs 108–162 on
+  nearby normal days (roughly 2.5–3x more sellers participating) — confirmed broad
+  across the marketplace, not one seller's doing. Combined with the 8.6% price drop
+  (Part 1.5), the data supports: **"a broad, marketplace-wide order-volume spike
+  coinciding with a price drop across many sellers, consistent with a platform-wide
+  promotional event"** — provable from the data. It does not support, and should not be
+  scored as requiring, the literal word "Black Friday."
+- **Incident 2:** checked lateness by state for the delivery week of 28 May 2018 (states
+  with ≥10 deliveries that week): SP 12%, RJ 9%, MG 23%, BA 25%, PR 39%, PE 19%, ES 25%,
+  PA 25%, CE 20% — **nine different states, all elevated versus the ~5% pre-strike
+  baseline, no single state dominating**. The data supports: **"a broad, multi-state,
+  multi-seller spike in delivery lateness and transit time, consistent with an external
+  logistics disruption affecting the whole network"** — provable. It does not support
+  requiring the literal phrase "truck drivers' strike."
+- **Recommendation: redefine the answer key this way (not a 5th data source).** Keep the
+  known real-world cause (Black Friday date; strike dates, sourced from contemporaneous
+  news coverage of the May 2018 Brazilian truckers' strike) as a **judge-only answer-key
+  note**, never given to the agent as an input — adding it as a 5th "events calendar"
+  source would let the agent look up the date and trivialize exactly the two incidents
+  that are supposed to prove it can reason from evidence. Score the agent on whether its
+  *mechanism* (broad, multi-seller/multi-state, coincides with a price/logistics
+  signature) matches, not on whether it guesses the proper noun.
+
+### Gap 3 — incident 3's second source was weak
+
+The original design used "no matching reactivation event in the marketing funnel" as the
+second source — an **absence**, which is weak evidence (could just mean the funnel
+dataset has a gap, not that the seller was suspended). Redesigned using a mechanism
+that's actually already in the data: `orders.order_status` includes real `canceled` and
+`unavailable` values (625 and 609 orders respectively, dataset-wide) — a seller outage
+shows up there as a **positive signal**, not a silent gap.
+
+**Redesign:** instead of deleting the seller's `order_items` rows for 2 weeks, inject the
+incident as **that seller's orders flipping to `canceled`/`unavailable` status** during
+the window, while the matching `customers`/`order_items` rows stay in place (customers
+still tried to order; the orders just didn't complete). Two real, positive-signal
+sources: (1) **Orders** — a status-code spike concentrated on one seller's orders,
+against a dataset-wide `canceled`+`unavailable` baseline of ~1.2% of orders; (2)
+**Reviews** — any of that seller's orders that still generate a review during the window
+skew sharply negative (cancellation reliably drives 1-star reviews in this dataset's
+real pattern, matching the review-score mechanics already measured for incident 2).
+Both signals are things the agent would have to actually query for, not infer from
+something missing.
+
+---
+
 ## Scratch data location
 
 Downloaded CSVs are in `/tmp/olist-scratch/` (core dataset) and
