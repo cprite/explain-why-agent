@@ -116,3 +116,18 @@ Commits are authored as Nikolay <3dutka@gmail.com> with no mention of AI tools i
 pull requests. The repo has to be made accessible to judges before submission; `docs/organiser-docs/`
 and `docs/platform-resources/` are the organisers' own material and should be removed or cleared with
 them before the repo is made public.
+
+## NVIDIA model access (tested 2026-10-06)
+
+Nikolay's personal key is in `~/.openclaw/credentials/nvidia.env` (`NVIDIA_API_KEY`). Endpoint:
+`https://integrate.api.nvidia.com/v1`, OpenAI-compatible. Test call, one small JSON task:
+
+| Model | Result |
+|---|---|
+| `nvidia/nemotron-3-super-120b-a12b` | 1.9 s, valid JSON — first choice for the agents |
+| `nvidia/nemotron-3-ultra-550b-a55b` | 3.3 s, valid JSON — candidate for the critic |
+| `nvidia/nemotron-3.5-lightning-30b-a3b` | 5.0 s, spent its token budget on reasoning text, no JSON |
+| `nemotron-4-340b-instruct`, `nemotron-nano-3-30b-a3b`, the `llama-3.1-nemotron` models | listed by the API but return 404 for this account |
+
+The models return a separate `reasoning_content` field; parse `content` only. Free-tier limits were not
+measured. Hackathon credits are separate and not yet published.
