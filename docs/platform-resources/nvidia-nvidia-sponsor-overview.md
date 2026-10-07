@@ -1,6 +1,6 @@
 # NVIDIA: Sponsor Overview
 
-Folder: NVIDIA · updated 2026-09-30
+Folder: NVIDIA · updated 2026-10-07
 
 # NVIDIA
 
@@ -18,7 +18,7 @@ NVIDIA builds open model families for developers, including **NVIDIA Nemotron** 
 
 ## Getting access
 
-[TBC: how to claim your API key and credits will be added to this folder before the build window opens on 15 October.]
+[TBC: how to claim your API key and credits will be added to this folder before the build window opens on 22 October.]
 
 ## Links
 

@@ -1,6 +1,6 @@
 # Channel Directory
 
-Folder: Community and Support · updated 2026-09-30
+Folder: Community and Support · updated 2026-10-07
 
 # Where to Get Help
 
@@ -248,11 +248,11 @@ If the rules genuinely don't cover your case, ask in your track room and quote t
 
 | Milestone | Date (UTC) |
 |---|---|
-| Registration closes | **13 October, 00:00** |
-| Build window opens | 15 October, 00:00 |
-| Judging opens | 20 October, 00:00 |
-| **Submissions close** | **20 October, 23:45** |
-| Results | 30 October, 16:00 |
+| Build window opens | 22 October, 00:00 |
+| Registration closes | **22 October, 23:59** |
+| Judging opens | 27 October, 00:00 |
+| **Submissions close** | **27 October, 23:45** |
+| Results | 6 November, 16:00 |
 
 Both deadlines are hard. Submit early and update, rather than submitting once at 23:44.
 
@@ -318,7 +318,7 @@ Use `[URGENT]` only when it's time-critical and blocks participation or submissi
 - Requests for ideas
 - Questions already answered in the FAQ or Announcements
 
-Overusing it makes it useless for the people who genuinely need it at 23:00 on 20 October.
+Overusing it makes it useless for the people who genuinely need it at 23:00 on 27 October.
 
 ---
 

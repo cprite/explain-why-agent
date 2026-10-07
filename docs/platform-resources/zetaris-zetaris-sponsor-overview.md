@@ -1,6 +1,6 @@
 # Zetaris: Sponsor Overview
 
-Folder: Zetaris · updated 2026-09-30
+Folder: Zetaris · updated 2026-10-07
 
 # Zetaris
 
@@ -17,7 +17,7 @@ Zetaris is the world's leading data harness for AI. Governed, real-time access t
 
 ## Getting access
 
-[TBC: instance access and the Zetaris documentation will be added to this folder before the build window opens on 15 October.]
+[TBC: instance access and the Zetaris documentation will be added to this folder before the build window opens on 22 October.]
 
 ## Links
 

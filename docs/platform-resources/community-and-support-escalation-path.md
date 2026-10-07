@@ -1,6 +1,6 @@
 # Escalation Path
 
-Folder: Community and Support · updated 2026-09-30
+Folder: Community and Support · updated 2026-10-07
 
 # Escalation Path
 
@@ -211,11 +211,11 @@ Privately, include: your name and team if it's safe to say, the severity, what h
 | Severity | First action | Escalate if no response within | Then |
 |---|---|---:|---|
 | **P0** | Private escalation immediately | Immediately | Organizers, and the relevant partner or provider |
-| **P1** | Post in the right place with full details | A few hours during the build window; faster on 20 October | Ask a moderator to route it |
+| **P1** | Post in the right place with full details | A few hours during the build window; faster on 27 October | Ask a moderator to route it |
 | **P2** | Post in the right place | A day | Ask a moderator to route it |
 | **P3** | Ask in the relevant room | — | — |
 
-This is a global event running 144 hours across every time zone. Moderators and mentors aren't awake at all hours, and response times stretch in the final 24. **Raise anything structural early.** A broken Docker build at 22:00 on 20 October is not a support problem anymore.
+This is a global event running 144 hours across every time zone. Moderators and mentors aren't awake at all hours, and response times stretch in the final 24. **Raise anything structural early.** A broken Docker build at 22:00 on 27 October is not a support problem anymore.
 
 ---
 
@@ -255,7 +255,7 @@ This is the case for building a documented sample mode early. When a provider th
 3. Don't wait until the final minutes if it looks persistent.
 4. Keep a timestamped backup of: repository URL, demo video link, architecture document link, final commit hash.
 
-Submissions close **20 October, 23:45 UTC**. It's a hard deadline. Submit early and update.
+Submissions close **27 October, 23:45 UTC**. It's a hard deadline. Submit early and update.
 
 ### 7.4 Unsure whether it's your code, the partner, or your provider
 
@@ -346,4 +346,4 @@ If it involves **leaked credentials, sensitive data, harassment, threats or safe
 
 Rotate anything exposed immediately, then report through the private route.
 
-**[TBC: publish the private route here before 15 October.]**
+**[TBC: publish the private route here before 22 October.]**

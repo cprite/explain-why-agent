@@ -1,6 +1,6 @@
 # Help Desk Instructions
 
-Folder: Community and Support · updated 2026-09-30
+Folder: Community and Support · updated 2026-10-07
 
 # Help Desk Guide
 
@@ -505,7 +505,7 @@ Sensitive information involved? Yes/No
 
 ## 12. Submission Day
 
-Before you ask for help on 20 October, check:
+Before you ask for help on 27 October, check:
 
 - [ ] The project runs from a clean clone
 - [ ] A judge can drive it without your UI
@@ -532,7 +532,7 @@ Current blocker:
 Evidence: [attached]
 ```
 
-Submissions close at **20 October, 23:45 UTC**, and it's a hard deadline. Submit early and update, rather than submitting once at 23:44.
+Submissions close at **27 October, 23:45 UTC**, and it's a hard deadline. Submit early and update, rather than submitting once at 23:44.
 
 ---
 

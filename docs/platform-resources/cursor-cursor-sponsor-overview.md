@@ -1,6 +1,6 @@
 # Cursor: Sponsor Overview
 
-Folder: Cursor · updated 2026-09-30
+Folder: Cursor · updated 2026-10-07
 
 # Cursor
 
@@ -17,7 +17,7 @@ Cursor is made by Anysphere, Inc.
 
 ## Getting access
 
-[TBC: how your team gets Cursor access will be added to this folder before the build window opens on 15 October.]
+[TBC: how your team gets Cursor access will be added to this folder before the build window opens on 22 October.]
 
 ## Links
 

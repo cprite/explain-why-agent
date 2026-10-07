@@ -1,6 +1,6 @@
 # FAQ
 
-Folder: Community and Support · updated 2026-09-30
+Folder: Community and Support · updated 2026-10-07
 
 # OPEN AGENT HACKATHON 2026 FAQ
 
@@ -8,7 +8,7 @@ Folder: Community and Support · updated 2026-09-30
 
 Your first stop for questions about the schedule, teams, tracks, the partner stack, submissions, judging and prizes.
 
-> All times are **UTC**. Registration closes **13 October 2026, 00:00** and submissions close **20 October 2026, 23:45**. Where this FAQ and the Official Rules disagree, the Official Rules apply.
+> All times are **UTC**. Registration closes **22 October 2026, 23:59** and submissions close **27 October 2026, 23:45**. Where this FAQ and the Official Rules disagree, the Official Rules apply.
 
 ---
 
@@ -51,14 +51,14 @@ Fully online. Everything happens on HackOS.
 
 ### How long is it?
 
-144 hours, from 15 October 00:00 to 20 October.
+144 hours, from 22 October 00:00 to 27 October.
 
 ### What do I actually have to do?
 
-1. Register before 13 October
+1. Register before 22 October
 2. Pick one of the four tracks
 3. Build a working agent during the build window
-4. Submit on HackOS before 20 October, 23:45
+4. Submit on HackOS before 27 October, 23:45
 
 ---
 
@@ -68,13 +68,13 @@ Fully online. Everything happens on HackOS.
 |---|---|
 | Registration opens | 14 August, 00:00 |
 | Sponsor workshops | TBA |
-| Registration closes | **13 October, 00:00** |
-| Participant onboarding | 14 October |
-| Build window opens | 15 October, 00:00 |
-| Build window | 15–20 October |
-| Judging opens | 20 October, 00:00 |
-| Submissions close | **20 October, 23:45** |
-| Results announced | 30 October, 16:00 |
+| Participant onboarding | 21 October |
+| Build window opens | 22 October, 00:00 |
+| Registration closes | **22 October, 23:59** |
+| Build window | 22–27 October |
+| Judging opens | 27 October, 00:00 |
+| Submissions close | **27 October, 23:45** |
+| Results announced | 6 November, 16:00 |
 
 ### What time zone is used?
 
@@ -82,11 +82,11 @@ UTC, everywhere, for everything.
 
 ### Why does judging open before submissions close?
 
-So judges can start on the submissions that are already in. It doesn't shorten your build window. Anything submitted before 23:45 on 20 October is judged.
+So judges can start on the submissions that are already in. It doesn't shorten your build window. Anything submitted before 23:45 on 27 October is judged.
 
 ### Are the two deadlines really hard?
 
-Yes. Registration closes at 13 October 00:00 with no late entry, and submissions close at 20 October 23:45. Submit early and update rather than submitting once at the last minute.
+Yes. Registration closes at 22 October 23:59 with no late entry, and submissions close at 27 October 23:45. Submit early and update rather than submitting once at the last minute.
 
 ---
 
@@ -406,7 +406,7 @@ Fail gracefully: timeouts, capped retries with backoff, fallback to sample data,
 
 ### Where do I submit?
 
-On HackOS, before 20 October, 23:45 UTC.
+On HackOS, before 27 October, 23:45 UTC.
 
 ### What do I submit?
 
@@ -482,7 +482,7 @@ No. Show the agent working. A video of only slides doesn't demonstrate a working
 
 ### How does it work?
 
-Expert judges review submissions against the published criteria. Judging opens 20 October, 00:00 and runs while final submissions come in.
+Expert judges review submissions against the published criteria. Judging opens 27 October, 00:00 and runs while final submissions come in.
 
 ### What's the scoring?
 
@@ -538,7 +538,7 @@ No.
 
 ### When are winners announced?
 
-30 October, 16:00 UTC, on the live results call on HackOS.
+6 November, 16:00 UTC, on the live results call on HackOS.
 
 ### How and when do prizes get paid?
 
@@ -619,7 +619,7 @@ Exposed credentials, personal data, a security concern or a safety issue: don't 
 - [ ] README covers setup, architecture and limitations
 - [ ] Partner technology use documented
 - [ ] Demo video 2–3 minutes, link works
-- [ ] Submitted before 20 October, 23:45 UTC
+- [ ] Submitted before 27 October, 23:45 UTC
 
 ---
 

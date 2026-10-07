@@ -1,6 +1,6 @@
 # Code of Conduct
 
-Folder: Rules and Requirements · updated 2026-09-30
+Folder: Rules and Requirements · updated 2026-10-07
 
 # Code of Conduct
 
@@ -8,7 +8,7 @@ Folder: Rules and Requirements · updated 2026-09-30
 
 The Open Agent Hackathon is a global online event, free and open to builders worldwide. This Code of Conduct sets the standard for how we treat each other.
 
-Participating means agreeing to follow it in every official event space: HackOS, track rooms, mentor office hours, team-finding, submissions, demos, judging interactions, the **14 October participant onboarding**, the **results call on 30 October**, and the community on Discord.
+Participating means agreeing to follow it in every official event space: HackOS, track rooms, mentor office hours, team-finding, submissions, demos, judging interactions, the **21 October participant onboarding**, the **results call on 6 November**, and the community on Discord.
 
 ---
 
@@ -42,8 +42,8 @@ All official event spaces, including:
 - Announcements and team-finding
 - Mentor office hours
 - Sponsor workshops
-- Participant onboarding, 14 October
-- The results call, 30 October
+- Participant onboarding, 21 October
+- The results call, 6 November
 - The community on Discord
 - Repositories submitted to the hackathon, including READMEs, issues, commits and pull requests
 - Demo videos, architecture documents and pitch materials
@@ -160,7 +160,7 @@ Spamming, flooding support rooms, irrelevant promotion, hijacking Q&A, interrupt
 
 ## 6. Live Sessions
 
-Onboarding on 14 October, sponsor workshops, mentor office hours and the results call are official event spaces, and the same standards apply.
+Onboarding on 21 October, sponsor workshops, mentor office hours and the results call are official event spaces, and the same standards apply.
 
 **During a session:** join with your real name or your event profile name, keep your microphone muted unless invited to speak, keep questions relevant, follow moderator instructions, and never post keys or credentials in chat. Don't record or screenshot other participants without permission.
 

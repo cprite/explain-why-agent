@@ -1,6 +1,6 @@
 # Event Calendar
 
-Folder: Start here · updated 2026-10-01
+Folder: Start here · updated 2026-10-07
 
 # OPEN AGENT HACKATHON 2026 Event Calendar
 
@@ -8,7 +8,7 @@ Folder: Start here · updated 2026-10-01
 **Timezone:** **UTC**  
 **Audience:** Participants, mentors, judges, sponsors, and organizers
 
-> **Important:** All dates and deadlines below are in **UTC**. Registration closes **13 October 2026, 00:00 UTC** and submissions close **20 October 2026, 23:45 UTC**. Both are hard deadlines.
+> **Important:** All dates and deadlines below are in **UTC**. Registration closes **22 October 2026, 23:59 UTC** and submissions close **27 October 2026, 23:45 UTC**. Both are hard deadlines.
 
 ---
 
@@ -19,15 +19,15 @@ Folder: Start here · updated 2026-10-01
 | **14 August, 00:00** | Registration opens | Everyone | Registration opens on hackathon.genai.works. One sign-up covers the event and community updates. |
 | **25 September** | Mentor selection | Organizers / mentors | Mentors are selected for the event. |
 | **5 October** | Mentor onboarding | Mentors | Mentors are briefed on the tracks, the sponsor technology, and how support works on HackOS. |
-| **8 October, 22:00** | NVIDIA and Meterless workshop | Participants | Live session on NVIDIA and Meterless technology. Recorded and published on HackOS. |
 | **12 October, 22:00** | Zetaris and Cursor workshop | Participants | Live session on Zetaris and Cursor. Recorded and published on HackOS. |
-| **13 October, 00:00** | Registration closes | Participants | Hard deadline. No entries after this point. |
-| **14 October, 16:00–17:30** | Participant onboarding | All participants | Live session: event overview, the three tracks and the Wildcard [Tinkerer] track, sponsor technology, HackOS walkthrough, submission requirements, Q&A. |
-| **15 October, 00:00** | Build window opens | Participants | 144-hour build window begins. Mentor office hours and the #help desk channel are live. |
-| **15–20 October** | Build window | Participants | Active build period. |
-| **20 October, 00:00** | Judging opens | Judges | Judging begins while final submissions come in. |
-| **20 October, 23:45** | Submissions close | Participants | Hard deadline. Submit everything on HackOS. |
-| **30 October, 16:00** | Results announced | Everyone | Live results call on HackOS. Winners announced and showcased. |
+| **14 October, 22:00** | NVIDIA and Meterless workshop | Participants | Live session on NVIDIA and Meterless technology. Recorded and published on HackOS. |
+| **21 October, 16:00–17:30** | Participant onboarding | All participants | Live session: event overview, the three tracks and the Wildcard [Tinkerer] track, sponsor technology, HackOS walkthrough, submission requirements, Q&A. |
+| **22 October, 00:00** | Build window opens | Participants | 144-hour build window begins. Mentor office hours and the #help desk channel are live. |
+| **22 October, 23:59** | Registration closes | Participants | Hard deadline. No entries after this point. |
+| **22–27 October** | Build window | Participants | Active build period. |
+| **27 October, 00:00** | Judging opens | Judges | Judging begins while final submissions come in. |
+| **27 October, 23:45** | Submissions close | Participants | Hard deadline. Submit everything on HackOS. |
+| **6 November, 16:00** | Results announced | Everyone | Live results call on HackOS. Winners announced and showcased. |
 | **After the event** | Community | Everyone | Community activity continues on Discord. |
 
 ---
@@ -53,7 +53,7 @@ Sponsor workshops run at **22:00 UTC (3:00 PM PT)**. Participant onboarding runs
 ### 14 August — Registration Opens
 
 **Audience:** Everyone  
-**Action required:** Register before 13 October.
+**Action required:** Register before 22 October.
 
 Registration is free and open worldwide to anyone aged 16 or older at the start of the build window. Teams can have 1–5 builders, and solo entries compete in the same pool as teams.
 
@@ -89,7 +89,7 @@ Mentors are briefed on:
 
 ---
 
-### 8 and 12 October — Sponsor Workshops
+### 12 and 14 October — Sponsor Workshops
 
 **Audience:** All participants  
 **Format:** Live sessions, recorded  
@@ -99,32 +99,16 @@ Sponsors run live workshops covering their technology and how to use it in a bui
 
 | Sponsors | Date | Time |
 |---|---|---|
-| NVIDIA and Meterless | 8 October 2026 | 22:00 UTC (3:00 PM PT) |
 | Zetaris and Cursor | 12 October 2026 | 22:00 UTC (3:00 PM PT) |
+| NVIDIA and Meterless | 14 October 2026 | 22:00 UTC (3:00 PM PT) |
 
 All workshops are recorded and added to HackOS with the related resources. If you cannot attend live, watch the recordings before the build window opens.
 
-**Participant action:** set up Cursor and your access to Zetaris and Meterless, decide where NVIDIA can contribute, and complete any setup steps before 15 October.
+**Participant action:** set up Cursor and your access to Zetaris and Meterless, decide where NVIDIA can contribute, and complete any setup steps before 22 October.
 
 ---
 
-### 13 October, 00:00 — Registration Closes
-
-**Audience:** Participants  
-**Status:** Hard deadline
-
-No entries are accepted after this point.
-
-**Before this date, confirm:**
-
-- Your registration is complete.
-- Your HackOS profile is filled in.
-- You have shortlisted a track.
-- You know whether you will build solo or in a team.
-
----
-
-### 14 October — Participant Onboarding
+### 21 October — Participant Onboarding
 
 **Audience:** All participants  
 **Format:** Live session  
@@ -155,13 +139,29 @@ Onboarding is the official participant kick-off. It is delivered by the GenAI Wo
 
 ---
 
-### 15–20 October — Build Window
+### 22 October, 23:59 — Registration Closes
+
+**Audience:** Participants  
+**Status:** Hard deadline
+
+No entries are accepted after this point.
+
+**Before this date, confirm:**
+
+- Your registration is complete.
+- Your HackOS profile is filled in.
+- You have shortlisted a track.
+- You know whether you will build solo or in a team.
+
+---
+
+### 22–27 October — Build Window
 
 **Audience:** Participants  
 **Duration:** 144 hours  
 **Goal:** Build a working agent that does real work.
 
-The build window opens on **15 October, 00:00 UTC** and closes on **20 October, 23:45 UTC**. This is the core development period. Focus on building something useful and reliable rather than a demo. Work committed before the window opens is not eligible, except for clearly declared pre-existing components.
+The build window opens on **22 October, 00:00 UTC** and closes on **27 October, 23:45 UTC**. This is the core development period. Focus on building something useful and reliable rather than a demo. Work committed before the window opens is not eligible, except for clearly declared pre-existing components.
 
 **Minimum expectations during the build window:**
 
@@ -190,7 +190,7 @@ You can change your track any time before the submission deadline. Team composit
 
 ---
 
-### 17 October — Suggested Mid-Build Check-In
+### 24 October — Suggested Mid-Build Check-In
 
 **Audience:** Participants  
 **Status:** Recommended internal milestone
@@ -215,7 +215,7 @@ Use the answer to prioritise fixes.
 
 ---
 
-### 19 October — Submission Preparation
+### 26 October — Submission Preparation
 
 **Audience:** Participants  
 **Status:** Final day before the deadline
@@ -236,10 +236,10 @@ Move from feature-building to validation and packaging.
 
 ---
 
-### 20 October, 23:45 — Submissions Close
+### 27 October, 23:45 — Submissions Close
 
 **Audience:** Participants  
-**Deadline:** **20 October 2026, 23:45 UTC**  
+**Deadline:** **27 October 2026, 23:45 UTC**  
 **Status:** Hard deadline
 
 All submissions must be completed on HackOS before the deadline. Submit early. Do not rely on last-minute fixes.
@@ -259,7 +259,7 @@ Pre-existing product code must be declared in the submission form.
 
 ## 4. Judging Calendar
 
-### From 20 October, 00:00 — Judging Opens
+### From 27 October, 00:00 — Judging Opens
 
 **Audience:** Judges, organizers, participants  
 **Status:** Formal judging window
@@ -297,7 +297,7 @@ Ties are resolved on the Impact score, then on submission timestamp.
 
 ---
 
-### 30 October, 16:00 — Results Announced
+### 6 November, 16:00 — Results Announced
 
 **Audience:** Everyone  
 **Format:** Live results call on HackOS  
@@ -322,15 +322,15 @@ Community activity continues on **Discord**: community chat, showcases, future h
 | When | Participant Priority |
 |---|---|
 | **From 14 August** | Register, set up your HackOS profile, review the tracks. |
-| **8 and 12 October** | Attend the sponsor workshops (22:00 UTC) or watch the recordings. Set up Cursor, Zetaris and Meterless. |
-| **By 13 October** | Registration closes. Decide whether you will build solo or in a team, and shortlist your track. |
-| **14 October** | Attend participant onboarding (16:00–17:30 UTC). Confirm your track. |
-| **15–16 October** | Lock architecture, agent roles, and data approach. Integrate Zetaris and Meterless. Build a minimal working loop. |
-| **17–18 October** | Deepen agent behaviour, add retries and fallbacks, log activity, test with realistic inputs. |
-| **19 October** | Freeze features, harden, record the demo video, finish the slide deck, package the submission. |
-| **20 October** | Submit before **23:45 UTC**. |
-| **20–30 October** | Monitor announcements for judging updates or clarification requests. |
-| **30 October** | Join the live results call. |
+| **12 and 14 October** | Attend the sponsor workshops (22:00 UTC) or watch the recordings. Set up Cursor, Zetaris and Meterless. |
+| **21 October** | Attend participant onboarding (16:00–17:30 UTC). Confirm your track. |
+| **By 22 October** | Registration closes. Decide whether you will build solo or in a team, and shortlist your track. |
+| **22–23 October** | Lock architecture, agent roles, and data approach. Integrate Zetaris and Meterless. Build a minimal working loop. |
+| **24–25 October** | Deepen agent behaviour, add retries and fallbacks, log activity, test with realistic inputs. |
+| **26 October** | Freeze features, harden, record the demo video, finish the slide deck, package the submission. |
+| **27 October** | Submit before **23:45 UTC**. |
+| **27 October – 6 November** | Monitor announcements for judging updates or clarification requests. |
+| **6 November** | Join the live results call. |
 | **After the event** | Join the GenAI Works community on Discord. |
 
 ---
@@ -338,13 +338,13 @@ Community activity continues on **Discord**: community chat, showcases, future h
 ## 7. Key Deadline Rules
 
 - All dates are in **UTC**.
-- Registration closes **13 October 2026, 00:00 UTC**.
-- Sponsor workshops run on **8 and 12 October 2026, 22:00 UTC**.
-- Participant onboarding runs on **14 October 2026, 16:00–17:30 UTC**.
-- The build window runs from **15 October, 00:00** to **20 October 2026, 23:45 UTC**.
-- Submissions close **20 October 2026, 23:45 UTC**.
-- Judging opens **20 October 2026, 00:00 UTC**.
-- Results are announced **30 October 2026, 16:00 UTC**.
+- Registration closes **22 October 2026, 23:59 UTC**.
+- Sponsor workshops run on **12 and 14 October 2026, 22:00 UTC**.
+- Participant onboarding runs on **21 October 2026, 16:00–17:30 UTC**.
+- The build window runs from **22 October, 00:00** to **27 October 2026, 23:45 UTC**.
+- Submissions close **27 October 2026, 23:45 UTC**.
+- Judging opens **27 October 2026, 00:00 UTC**.
+- Results are announced **6 November 2026, 16:00 UTC**.
 - Teams may have 1–5 builders, and a participant may belong to exactly one team.
 - Team composition locks when the first submission is created.
 - Every submission selects exactly one primary track; tracks can be changed any time before the submission deadline.
@@ -357,16 +357,16 @@ Participants are encouraged to add these reminders to their personal calendars.
 
 | Reminder | Suggested Calendar Time |
 |---|---:|
-| NVIDIA and Meterless workshop | 8 October, 22:00 UTC |
-| Registration deadline | 12 October, 12:00 UTC (a day before it closes) |
 | Zetaris and Cursor workshop | 12 October, 22:00 UTC |
-| Participant onboarding | 14 October, 16:00 UTC |
-| Build window starts | 15 October, 00:00 UTC |
-| Mid-build self-check | 17 October, 16:00 UTC |
-| Submission packaging begins | 19 October, morning |
-| Final validation | 20 October, 12:00 UTC |
-| Submission deadline | 20 October, 23:45 UTC |
-| Results call | 30 October, 16:00 UTC |
+| NVIDIA and Meterless workshop | 14 October, 22:00 UTC |
+| Participant onboarding | 21 October, 16:00 UTC |
+| Registration deadline | 21 October, 23:59 UTC (a day before it closes) |
+| Build window starts | 22 October, 00:00 UTC |
+| Mid-build self-check | 24 October, 16:00 UTC |
+| Submission packaging begins | 26 October, morning |
+| Final validation | 27 October, 12:00 UTC |
+| Submission deadline | 27 October, 23:45 UTC |
+| Results call | 6 November, 16:00 UTC |
 
 ---
 

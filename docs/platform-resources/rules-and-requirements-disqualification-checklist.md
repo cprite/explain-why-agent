@@ -1,6 +1,6 @@
 # Disqualification Checklist
 
-Folder: Rules and Requirements · updated 2026-09-30
+Folder: Rules and Requirements · updated 2026-10-07
 
 # Pre-Submission Self-Check
 
@@ -8,7 +8,7 @@ Folder: Rules and Requirements · updated 2026-09-30
 
 Run this before you submit. It won't tell you whether you'll win, but it catches the things that make a good project unscoreable.
 
-> **Submissions close:** **20 October 2026, 23:45 UTC.** Hard deadline.
+> **Submissions close:** **27 October 2026, 23:45 UTC.** Hard deadline.
 > **The principle:** a judge who has never seen your project should be able to run it, watch it work, and see how it got there.
 
 > **The binding disqualification conditions are in the Official Rules on the event page.** This document is preparation guidance, not the rule list. Where the two differ, the Official Rules apply.
@@ -21,7 +21,7 @@ Only two conditions are confirmed from the published rules:
 
 | Condition | Rule |
 |---|---|
-| **Late submission** | Submissions close 20 October, 23:45 UTC. This is hard. |
+| **Late submission** | Submissions close 27 October, 23:45 UTC. This is hard. |
 | **Duplicate accounts** | One account per participant. Duplicates disqualify the whole team. |
 
 [TBC: the full disqualification conditions are in the Official Rules. Check them before relying on this document.]
@@ -426,4 +426,4 @@ Submit only when all of these are true:
 
 **If you're blocked:** mentor office hours for build problems, your track room for scope questions, the partner resource area for partner issues, your provider's support for auth and rate limits, and the Official Rules for what's required.
 
-**Don't leave this to 20 October.** Run the full flow on day four, when you still have two days to fix what it finds. Almost everything on this list is preventable with 48 hours' notice and unfixable with two.
+**Don't leave this to 27 October.** Run the full flow on day four, when you still have two days to fix what it finds. Almost everything on this list is preventable with 48 hours' notice and unfixable with two.

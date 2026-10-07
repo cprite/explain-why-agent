@@ -1,6 +1,6 @@
 # Community Moderation Guide
 
-Folder: Community and Support · updated 2026-09-30
+Folder: Community and Support · updated 2026-10-07
 
 # Community Moderation Guide
 
@@ -16,9 +16,9 @@ This guide defines how moderators keep the Open Agent Hackathon community health
 - HackOS track rooms, announcements and team-finding
 - Partner resource areas
 - Mentor office hours
-- Participant onboarding, 14 October
+- Participant onboarding, 21 October
 - Sponsor workshops
-- The results call, 30 October
+- The results call, 6 November
 - The community on Discord after the event
 
 Moderators create a space where participants can ask for help, form teams, debug and build, without harassment, spam, misinformation, unsafe sharing or unfair advantage.
@@ -61,7 +61,7 @@ Don't give one team a private advantage others don't have. Anything that affects
 
 ### 3.2 Live sessions
 
-Moderation applies to sponsor workshops, participant onboarding on 14 October, mentor office hours and the results call: chat, Q&A, reactions, and any participant behaviour other attendees can see.
+Moderation applies to sponsor workshops, participant onboarding on 21 October, mentor office hours and the results call: chat, Q&A, reactions, and any participant behaviour other attendees can see.
 
 ### 3.3 Direct messages
 
@@ -101,13 +101,13 @@ All times **UTC**.
 
 | Period | Dates | Coverage |
 |---|---|---|
-| Pre-event | To 12 October | Business hours |
+| Pre-event | To 20 October | Business hours |
 | Sponsor workshops | TBA | Live during sessions |
-| Onboarding | 14 October | Live during the session |
-| Build window | 15–20 October | Daily active monitoring, rota across time zones |
-| Submission day | 20 October to 23:45 | Extended coverage for submission blockers |
-| Judging | 20–30 October | Monitoring for clarification requests |
-| Results | 30 October | Live during the call |
+| Onboarding | 21 October | Live during the session |
+| Build window | 22–27 October | Daily active monitoring, rota across time zones |
+| Submission day | 27 October to 23:45 | Extended coverage for submission blockers |
+| Judging | 27 October – 6 November | Monitoring for clarification requests |
+| Results | 6 November | Live during the call |
 
 **Coverage across time zones is the hard part.** A global event means 3am questions. Set an explicit rota and publish expected response windows so participants aren't waiting on silence.
 
@@ -123,7 +123,7 @@ All times **UTC**.
 
 ### 5.3 Submission day
 
-On 20 October, submission blockers take priority until 23:45. In order:
+On 27 October, submission blockers take priority until 23:45. In order:
 
 1. Submission access or form failures
 2. Repository link problems
@@ -312,7 +312,7 @@ Before reposting, strip: keys and tokens, email addresses not needed for support
 ### 11.1 High-risk misinformation for this event
 
 - "The deadline is later than 23:45."
-- "You can still register after 13 October."
+- "You can still register after 22 October."
 - "Late submissions are accepted."
 - "Team size can be more than five."
 - "You must use [specific provider]." — model choice is open
@@ -354,7 +354,7 @@ A dispute:
 
 Prizes split equally among team members by default. Teams that want something else must agree it in writing **before** submitting.
 
-Moderators should push this early and often during team formation, because it's far easier to settle on 15 October than on 30 October when there's money on the table.
+Moderators should push this early and often during team formation, because it's far easier to settle on 22 October than on 6 November when there's money on the table.
 
 ### 12.4 Boundaries
 
@@ -447,7 +447,7 @@ Within 24 hours: publish the recording if approved, publish resources, post answ
 
 **Deadline or exception request**
 
-> Extensions are decided by the organizers, not moderators. Unless an official announcement says otherwise, the deadline remains **20 October, 23:45 UTC**.
+> Extensions are decided by the organizers, not moderators. Unless an official announcement says otherwise, the deadline remains **27 October, 23:45 UTC**.
 
 **Provider error**
 
@@ -581,7 +581,7 @@ Not our outage, but it hits teams hard. Remind them that sample mode is what kee
 - [ ] Review the incident log
 - [ ] Hand over to the next time zone with open items noted
 
-### Submission day, 20 October
+### Submission day, 27 October
 
 - [ ] Pin the submission checklist and the deadline
 - [ ] Monitor submission issues continuously

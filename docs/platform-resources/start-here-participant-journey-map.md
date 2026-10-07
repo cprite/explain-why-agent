@@ -1,6 +1,6 @@
 # Participant Journey Map
 
-Folder: Start here · updated 2026-10-01
+Folder: Start here · updated 2026-10-07
 
 # Participant Journey Map
 
@@ -16,13 +16,13 @@ All dates and deadlines are in **UTC**.
 
 ```mermaid
 flowchart LR
-    A[Registration<br/>Sign up on the event page<br/>Closes 13 Oct, 00:00] --> B[Sponsor Workshops<br/>NVIDIA & Meterless 8 Oct<br/>Zetaris & Cursor 12 Oct<br/>22:00 UTC]
+    A[Registration<br/>Sign up on the event page<br/>Closes 22 Oct, 23:59] --> B[Sponsor Workshops<br/>Zetaris & Cursor 12 Oct<br/>NVIDIA & Meterless 14 Oct<br/>22:00 UTC]
     B --> C[HackOS Resources<br/>Sponsor folders, challenge pages,<br/>team formation]
-    C --> D[14 Oct Participant Onboarding<br/>16:00 UTC: tracks, sponsor tech,<br/>HackOS walkthrough, Q&A]
-    D --> E[15 - 20 Oct Build Window<br/>144 hours on HackOS]
-    E --> F[20 Oct Submission Deadline<br/>Submit by 23:45 UTC]
+    C --> D[21 Oct Participant Onboarding<br/>16:00 UTC: tracks, sponsor tech,<br/>HackOS walkthrough, Q&A]
+    D --> E[22 - 27 Oct Build Window<br/>144 hours on HackOS]
+    E --> F[27 Oct Submission Deadline<br/>Submit by 23:45 UTC]
     F --> G[Judging<br/>Expert judges score<br/>against published criteria]
-    G --> H[30 Oct Results<br/>Live results call on HackOS<br/>16:00 UTC]
+    G --> H[6 Nov Results<br/>Live results call on HackOS<br/>16:00 UTC]
     H --> I[Post-Event<br/>GenAI Works community on Discord]
 ```
 
@@ -32,15 +32,15 @@ flowchart LR
 
 | Stage | Date / Window | What Happens | Your Primary Action | Outcome |
 |---|---:|---|---|---|
-| **1. Register** | **14 Aug – 13 Oct, 00:00** | Sign up through the event page. One sign-up covers the event, Discord, and community updates. | Register, log in to HackOS, and complete your profile. | You are registered for the hackathon. |
-| **2. Sponsor Workshops** | **8 and 12 Oct, 22:00** | Live workshops on GenAI Academy: NVIDIA and Meterless on 8 Oct, Zetaris and Cursor on 12 Oct. Recordings are added to HackOS. | Attend live or watch the recordings. | You understand the sponsor technology. |
-| **3. HackOS Resources** | **Before 15 Oct** | Sponsor folders in Resources, challenge pages, and team-finding are available on HackOS. | Review resources, shortlist your track, and decide whether to build solo or in a team. | You have a track shortlist and a plan for how you will build. |
-| **4. Participant Onboarding** | **14 Oct, 16:00–17:30** | Official start of the participant experience, delivered by the GenAI Works team with technical walkthroughs from the Product Team. | Attend live, confirm your track, ask questions. | You are ready to build. |
-| **5. Build Window** | **15 Oct, 00:00 – 20 Oct, 23:45** | 144-hour build period. Mentor office hours and the #help desk channel are live on HackOS. | Build, test, and prepare your submission materials. | Working solution ready for submission. |
-| **6. Submission** | **20 Oct, 23:45** | Submit your project through HackOS. | Submit before the deadline. Do not rely on last-minute fixes. | Submission received. |
-| **7. Judging** | **From 20 Oct, 00:00** | Expert judges score submissions against the published criteria. | Monitor HackOS announcements. | Winners selected. |
-| **8. Results** | **30 Oct, 16:00** | Winners announced on the live results call on HackOS. | Join the results call. | Prizes from a pool of up to $20,000. |
-| **9. Post-Event** | **After 30 Oct** | Community activities continue on Discord. | Join the GenAI Works community on Discord. | Ongoing community connection. |
+| **1. Register** | **14 Aug – 22 Oct, 23:59** | Sign up through the event page. One sign-up covers the event, Discord, and community updates. | Register, log in to HackOS, and complete your profile. | You are registered for the hackathon. |
+| **2. Sponsor Workshops** | **12 and 14 Oct, 22:00** | Live workshops on GenAI Academy: Zetaris and Cursor on 12 Oct, NVIDIA and Meterless on 14 Oct. Recordings are added to HackOS. | Attend live or watch the recordings. | You understand the sponsor technology. |
+| **3. HackOS Resources** | **Before 22 Oct** | Sponsor folders in Resources, challenge pages, and team-finding are available on HackOS. | Review resources, shortlist your track, and decide whether to build solo or in a team. | You have a track shortlist and a plan for how you will build. |
+| **4. Participant Onboarding** | **21 Oct, 16:00–17:30** | Official start of the participant experience, delivered by the GenAI Works team with technical walkthroughs from the Product Team. | Attend live, confirm your track, ask questions. | You are ready to build. |
+| **5. Build Window** | **22 Oct, 00:00 – 27 Oct, 23:45** | 144-hour build period. Mentor office hours and the #help desk channel are live on HackOS. | Build, test, and prepare your submission materials. | Working solution ready for submission. |
+| **6. Submission** | **27 Oct, 23:45** | Submit your project through HackOS. | Submit before the deadline. Do not rely on last-minute fixes. | Submission received. |
+| **7. Judging** | **From 27 Oct, 00:00** | Expert judges score submissions against the published criteria. | Monitor HackOS announcements. | Winners selected. |
+| **8. Results** | **6 Nov, 16:00** | Winners announced on the live results call on HackOS. | Join the results call. | Prizes from a pool of up to $20,000. |
+| **9. Post-Event** | **After 6 Nov** | Community activities continue on Discord. | Join the GenAI Works community on Discord. | Ongoing community connection. |
 
 ---
 
@@ -57,7 +57,7 @@ Registration is open through the event page: https://hackathon.genai.works/event
 | Item | Detail |
 |---|---|
 | **Opens** | 14 August 2026, 00:00 UTC |
-| **Closes** | 13 October 2026, 00:00 UTC (hard deadline) |
+| **Closes** | 22 October 2026, 23:59 UTC (hard deadline) |
 | **Cost** | Free |
 | **Eligibility** | Open worldwide to anyone aged 16 or older at the start of the build window |
 | **Accounts** | One account per participant. Duplicate accounts disqualify the whole team. |
@@ -72,10 +72,10 @@ After registering, log in to HackOS and complete your profile:
 
 ### Participant Checklist
 
-- [ ] Registered before 13 October, 00:00 UTC
+- [ ] Registered before 22 October, 23:59 UTC
 - [ ] Logged in to HackOS
 - [ ] Profile complete, including skills
-- [ ] A realistic view of your availability between **15 and 20 October**
+- [ ] A realistic view of your availability between **22 and 27 October**
 
 ---
 
@@ -87,8 +87,8 @@ Sponsors run live workshops covering their technology and how to use it in your 
 
 | Sponsors | Date | Time |
 |---|---|---|
-| NVIDIA and Meterless | 8 October 2026 | 22:00 UTC (3:00 PM PT) |
 | Zetaris and Cursor | 12 October 2026 | 22:00 UTC (3:00 PM PT) |
+| NVIDIA and Meterless | 14 October 2026 | 22:00 UTC (3:00 PM PT) |
 
 Join through the Open Agent Hackathon 2026 course on GenAI Academy: https://academy.genai.works/courses/open-agent-hackathon-2026/details
 
@@ -132,11 +132,11 @@ Teams have 1–5 builders, and solo entries compete in the same pool as teams. A
 
 ---
 
-## Stage 4 — 14 October Participant Onboarding
+## Stage 4 — 21 October Participant Onboarding
 
 **Goal:** Start with the same context, rules, and technical expectations as every other participant.
 
-Onboarding runs on **14 October, 16:00–17:30 UTC (9:00–10:30 AM PT)**. It is delivered by the GenAI Works team, with technical walkthroughs from the Product Team.
+Onboarding runs on **21 October, 16:00–17:30 UTC (9:00–10:30 AM PT)**. It is delivered by the GenAI Works team, with technical walkthroughs from the Product Team.
 
 ### What Happens During Onboarding
 
@@ -159,11 +159,11 @@ Onboarding runs on **14 October, 16:00–17:30 UTC (9:00–10:30 AM PT)**. It is
 
 ---
 
-## Stage 5 — 15–20 October Build Window
+## Stage 5 — 22–27 October Build Window
 
 **Goal:** Build a working agent system for your chosen track.
 
-The build window runs from **15 October, 00:00 UTC to 20 October, 23:45 UTC** (144 hours).
+The build window runs from **22 October, 00:00 UTC to 27 October, 23:45 UTC** (144 hours).
 
 ---
 
@@ -241,11 +241,11 @@ Final Agent produces answer
 
 | Date | Recommended Focus |
 |---:|---|
-| **15 Oct** | Confirm your track, user, and expected output. Connect Zetaris and Meterless. Build a basic working agent loop. |
-| **16–17 Oct** | Add evaluation, critique, or review steps. Add retries, branching, and shared context or memory. Start logging agent activity. |
-| **18 Oct** | Add datasets, tools, and retrieval. Test failures and fallbacks. |
-| **19 Oct** | Complete your README, prepare your slide deck, test a clean setup from scratch, and record your demo video (1–4 minutes). |
-| **20 Oct** | Final checks. Declare any pre-existing components. Submit early. Deadline is **23:45 UTC**. |
+| **22 Oct** | Confirm your track, user, and expected output. Connect Zetaris and Meterless. Build a basic working agent loop. |
+| **23–24 Oct** | Add evaluation, critique, or review steps. Add retries, branching, and shared context or memory. Start logging agent activity. |
+| **25 Oct** | Add datasets, tools, and retrieval. Test failures and fallbacks. |
+| **26 Oct** | Complete your README, prepare your slide deck, test a clean setup from scratch, and record your demo video (1–4 minutes). |
+| **27 Oct** | Final checks. Declare any pre-existing components. Submit early. Deadline is **23:45 UTC**. |
 
 ---
 
@@ -253,7 +253,7 @@ Final Agent produces answer
 
 **Goal:** Submit a complete solution before the deadline.
 
-> **20 October 2026, 23:45 UTC (hard deadline)**
+> **27 October 2026, 23:45 UTC (hard deadline)**
 
 ## 6.1 Required Submission Components
 
@@ -284,7 +284,7 @@ Work committed before the build window opens is not eligible, except for clearly
 
 **Goal:** Have your solution scored against the published criteria.
 
-Judging opens on **20 October, 00:00 UTC**, while final submissions come in. Each submission is reviewed by at least three judges. The Wildcard [Tinkerer] track is scored on the new work rather than prior development.
+Judging opens on **27 October, 00:00 UTC**, while final submissions come in. Each submission is reviewed by at least three judges. The Wildcard [Tinkerer] track is scored on the new work rather than prior development.
 
 | Criterion | Points |
 |---|---:|
@@ -306,7 +306,7 @@ Ties are resolved on the Impact score, then on submission timestamp. During judg
 
 | Item | Detail |
 |---|---|
-| **Results announced** | 30 October 2026, 16:00 UTC |
+| **Results announced** | 6 November 2026, 16:00 UTC |
 | **Where** | Live results call on HackOS |
 | **Prize pool** | Up to $20,000: $15,000 in cash prizes and $5,000 in in-kind rewards for selected winners |
 | **After the event** | Join the GenAI Works community on Discord for community chat and post-event activities |
@@ -317,12 +317,12 @@ Ties are resolved on the Impact score, then on submission timestamp. During judg
 
 | Gate | When | What Must Be True |
 |---|---:|---|
-| **Registration Gate** | 13 Oct, 00:00 | You are registered, aged 16 or older at the start of the build window, with one account. |
-| **Onboarding Gate** | 14 Oct | You have shortlisted your track and decided whether to build solo or in a team. |
-| **Build Gate** | 15–20 Oct | You have a working agent system for your chosen track, integrating Zetaris and Meterless. |
-| **Submission Gate** | 20 Oct, 23:45 | All required submission components are submitted on HackOS. Your team locks when your first submission is created. |
-| **Judging Gate** | From 20 Oct, 00:00 | Your solution scores well against the published criteria. |
-| **Results** | 30 Oct, 16:00 | Winners are announced on the live results call. |
+| **Registration Gate** | 22 Oct, 23:59 | You are registered, aged 16 or older at the start of the build window, with one account. |
+| **Onboarding Gate** | 21 Oct | You have shortlisted your track and decided whether to build solo or in a team. |
+| **Build Gate** | 22–27 Oct | You have a working agent system for your chosen track, integrating Zetaris and Meterless. |
+| **Submission Gate** | 27 Oct, 23:45 | All required submission components are submitted on HackOS. Your team locks when your first submission is created. |
+| **Judging Gate** | From 27 Oct, 00:00 | Your solution scores well against the published criteria. |
+| **Results** | 6 Nov, 16:00 | Winners are announced on the live results call. |
 
 ---
 
@@ -347,18 +347,18 @@ When asking for help, include what you are trying to do, your framework and stac
 ## 6. The Participant Success Pattern
 
 ```text
-Register before 13 October
+Register before 22 October
 → Attend or watch the sponsor workshops
 → Review HackOS resources and decide: solo or team
-→ Attend onboarding on 14 October
+→ Attend onboarding on 21 October
 → Choose a feasible track
 → Build a small working agent loop early
 → Integrate Zetaris and Meterless, and develop in Cursor
 → Log agent activity from day one
 → Improve the depth of your agent system
 → Record your demo and prepare your slide deck
-→ Submit before 20 October, 23:45 UTC
-→ Join the results call on 30 October
+→ Submit before 27 October, 23:45 UTC
+→ Join the results call on 6 November
 ```
 
 ---

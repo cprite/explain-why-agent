@@ -1,11 +1,11 @@
 # Official Rules
 
-Folder: Rules and Requirements · updated 2026-09-30
+Folder: Rules and Requirements · updated 2026-10-07
 
 # OPEN AGENT HACKATHON 2026 — Official Rules (WORKING DRAFT)
 
 **Build an agent that does real work**
-**Fully online · 15–20 October 2026 · Submissions close 20 October 2026, 23:45 UTC**
+**Fully online · 22–27 October 2026 · Submissions close 27 October 2026, 23:45 UTC**
 
 > **Draft status.** The binding Official Rules are published on the event page at hackathon.genai.works. This document is a working draft for internal review. Sections marked **[VERIFY]** must be checked against the published rules before publication, and sections marked **[LEGAL]** must be reviewed by counsel rather than adapted from another event.
 
@@ -33,13 +33,13 @@ The hackathon exists to surface AI agents that do real work: agents that can acc
 | **Event platform** | HackOS |
 | **Community** | Discord, for post-hackathon community activity |
 | **Registration opens** | 14 August 2026, 00:00 UTC |
-| **Registration closes** | 13 October 2026, 00:00 UTC |
 | **Sponsor workshops** | TBA |
-| **Participant onboarding** | 14 October 2026 |
-| **Build window** | 15 October 2026, 00:00 UTC to 20 October 2026 |
-| **Judging opens** | 20 October 2026, 00:00 UTC |
-| **Submissions close** | 20 October 2026, 23:45 UTC |
-| **Results announced** | 30 October 2026, 16:00 UTC |
+| **Participant onboarding** | 21 October 2026 |
+| **Build window** | 22 October 2026, 00:00 UTC to 27 October 2026 |
+| **Registration closes** | 22 October 2026, 23:59 UTC |
+| **Judging opens** | 27 October 2026, 00:00 UTC |
+| **Submissions close** | 27 October 2026, 23:45 UTC |
+| **Results announced** | 6 November 2026, 16:00 UTC |
 | **Challenge tracks** | 4 |
 | **Prize pool** | Up to $20,000 |
 | **Cost to enter** | Free |
@@ -77,7 +77,7 @@ Registration may ask for name, email, skills, preferred track and team preferenc
 
 Participants must provide accurate information. False or misleading information may result in removal or disqualification of the participant's team.
 
-Registration closes **13 October 2026, 00:00 UTC**. This is a hard deadline.
+Registration closes **22 October 2026, 23:59 UTC**. This is a hard deadline.
 
 ---
 
@@ -185,7 +185,7 @@ Submissions must still:
 
 ## 10. Submission
 
-The submission deadline is **20 October 2026, 23:45 UTC**. Late submissions are not evaluated.
+The submission deadline is **27 October 2026, 23:45 UTC**. Late submissions are not evaluated.
 
 Submissions are made on HackOS.
 
@@ -266,7 +266,7 @@ By submitting, each participant represents that:
 
 ### 14.1 Process
 
-Judging opens **20 October 2026, 00:00 UTC** and runs while final submissions come in. Submissions are reviewed by expert judges against the published criteria.
+Judging opens **27 October 2026, 00:00 UTC** and runs while final submissions come in. Submissions are reviewed by expert judges against the published criteria.
 
 **[VERIFY: whether judging runs in stages, who the judges are, and whether feedback is provided to participants.]**
 
@@ -400,7 +400,7 @@ Before submitting, confirm:
 - [ ] Third-party code and data are properly licensed
 - [ ] No confidential or restricted data is included
 - [ ] Partner technology use is documented
-- [ ] Submitted before **20 October 2026, 23:45 UTC**
+- [ ] Submitted before **27 October 2026, 23:45 UTC**
 
 ---
 

@@ -1,6 +1,6 @@
 # Team Formation Rules
 
-Folder: Rules and Requirements · updated 2026-09-18
+Folder: Rules and Requirements · updated 2026-10-07
 
 # Team Formation Rules
 
@@ -10,8 +10,8 @@ How to build alone, form a team, join a team, change a roster and confirm your f
 
 **Applies to:** all registered participants
 **Platform:** HackOS
-**Build window:** 15–20 October 2026, 144 hours
-**Submissions close:** **20 October 2026, 23:45 UTC**
+**Build window:** 22–27 October 2026, 144 hours
+**Submissions close:** **27 October 2026, 23:45 UTC**
 
 > Where these rules and the Official Rules on the event page disagree, the Official Rules apply.
 
@@ -60,13 +60,13 @@ Useful matching criteria:
 | # | Requirement | Rule |
 |---|---|---|
 | 1 | Age | At least 16 at the start of the build window |
-| 2 | Registration | Registered before 13 October, 00:00 UTC |
+| 2 | Registration | Registered before 22 October, 23:59 UTC |
 | 3 | Accounts | One account per person; duplicates disqualify the whole team |
 | 4 | Team size | 1 to 5 members |
 | 5 | One-team rule | Not listed on more than one submission |
 | 6 | Compliance | Follows the Official Rules, Code of Conduct and AI Usage Policy |
 
-Someone who is not registered cannot be added as a team member, a contributor on the submission, or a prize recipient. Registration closes 13 October and there is no late entry, so anyone you want on the team must be registered by then.
+Someone who is not registered cannot be added as a team member, a contributor on the submission, or a prize recipient. Registration closes 22 October and there is no late entry, so anyone you want on the team must be registered by then.
 
 ---
 
@@ -95,22 +95,22 @@ A team may change its contact at any time by mutual agreement. Tell a moderator 
 |---|---|---|
 | Registration opens | 14 August | Register, set up your HackOS profile |
 | Team-finding opens | After registration | Find teammates, form teams |
-| **Registration closes** | **13 October, 00:00** | Hard deadline; nobody can join the event after this |
-| Participant onboarding | 14 October | Confirm your track and team |
-| **Build window opens** | **15 October, 00:00** | Teams should be settled by now |
-| Build window | 15–20 October | 144 hours |
-| **Submissions close** | **20 October, 23:45** | Final roster must be accurate |
-| Results | 30 October, 16:00 | Winners announced |
+| Participant onboarding | 21 October | Confirm your track and team |
+| **Build window opens** | **22 October, 00:00** | Teams should be settled by now |
+| **Registration closes** | **22 October, 23:59** | Hard deadline; nobody can join the event after this |
+| Build window | 22–27 October | 144 hours |
+| **Submissions close** | **27 October, 23:45** | Final roster must be accurate |
+| Results | 6 November, 16:00 | Winners announced |
 
 [TBC: whether roster changes are permitted during the build window, and whether there is a formal lock point. The Official Rules are the authority. The guidance below assumes changes are allowed during the window but not after the deadline.]
 
 ---
 
-## 6. Settle Your Team Before 15 October
+## 6. Settle Your Team Before 22 October
 
 There is no separate merge deadline in a six-day event. The practical deadline is the build window opening.
 
-**Before 15 October you can freely:** join a team, leave a team, add a registered participant, merge two teams, split off, change your contact, change track.
+**Before 22 October you can freely:** join a team, leave a team, add a registered participant, merge two teams, split off, change your contact, change track.
 
 **During the build window**, changes are possible but costly. Every hour spent renegotiating the roster is an hour not spent building, and you have 144 of them.
 
@@ -144,7 +144,7 @@ Handle it respectfully and early. If contribution or availability is a problem, 
 
 ## 9. Merging Teams
 
-Two teams combining into one. Do it **before 15 October**; mid-build merges rarely end well in a six-day window.
+Two teams combining into one. Do it **before 22 October**; mid-build merges rarely end well in a six-day window.
 
 Before merging, agree on: the team name, the primary contact, the track, the repository that continues, the architecture direction, member roles, how each team's existing work will be used, credit, **the prize split**, and the submission plan.
 
@@ -176,7 +176,7 @@ Discussion, learning and helping each other in track rooms is encouraged. The su
 
 Each team picks **one track** and builds for it.
 
-Before 15 October, change track freely if the team agrees. Once you are building, a track change costs you time you don't have.
+Before 22 October, change track freely if the team agrees. Once you are building, a track change costs you time you don't have.
 
 [TBC: whether a track change is permitted during the build window. See section 3 of the Official Rules.]
 
@@ -219,7 +219,7 @@ The prize pool is **up to $20,000**, with a feature in the community showcase fo
 
 **Prizes are split equally among team members by default.**
 
-This is the single most important thing to settle early, and it's the one teams skip. At G42 the prize was a pathway; here it's money, and money is what turns a friendly disagreement on day six into a real dispute on 30 October.
+This is the single most important thing to settle early, and it's the one teams skip. At G42 the prize was a pathway; here it's money, and money is what turns a friendly disagreement on day six into a real dispute on 6 November.
 
 **Agree in writing, before you submit:**
 
@@ -342,7 +342,7 @@ Before the build window opens:
 - [ ] Repository access is granted to everyone active
 - [ ] A communication channel is agreed
 - [ ] Time zone coverage and handover are agreed
-- [ ] Everyone knows the deadline: **20 October, 23:45 UTC**
+- [ ] Everyone knows the deadline: **27 October, 23:45 UTC**
 - [ ] The project runs for more than one person
 
 ---
@@ -350,11 +350,11 @@ Before the build window opens:
 ## 20. Summary
 
 - Participate **individually**, as a **pre-formed team**, or by **forming a team on HackOS**, with a **maximum of 5 members**.
-- Every member must be registered before **13 October, 00:00 UTC**.
+- Every member must be registered before **22 October, 23:59 UTC**.
 - Each participant appears on **one submission only**.
-- Settle your team before the build window opens on **15 October**.
+- Settle your team before the build window opens on **22 October**.
 - The roster on HackOS at the deadline is your official roster.
-- Submissions close **20 October, 23:45 UTC**.
+- Submissions close **27 October, 23:45 UTC**.
 - **Prizes split equally by default.** Agree anything else in writing before you submit.
 - Don't let the project depend on one person's credentials or machine.
 - Teams resolve their own contribution questions; organizers handle process, misconduct and eligibility.

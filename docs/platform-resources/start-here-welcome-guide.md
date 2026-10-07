@@ -1,6 +1,6 @@
 # Welcome Guide
 
-Folder: Start here · updated 2026-10-01
+Folder: Start here · updated 2026-10-07
 
 # Welcome Guide
 
@@ -8,7 +8,7 @@ Folder: Start here · updated 2026-10-01
 
 Welcome to the **Open Agent Hackathon 2026**, a fully online global hackathon for builders creating real agentic solutions to meaningful real-world problems.
 
-This guide is your **pre-event orientation resource**. Read it before **participant onboarding on 14 October 2026** and keep it open during your first build session.
+This guide is your **pre-event orientation resource**. Read it before **participant onboarding on 21 October 2026** and keep it open during your first build session.
 
 The goal is simple:
 
@@ -32,12 +32,12 @@ The **Open Agent Hackathon 2026** is a 144-hour online build event where partici
 | **Challenge tracks** | 3, plus the bonus Wildcard [Tinkerer] track |
 | **Sponsors** | NVIDIA, Zetaris, Cursor, Meterless |
 | **Prize pool** | Up to $20,000 ($15,000 in cash prizes and $5,000 in in-kind rewards) |
-| **Sponsor workshops** | 8 and 12 October 2026, 22:00 UTC (3:00 PM PT) |
-| **Registration closes** | 13 October 2026, 00:00 UTC |
-| **Participant onboarding** | 14 October 2026, 16:00–17:30 UTC (9:00–10:30 AM PT) |
-| **Build window** | 15 October 2026, 00:00 UTC to 20 October 2026, 23:45 UTC |
-| **Submissions close** | 20 October 2026, 23:45 UTC |
-| **Results announced** | 30 October 2026, 16:00 UTC |
+| **Sponsor workshops** | 12 and 14 October 2026, 22:00 UTC (3:00 PM PT) |
+| **Participant onboarding** | 21 October 2026, 16:00–17:30 UTC (9:00–10:30 AM PT) |
+| **Build window** | 22 October 2026, 00:00 UTC to 27 October 2026, 23:45 UTC |
+| **Registration closes** | 22 October 2026, 23:59 UTC |
+| **Submissions close** | 27 October 2026, 23:45 UTC |
+| **Results announced** | 6 November 2026, 16:00 UTC |
 
 Employees of the organizer and of judging sponsors may participate but are not eligible for cash prizes. One account per participant; duplicate accounts disqualify the whole team. Full details are in the Official Rules on the event page.
 
@@ -158,15 +158,15 @@ All times are in **UTC**.
 
 | Date | Milestone | What You Should Do |
 |---|---|---|
-| **8 October, 22:00** | NVIDIA and Meterless workshop | Attend live where possible. Recording is added to HackOS. |
 | **12 October, 22:00** | Zetaris and Cursor workshop | Attend live where possible. Recording is added to HackOS. |
-| **13 October, 00:00** | Registration closes | Hard deadline to register. |
-| **14 October, 16:00–17:30** | Participant onboarding | Attend live. Confirm your track and how you will build. |
-| **15 October, 00:00** | Build window opens | Start building. |
-| **15–20 October** | Build period | Use HackOS, mentors, and resources. Ask questions early. |
-| **20 October, 00:00** | Judging opens | Judging begins while final submissions come in. |
-| **20 October, 23:45** | Submissions close | Hard deadline. Submit all required materials. |
-| **30 October, 16:00** | Results announced | Live results call on HackOS. |
+| **14 October, 22:00** | NVIDIA and Meterless workshop | Attend live where possible. Recording is added to HackOS. |
+| **21 October, 16:00–17:30** | Participant onboarding | Attend live. Confirm your track and how you will build. |
+| **22 October, 00:00** | Build window opens | Start building. |
+| **22 October, 23:59** | Registration closes | Hard deadline to register. |
+| **22–27 October** | Build period | Use HackOS, mentors, and resources. Ask questions early. |
+| **27 October, 00:00** | Judging opens | Judging begins while final submissions come in. |
+| **27 October, 23:45** | Submissions close | Hard deadline. Submit all required materials. |
+| **6 November, 16:00** | Results announced | Live results call on HackOS. |
 
 ---
 
@@ -178,14 +178,14 @@ Sponsors run live workshops before the hackathon, covering their technology and 
 
 | Sponsors | Date | Time |
 |---|---|---|
-| NVIDIA and Meterless | 8 October 2026 | 22:00 UTC (3:00 PM PT) |
 | Zetaris and Cursor | 12 October 2026 | 22:00 UTC (3:00 PM PT) |
+| NVIDIA and Meterless | 14 October 2026 | 22:00 UTC (3:00 PM PT) |
 
 Join the workshops through the Open Agent Hackathon 2026 course on GenAI Academy: https://academy.genai.works/courses/open-agent-hackathon-2026/details
 
 If you cannot attend live, watch the recordings on HackOS before the hackathon starts.
 
-### Participant onboarding (14 October, 16:00–17:30 UTC)
+### Participant onboarding (21 October, 16:00–17:30 UTC)
 
 Onboarding is the official start of the participant experience. It is delivered by the GenAI Works team, with technical walkthroughs from the Product Team.
 
@@ -226,7 +226,7 @@ Use HackOS to:
 
 ### Step 1: Register and log in to HackOS
 
-Complete your registration before **13 October, 00:00 UTC**, then log in to HackOS.
+Complete your registration before **22 October, 23:59 UTC**, then log in to HackOS.
 
 ### Step 2: Complete your profile
 
@@ -307,7 +307,7 @@ Keep secrets in a local `.env` file, add it to `.gitignore`, and include a `.env
 
 ## 9. What You Need to Submit
 
-Submissions close on **20 October 2026 at 23:45 UTC**. This is a hard deadline. Submit through HackOS.
+Submissions close on **27 October 2026 at 23:45 UTC**. This is a hard deadline. Submit through HackOS.
 
 | Component | Requirement |
 |---|---|
@@ -412,7 +412,7 @@ The build window runs for 144 hours. Get a working end-to-end system early.
 - Complete all submission materials.
 - Declare any pre-existing components.
 - Check for committed secrets.
-- Submit before 20 October, 23:45 UTC.
+- Submit before 27 October, 23:45 UTC.
 
 ---
 
@@ -469,14 +469,14 @@ Do not post API keys or secrets anywhere.
 Before the hackathon:
 
 1. Read this guide fully.
-2. Register before 13 October, 00:00 UTC.
-3. Attend or watch the sponsor workshops (8 and 12 October, 22:00 UTC).
+2. Register before 22 October, 23:59 UTC.
+3. Attend or watch the sponsor workshops (12 and 14 October, 22:00 UTC).
 4. Review the three tracks and the Wildcard [Tinkerer] track.
 5. Set up your HackOS profile.
 6. Decide whether you will build solo or in a team.
-7. Attend participant onboarding on 14 October, 16:00 UTC.
+7. Attend participant onboarding on 21 October, 16:00 UTC.
 
-When the hackathon starts on 15 October:
+When the hackathon starts on 22 October:
 
 1. Confirm your track and how you will build.
 2. Set up Zetaris, Meterless and Cursor.

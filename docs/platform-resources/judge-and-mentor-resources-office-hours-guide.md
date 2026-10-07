@@ -1,12 +1,12 @@
 # Office Hours Guide
 
-Folder: Judge and Mentor Resources · updated 2026-09-30
+Folder: Judge and Mentor Resources · updated 2026-10-07
 
 # Mentor Office Hours Guide
 
 **OPEN AGENT HACKATHON 2026 | Build an agent that does real work**
 
-How office hours run during the **15–20 October build window**. For **participants** and **mentors**.
+How office hours run during the **22–27 October build window**. For **participants** and **mentors**.
 
 Office hours exist to unblock teams fast, improve architecture decisions, clarify requirements, and help teams submit something judges can actually run. They are not a substitute for building.
 
@@ -23,7 +23,7 @@ Office hours help teams:
 - Improve how agents actually work together
 - Sort out data, reproducibility and runtime problems
 - Get partner technology integrated
-- Check submission readiness before **20 October, 23:45 UTC**
+- Check submission readiness before **27 October, 23:45 UTC**
 
 Every session should end with a clear next action.
 
@@ -35,13 +35,13 @@ All times **UTC**.
 
 | Milestone | Date | Notes |
 |---|---|---|
-| Registration closes | 13 October, 00:00 | Hard deadline |
-| Participant onboarding | 14 October | Tracks, partner stack, HackOS walkthrough |
-| **Build window opens** | **15 October, 00:00** | Office hours active |
-| Mid-build checkpoint | 17 October | Teams should have a working end-to-end loop |
-| Final day | 20 October | Focus shifts entirely to validation and packaging |
-| **Submissions close** | **20 October, 23:45** | Hard deadline |
-| Results | 30 October, 16:00 | Live call |
+| Participant onboarding | 21 October | Tracks, partner stack, HackOS walkthrough |
+| **Build window opens** | **22 October, 00:00** | Office hours active |
+| Registration closes | 22 October, 23:59 | Hard deadline |
+| Mid-build checkpoint | 24 October | Teams should have a working end-to-end loop |
+| Final day | 27 October | Focus shifts entirely to validation and packaging |
+| **Submissions close** | **27 October, 23:45** | Hard deadline |
+| Results | 6 November, 16:00 | Live call |
 
 ---
 
@@ -117,7 +117,7 @@ Because the whole event is six days, lead times are hours, not days.
 | Architecture review | Same day |
 | Framework or partner debugging | A few hours |
 | Submission readiness check | Book on day 4 or 5, not day 6 |
-| Urgent blocker on 20 October | As soon as you hit it |
+| Urgent blocker on 27 October | As soon as you hit it |
 
 **If a slot isn't available in time, post in your track room.** A written question answered in 40 minutes beats a session in eight hours. Office hours are for problems that need conversation.
 
@@ -126,7 +126,7 @@ Because the whole event is six days, lead times are hours, not days.
 - One active slot at a time per team
 - Don't book duplicates for the same issue
 - **Cancel if you get unblocked**, so someone else can use it
-- On 20 October, priority goes to teams blocked from submitting at all
+- On 27 October, priority goes to teams blocked from submitting at all
 
 ### 5.4 Booking form
 
@@ -288,7 +288,7 @@ For architecture feedback, framework debugging, data strategy.
 
 ### 7.3 Final-day review — 20 minutes
 
-For 19–20 October.
+For 26–27 October.
 
 | Time | Activity |
 |---|---|
@@ -439,7 +439,7 @@ Targets, not guarantees.
 
 | Issue | Target |
 |---|---|
-| Blocked from submitting on 20 October | Immediately |
+| Blocked from submitting on 27 October | Immediately |
 | Partner service issue affecting several teams | Same day |
 | Framework or architecture question | Within hours during the build window |
 | Data or reproducibility question | Same day |
@@ -476,13 +476,13 @@ This is a global event with mentors across time zones. Publish the rota so teams
 
 **Nobody at the hackathon can fix a participant's provider account.** If a minimal SDK call fails outside their framework, that's their provider's support, and saying so quickly saves everyone time.
 
-[TBC: the private escalation route needs publishing before 15 October.]
+[TBC: the private escalation route needs publishing before 22 October.]
 
 ---
 
 ## 13. Guidance by Stage
 
-### Day 1–2 (15–16 October)
+### Day 1–2 (22–23 October)
 
 **Focus:** track confirmed, architecture decided, partner tech connected, repo scaffolded, first agent-to-agent interaction working.
 
@@ -490,7 +490,7 @@ Mentors should ask: Is this scope feasible in six days? Are the agents distinct 
 
 **Milestone by end of day 2:** a minimal end-to-end run works, even if the output is poor.
 
-### Day 3–4 (17–18 October)
+### Day 3–4 (24–25 October)
 
 **Focus:** depth of agent behaviour, data, logging, tool use, error handling.
 
@@ -498,13 +498,13 @@ Mentors should ask: Do agents critique or validate each other? Do the traces sho
 
 **Milestone by end of day 4:** traces exist, data is stable, output quality is testable, and **the full validation flow has been run once**. Two days is enough to fix what it finds. Two hours isn't.
 
-### Day 5–6 (19–20 October)
+### Day 5–6 (26–27 October)
 
 **Focus:** reproducibility, packaging, demo, README, final validation.
 
 Mentors should ask: Does it run from a clean clone on another machine? Does sample mode work with no credentials? Are there secrets anywhere, including the video? Does the demo show the real system? Is the link accessible?
 
-**Milestone by midday 20 October:** submitted. Then improve and resubmit if time allows.
+**Milestone by midday 27 October:** submitted. Then improve and resubmit if time allows.
 
 ---
 

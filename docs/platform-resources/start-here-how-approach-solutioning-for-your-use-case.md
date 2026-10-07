@@ -1,6 +1,6 @@
 # How APPROACH Solutioning For Your Use Case
 
-Folder: Start here · updated 2026-10-01
+Folder: Start here · updated 2026-10-07
 
 # How to APPROACH Solutioning For Your Track
 
@@ -10,13 +10,13 @@ This guide helps you choose a feasible track and use case, scope your build corr
 
 The strongest teams will not necessarily pick the hardest idea. They will pick something they can execute convincingly within the hackathon constraints:
 
-- **144-hour build window (15 October, 00:00 UTC to 20 October, 23:45 UTC)**
+- **144-hour build window (22 October, 00:00 UTC to 27 October, 23:45 UTC)**
 - **One primary track: one of the three challenge tracks, or the bonus Wildcard [Tinkerer] track for existing projects**
 - **Solo, or teams of up to 5 builders**
 - **Zetaris and Meterless integrated in every submission, Cursor used for development, and NVIDIA wherever it contributes**
 - **A working agent, not a demo or a chatbot**
 - **Evidence of how the system reached its output**
-- **Submission through HackOS by 20 October, 23:45 UTC**
+- **Submission through HackOS by 27 October, 23:45 UTC**
 
 ---
 
@@ -364,7 +364,7 @@ Your use case must fit the execution environment and the sponsor technology requ
 | **Logs** | Save or print agent activity |
 | **Examples** | Include sample inputs and outputs |
 | **No manual setup** | Data loading and execution must be automated |
-| **Submission** | Through HackOS by 20 October, 23:45 UTC, with the components listed in Step H |
+| **Submission** | Through HackOS by 27 October, 23:45 UTC, with the components listed in Step H |
 
 ---
 
@@ -501,7 +501,7 @@ Score your proposed idea honestly.
 
 ## 14. Step H — Harden for Submission
 
-Before committing to a use case, make sure you can meet the submission requirements. Submit through HackOS before 20 October, 23:45 UTC.
+Before committing to a use case, make sure you can meet the submission requirements. Submit through HackOS before 27 October, 23:45 UTC.
 
 ### Required Submission Components
 
@@ -526,8 +526,8 @@ Declare any pre-existing components, including pre-existing product code, in the
 
 | Sponsors | Workshop |
 |---|---|
-| NVIDIA and Meterless | 8 October, 22:00 UTC (3:00 PM PT) |
 | Zetaris and Cursor | 12 October, 22:00 UTC (3:00 PM PT) |
+| NVIDIA and Meterless | 14 October, 22:00 UTC (3:00 PM PT) |
 
 Workshops are joined through the GenAI Academy course and recorded for HackOS. Each sponsor has a folder in Resources on HackOS with its documentation and resources. Technical questions go to the #help desk channel on HackOS.
 

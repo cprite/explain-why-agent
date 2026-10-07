@@ -46,18 +46,24 @@ otherwise. All 32 platform documents are in `platform-resources/`.
 ## Dates (UTC → London)
 
 The organisers moved the event one week later on 7 Oct 2026 and added sponsors. The dates below are
-from their announcement and the HackOS event record; the documents in `organiser-docs/` and
-`platform-resources/` still show the old dates.
+from their announcement and the HackOS event record. The HackOS documents in `platform-resources/`
+were re-dated by the organisers on 7 Oct and confirm the times below (`start-here-event-calendar.md`);
+the copies in `organiser-docs/` still show the old dates.
 
 | What | UTC | London |
 |---|---|---|
-| Zetaris + Cursor workshop | 12 Oct, time not re-confirmed (was 22:00) | 12 Oct, 23:00 if unchanged |
-| NVIDIA + Meterless workshop | 14 Oct, time not re-confirmed (was 22:00) | 14 Oct, 23:00 if unchanged |
-| Participant onboarding | 21 Oct, time not announced (was 16:00–17:30) | 21 Oct, 17:00 if unchanged |
+| Zetaris + Cursor workshop | 12 Oct 22:00 | 12 Oct 23:00 |
+| NVIDIA + Meterless workshop | 14 Oct 22:00 | 14 Oct 23:00 |
+| Participant onboarding | 21 Oct 16:00–17:30 | 21 Oct 17:00–18:30 |
 | Build window opens | 22 Oct 00:00 | 22 Oct 01:00 |
 | Registration closes | 22 Oct 23:59 | 23 Oct 00:59 |
+| Judging opens | 27 Oct 00:00 | 27 Oct 00:00 |
 | Submissions close (hard) | 27 Oct 23:45 | 27 Oct 23:45 (clocks change on 25 Oct) |
-| Winners announced | 6 Nov, time not announced | 6 Nov |
+| Winners announced | 6 Nov 16:00 | 6 Nov 16:00 |
+
+The organisers' own day plan for the build window: 22–23 Oct working loop with Zetaris and Meterless
+integrated, 24 Oct mid-build check, 24–25 Oct depth (retries, fallbacks, logs), 26 Oct feature freeze
+and packaging, 27 Oct submit.
 
 Sponsors as of 7 Oct: Space XAI (with Cursor), Bright Data, Zetaris, Meterless, NVIDIA. Checked on
 7 Oct (`research/new-sponsors.md`): the public event page's rules text still requires exactly Zetaris

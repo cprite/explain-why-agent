@@ -1,11 +1,11 @@
 # Mentor Playbook
 
-Folder: Judge and Mentor Resources · updated 2026-09-30
+Folder: Judge and Mentor Resources · updated 2026-10-07
 
 # Mentor Playbook
 
 **OPEN AGENT HACKATHON 2026 | Build an agent that does real work**
-**Internal guide for mentors during the 15–20 October build window**
+**Internal guide for mentors during the 22–27 October build window**
 
 ---
 
@@ -27,11 +27,11 @@ Use it to understand what mentors should and shouldn't do, how sessions run, how
 | Audience | Builders worldwide, 16 and over, free to enter |
 | Format | Fully online, 144 hours |
 | Teams | 1–5 builders |
-| Registration closes | **13 October, 00:00 UTC** |
-| Participant onboarding | **14 October** |
-| Build window | **15–20 October** |
-| Submissions close | **20 October, 23:45 UTC** |
-| Results | **30 October, 16:00 UTC** |
+| Participant onboarding | **21 October** |
+| Build window | **22–27 October** |
+| Registration closes | **22 October, 23:59 UTC** |
+| Submissions close | **27 October, 23:45 UTC** |
+| Results | **6 November, 16:00 UTC** |
 | Tracks | 4 |
 | Partners | Zetaris (data), NVIDIA (models), Meterless (cognition), Cursor (coding) |
 | Models | Open choice, including closed-source and paid APIs |
@@ -42,7 +42,7 @@ Use it to understand what mentors should and shouldn't do, how sessions run, how
 
 This is not a prompt-writing competition or a UI showcase. Teams build agents that can access relevant information, understand context and relationships, reason across multiple steps, maintain useful context, and turn that into something useful.
 
-**Six days.** Everything you advise should account for that. Ambition that can't ship by 23:45 on 20 October is a scoring problem, not a virtue.
+**Six days.** Everything you advise should account for that. Ambition that can't ship by 23:45 on 27 October is a scoring problem, not a virtue.
 
 ---
 
@@ -193,13 +193,13 @@ That last question catches more teams than any other.
 
 ## 8. Session Formats
 
-Office hours run through the build window, 15–20 October.
+Office hours run through the build window, 22–27 October.
 
 | Format | Length | Best for |
 |---|---|---|
 | **Quick triage** | 10 min | A specific blocker. **The default in a six-day event.** |
 | Standard session | 25 min | Architecture feedback, framework debugging, data strategy |
-| Final-day review | 20 min | Submission readiness on 19–20 October |
+| Final-day review | 20 min | Submission readiness on 26–27 October |
 | Group clinic | 45 min | Common topics: partner setup, pipeline-to-collaboration, Docker, submission |
 | Async | — | Track room replies; often faster than waiting for a slot |
 
@@ -341,7 +341,7 @@ Deadline sensitivity:
 
 ### 11.3 Day 3–4 checkpoint
 
-By 17–18 October a team should be able to say yes to:
+By 24–25 October a team should be able to say yes to:
 
 - It runs locally
 - It runs in Docker
@@ -358,7 +358,7 @@ If a team is missing more than three of these on day four, the advice is cut sco
 
 ### 11.4 Final two days
 
-From 19 October, push toward completion, not expansion.
+From 26 October, push toward completion, not expansion.
 
 > "Cut scope and make the core reliable."
 
@@ -530,7 +530,7 @@ Don't: "I'll rewrite your entry point."
 
 ## 17. During
 
-- [ ] Remind teams of the deadline: **20 October, 23:45 UTC**
+- [ ] Remind teams of the deadline: **27 October, 23:45 UTC**
 - [ ] Ask them to redact secrets from screenshots and logs
 - [ ] Triage by category
 - [ ] Keep answers concise and fair
@@ -563,7 +563,7 @@ Don't: "I'll rewrite your entry point."
 - [ ] README covers setup, architecture and limitations honestly
 - [ ] Partner technology use documented and real
 - [ ] Demo video 2–3 minutes, link works when logged out
-- [ ] Submitted before **20 October, 23:45 UTC**
+- [ ] Submitted before **27 October, 23:45 UTC**
 
 ---
 

@@ -1,6 +1,6 @@
 # FAQ
 
-Folder: Ungrouped · updated 2026-10-01
+Folder: Ungrouped · updated 2026-10-07
 
 # Frequently Asked Questions
 
@@ -16,7 +16,7 @@ All times are in **UTC**. If anything here conflicts with the Official Rules on 
 A fully online global hackathon where builders create AI agents that do real work: agents that can access relevant information, understand context and relationships, reason across multiple steps, maintain useful context, and turn that understanding into a useful outcome.
 
 **When is it?**  
-The build window runs from **15 October, 00:00 UTC** to **20 October 2026, 23:45 UTC**, a total of 144 hours.
+The build window runs from **22 October, 00:00 UTC** to **27 October 2026, 23:45 UTC**, a total of 144 hours.
 
 **Where does it take place?**  
 Fully online. HackOS runs all hackathon operations: announcements, team-finding and team creation, mentor office hours, the #help desk channel, submission, and the results call.
@@ -38,7 +38,7 @@ No. Registration, the platform workspace, mentor office hours, and submission ar
 Anyone aged 16 or older at the start of the build window, anywhere in the world, from students to senior engineers.
 
 **When does registration close?**  
-**13 October 2026, 00:00 UTC**. This is a hard deadline.
+**22 October 2026, 23:59 UTC**. This is a hard deadline.
 
 **How do I register?**  
 Sign up on hackathon.genai.works. One sign-up covers the event and community updates.
@@ -137,8 +137,8 @@ Live sessions from the sponsors covering their technology and how to use it in a
 
 | Sponsors | Date | Time |
 |---|---|---|
-| NVIDIA and Meterless | 8 October 2026 | 22:00 UTC (3:00 PM PT) |
 | Zetaris and Cursor | 12 October 2026 | 22:00 UTC (3:00 PM PT) |
+| NVIDIA and Meterless | 14 October 2026 | 22:00 UTC (3:00 PM PT) |
 
 Join through the Open Agent Hackathon 2026 course on GenAI Academy: https://academy.genai.works/courses/open-agent-hackathon-2026/details
 
@@ -146,7 +146,7 @@ Join through the Open Agent Hackathon 2026 course on GenAI Academy: https://acad
 Watch the recording on HackOS before the build window opens.
 
 **What is participant onboarding?**  
-A live session on **14 October, 16:00–17:30 UTC (9:00–10:30 AM PT)** covering the event overview, the three tracks and the Wildcard [Tinkerer] track, the sponsor technology, a HackOS walkthrough, submission requirements, and Q&A.
+A live session on **21 October, 16:00–17:30 UTC (9:00–10:30 AM PT)** covering the event overview, the three tracks and the Wildcard [Tinkerer] track, the sponsor technology, a HackOS walkthrough, submission requirements, and Q&A.
 
 **Do I have to attend onboarding?**  
 It is strongly recommended. It is the fastest way to understand what judges expect.
@@ -171,7 +171,7 @@ Mentors help you understand the tracks, navigate HackOS and the sponsor technolo
 ## 7. Submission
 
 **When is the submission deadline?**  
-**20 October 2026, 23:45 UTC**. This is a hard deadline. Time zones do not extend it.
+**27 October 2026, 23:45 UTC**. This is a hard deadline. Time zones do not extend it.
 
 **Where do I submit?**  
 On HackOS.
@@ -207,7 +207,7 @@ Never. Keep secrets in a local `.env` file, add it to `.gitignore`, and include 
 Expert judges review submissions against the published criteria. Each submission is reviewed by at least three judges.
 
 **When does judging happen?**  
-Judging opens on **20 October, 00:00 UTC** and starts immediately after submission. Results are announced on **30 October 2026, 16:00 UTC**.
+Judging opens on **27 October, 00:00 UTC** and starts immediately after submission. Results are announced on **6 November 2026, 16:00 UTC**.
 
 **How is scoring broken down?**
 
@@ -231,7 +231,7 @@ A clear problem and user, agents that do real work rather than describe it, crit
 UI polish without depth, single-agent systems presented as agent systems, hardcoded demo paths, broad concepts with weak implementation, and unsupported claims of value.
 
 **Will I get feedback on my submission?**  
-Yes. Judging starts immediately after submission, and results are announced on 30 October.
+Yes. Judging starts immediately after submission, and results are announced on 6 November.
 
 ---
 
@@ -251,7 +251,7 @@ The prize pool is **up to $20,000** in total prize value: **$15,000 in cash priz
 By bank transfer within 30 days of the results announcement. Taxes and any local charges are the recipient's responsibility.
 
 **When are results announced?**  
-**30 October 2026, 16:00 UTC**, on the live results call on HackOS.
+**6 November 2026, 16:00 UTC**, on the live results call on HackOS.
 
 **Who owns the intellectual property in my project?**  
 You do. You keep all rights to what you build, and nothing transfers ownership to the organizer or sponsors. By submitting, you grant the organizer a license to show your demo, screenshots and description in event coverage. Sponsor-track submissions grant that sponsor the same non-exclusive promotional license.
