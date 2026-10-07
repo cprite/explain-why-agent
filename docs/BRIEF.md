@@ -59,7 +59,15 @@ from their announcement and the HackOS event record; the documents in `organiser
 | Submissions close (hard) | 27 Oct 23:45 | 27 Oct 23:45 (clocks change on 25 Oct) |
 | Winners announced | 6 Nov, time not announced | 6 Nov |
 
-Sponsors as of 7 Oct: Space XAI (with Cursor), Bright Data, Zetaris, Meterless, NVIDIA. Extra
+Sponsors as of 7 Oct: Space XAI (with Cursor), Bright Data, Zetaris, Meterless, NVIDIA. Checked on
+7 Oct (`research/new-sponsors.md`): the public event page's rules text still requires exactly Zetaris
+and Meterless in every submission, Cursor for development, and NVIDIA where it contributes; it gives
+the results time as 6 Nov 16:00 UTC. Bright Data is not on the public page yet, but HackOS has a
+"Help Bright Data" channel, so the sponsorship is real. Space XAI is the Grok model provider; its API
+is OpenAI-compatible and would fit the fallback model slot. Neither new sponsor is designed into the
+build until the 21 Oct onboarding call says what is required. If Bright Data is added, the agreed
+shape is: web search only for a confirmed broad change with every internal hypothesis exhausted,
+results in a separate `external_context` field, never in `causes` and never changing `determinable`. Extra
 challenges and prizes will be presented at onboarding on 21 Oct, so the required technology list may
 change; re-check it then. Each sponsor has a help channel on HackOS under Messages → "Sponsor tech
 support" (Help Cursor, Help Bright Data, Help Meterless, Help Zetaris, Help NVIDIA Tools). The Help

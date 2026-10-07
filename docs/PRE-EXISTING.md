@@ -12,6 +12,7 @@ repository contained no source code, data or configuration before the window ope
 | `docs/demo-and-deck.md` | Demo video script and slide deck outline | Written by the team, 6 Oct 2026 |
 | `docs/judge-prompt.md` | Prompt for a daily self-scoring pass against the published rubric | Written by the team, 6 Oct 2026 |
 | `docs/research/olist-dataset-and-incident-plan.md` | Dataset research and the design of the evaluation incidents | Written by the team, 6 Oct 2026 |
+| `docs/research/new-sponsors.md` | Research note on the sponsors added on 7 Oct | Written by the team, 7 Oct 2026 |
 | `docs/organiser-docs/` | Six participant documents (welcome guide, overview, calendar, FAQ, journey map, solutioning guide) | Provided by the organisers |
 | `docs/platform-resources/` | The Resources hub documents from HackOS, including the Meterless engine guides | Provided by the organisers and sponsors, copied 6 Oct 2026 |
 
