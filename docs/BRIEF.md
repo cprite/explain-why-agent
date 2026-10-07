@@ -79,7 +79,7 @@ Zetaris and Meterless can do.
 
 ## Channels (category OPEN-AGENT-HACKATHON)
 
-`alerts` date reminders · `hq` decisions and status · `intel` research · `build` task runner posts ·
+`general` questions for Nikolay and his answers (only Niclaw can post there) · `alerts` date reminders · `hq` decisions and status · `intel` research · `build` task runner posts ·
 `scorecard` rubric scores.
 
 ## Task board (HackOS)
