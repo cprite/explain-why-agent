@@ -1,6 +1,6 @@
 # Pre-existing components
 
-Everything in `docs/` was written or collected before the build window opened on 15 October 2026,
+Everything in `docs/` was written or collected before the build window opened on 22 October 2026,
 00:00 UTC, and is declared here as pre-existing. It is planning and reference material only: the
 repository contained no source code, data or configuration before the window opened.
 

@@ -8,7 +8,7 @@ Coordination: Nikolay talks to Claude Code; Claude Code posts tasks to agents in
 
 - **Required in every submission:** Zetaris and Meterless integrated; Cursor used for development.
   NVIDIA is used wherever it contributes. Sponsor Tech is 10 of 100 points.
-- **No early commits:** work committed before 15 Oct 00:00 UTC is not eligible, except clearly
+- **No early commits:** work committed before 22 Oct 00:00 UTC is not eligible, except clearly
   declared pre-existing components (prepared data counts and must be declared).
 - **One primary track** per submission; it can be changed until the deadline.
 - **Data:** open, legally usable, no real personal data, small samples in the repo, a
@@ -45,15 +45,25 @@ otherwise. All 32 platform documents are in `platform-resources/`.
 
 ## Dates (UTC → London)
 
+The organisers moved the event one week later on 7 Oct 2026 and added sponsors. The dates below are
+from their announcement and the HackOS event record; the documents in `organiser-docs/` and
+`platform-resources/` still show the old dates.
+
 | What | UTC | London |
 |---|---|---|
-| NVIDIA + Meterless workshop | 8 Oct 22:00 | 8 Oct 23:00 |
-| Zetaris + Cursor workshop | 12 Oct 22:00 | 12 Oct 23:00 |
-| Registration closes | 13 Oct 00:00 | 13 Oct 01:00 |
-| Participant onboarding | 14 Oct 16:00–17:30 | 14 Oct 17:00–18:30 |
-| Build window opens | 15 Oct 00:00 | 15 Oct 01:00 |
-| Submissions close (hard) | 20 Oct 23:45 | 21 Oct 00:45 |
-| Results call | 30 Oct 16:00 | 30 Oct 16:00 |
+| Zetaris + Cursor workshop | 12 Oct, time not re-confirmed (was 22:00) | 12 Oct, 23:00 if unchanged |
+| NVIDIA + Meterless workshop | 14 Oct, time not re-confirmed (was 22:00) | 14 Oct, 23:00 if unchanged |
+| Participant onboarding | 21 Oct, time not announced (was 16:00–17:30) | 21 Oct, 17:00 if unchanged |
+| Build window opens | 22 Oct 00:00 | 22 Oct 01:00 |
+| Registration closes | 22 Oct 23:59 | 23 Oct 00:59 |
+| Submissions close (hard) | 27 Oct 23:45 | 27 Oct 23:45 (clocks change on 25 Oct) |
+| Winners announced | 6 Nov, time not announced | 6 Nov |
+
+Sponsors as of 7 Oct: Space XAI (with Cursor), Bright Data, Zetaris, Meterless, NVIDIA. Extra
+challenges and prizes will be presented at onboarding on 21 Oct, so the required technology list may
+change; re-check it then. Each sponsor has a help channel on HackOS under Messages → "Sponsor tech
+support" (Help Cursor, Help Bright Data, Help Meterless, Help Zetaris, Help NVIDIA Tools). The Help
+Cursor channel states that Cursor is the required development environment for every submission.
 
 ## Submission (on HackOS)
 
@@ -104,13 +114,13 @@ Cursor's command-line agent runs unattended here (verified 2026-10-06). Login to
     CURSOR_AUTH_TOKEN=$(python3 -c "import json;print(json.load(open('/home/pi/.openclaw/credentials/cursor-auth.json'))['accessToken'])") \
       cursor-agent -p --force --trust --output-format text --workspace <repo dir> "<task>"
 
-Do not point it at the project repo before 15 Oct 00:00 UTC.
+Do not point it at the project repo before 22 Oct 00:00 UTC.
 
 ## Repository
 
 `https://github.com/cprite/explain-why-agent` — private. On 2026-10-06 Nikolay decided that all
 supporting documents and plans live in the repo under `docs/`; they are declared as pre-existing in
-`docs/PRE-EXISTING.md`. No project code, data or configuration is committed before 15 Oct 00:00 UTC.
+`docs/PRE-EXISTING.md`. No project code, data or configuration is committed before 22 Oct 00:00 UTC.
 Local working copy: `/home/pi/.openclaw/workspace/projects/open-agent-hackathon/explain-why-agent/`.
 Commits are authored as Nikolay <3dutka@gmail.com> with no mention of AI tools in commit messages or
 pull requests. The repo has to be made accessible to judges before submission; `docs/organiser-docs/`

@@ -1,6 +1,6 @@
-# Build plan — 15 to 20 October 2026
+# Build plan — 22 to 27 October 2026
 
-Task breakdown for the build window, written 6 October 2026. It follows `architecture.md`. Each task
+Task breakdown for the build window, written 6 October 2026 and re-dated on 7 October when the organisers moved the event a week later. It follows `architecture.md`. Each task
 is sized for one Cursor agent session and has a check that can be run, so "done" is not a matter of
 opinion. Hours are estimates for a solo build with agent help.
 
@@ -11,7 +11,7 @@ Rules that apply to every task:
 - Every external call has a timeout; every loop has a cap.
 - A task is not done until its check passes from a clean clone.
 
-## Day 1 — Thursday 15 October: a thin slice that runs end to end
+## Day 1 — Thursday 22 October: a thin slice that runs end to end
 
 Goal for the day: one question goes in, a real (if shallow) answer comes out, with a trace, using
 local data and a live model.
@@ -27,7 +27,7 @@ local data and a live model.
 
 Day total: 11 hours.
 
-## Day 2 — Friday 16 October: World Model and sponsor data layer
+## Day 2 — Friday 23 October: World Model and sponsor data layer
 
 | # | Task | Check | Hours |
 |---|---|---|---|
@@ -39,7 +39,7 @@ Day total: 11 hours.
 Day total: 12 hours. Task 10 depends on Zetaris access; if access is late, move it to Day 3 and
 pull task 11 forward.
 
-## Day 3 — Saturday 17 October: the investigation loop and the critic
+## Day 3 — Saturday 24 October: the investigation loop and the critic
 
 Organisers' suggested mid-build check: "if the deadline were tomorrow, what would fail?"
 
@@ -52,7 +52,7 @@ Organisers' suggested mid-build check: "if the deadline were tomorrow, what woul
 
 Day total: 13 hours.
 
-## Day 4 — Sunday 18 October: measurement, reliability, interface
+## Day 4 — Sunday 25 October: measurement, reliability, interface
 
 | # | Task | Check | Hours |
 |---|---|---|---|
@@ -65,7 +65,7 @@ Day total: 13 hours.
 
 Day total: 13 hours.
 
-## Day 5 — Monday 19 October: freeze and package
+## Day 5 — Monday 26 October: freeze and package
 
 Feature freeze at midday.
 
@@ -80,9 +80,9 @@ Feature freeze at midday.
 
 Day total: 11 hours.
 
-## Day 6 — Tuesday 20 October: submit
+## Day 6 — Tuesday 27 October: submit
 
-Submit on HackOS by midday London time. The deadline is 23:45 UTC (00:45 London on the 21st); the
+Submit on HackOS by midday London time. The deadline is 23:45 UTC, which is also 23:45 London because the clocks change on 25 October; the
 afternoon is reserve, not working time.
 
 ## Totals and what gives if time runs short

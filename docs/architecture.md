@@ -1,7 +1,7 @@
 # Architecture — "Why did this number change?"
 
 Design document, written 6 October 2026, before the build window. It describes what will be built
-between 15 and 20 October. Nothing here is implemented yet. Open decisions are listed at the end.
+between 22 and 27 October (the organisers moved the event a week later on 7 October). Nothing here is implemented yet. Open decisions are listed at the end.
 
 ## 1. What the product does
 
