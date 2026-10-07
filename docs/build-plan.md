@@ -61,7 +61,7 @@ Day total: 13 hours.
 | 17 | Token report: projected versus actual per round | Report present in the result and in `logs/` | 1 |
 | 18 | HTTP API: `POST /run`, `GET /runs/{id}`, `GET /runs/{id}/trace`, structured errors | `curl` with an example input returns a valid result | 2 |
 | 19 | Web page: question box, live trace, ranked causes with expandable evidence, ruled-out list | Browser check of the three demo questions | 3 |
-| 20 | Failure handling: query repair retry, model fallback, Zetaris fallback, sample mode | Tests simulate each failure; sample mode runs with the network off | 2 |
+| 20 | Failure handling: query repair retry, model fallback, Zetaris fallback; sample mode with the per-call model response cache | Tests simulate each failure; from a fresh clone with an empty `.env` and the network off, the three example questions run end to end in sample mode | 3 |
 
 Day total: 13 hours.
 
@@ -73,7 +73,7 @@ Feature freeze at midday.
 |---|---|---|---|
 | 21 | Dockerfile, CPU only, dependencies at build time | Clean clone, `docker build`, `docker run`, `curl /run` works | 2 |
 | 22 | Three example inputs with outputs and their logs | Files present and regenerable by one command | 1 |
-| 23 | README (setup, usage, architecture, limitations, sponsor technology, evaluation score) and `metadata.json` | A second person can run it from the README alone | 2 |
+| 23 | README with every section listed in architecture 12a (including AI and model usage, third-party licences, synthetic-data statement) and `metadata.json` | A second person can run it from the README alone | 2 |
 | 24 | Demo video, 1–4 minutes | Recorded, uploaded, plays without login | 3 |
 | 25 | Slide deck covering the sections the organisers list | Complete and exported | 2 |
 | 26 | Final pass: secret scan, pre-existing declaration, decide on the organisers' documents in `docs/`, repository visibility | Checklist in the organisers' overview document answered "yes" throughout | 1 |

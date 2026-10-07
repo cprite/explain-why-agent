@@ -83,6 +83,14 @@ Interaction patterns the trace must show:
   adapter and the result is marked as such.
 - **Escalation to "cannot be determined":** when all hypotheses are refuted or the sample is too
   small, the Critic's verdict forces that outcome instead of a best guess.
+- **Scored critique:** the Critic scores the leading explanation 0–3 on three points (is it supported
+  by the data, does it explain the size and timing of the change, are the alternatives excluded). A
+  total under 7 of 9 sends it back for one revision with a specific request; a second failure demotes
+  it. The organisers' own learning deck recommends this proposer-and-critic pattern with a 7-of-9
+  threshold, and their mentor guide asks for "a critic that can reject, not just review".
+- **Evidence versus inference:** every statement in the answer is marked as measured (it has a query
+  and a number) or inferred (a conclusion drawn from measurements). Inferences never appear without
+  the measurements they rest on.
 
 Hypothesis families the Planner draws from: volume, price or discount, mix shift (payment type,
 category, region), single seller or segment, logistics delay, product quality, marketing funnel,
@@ -171,6 +179,10 @@ Result shape (abridged):
 }
 ```
 
+Run limits are configuration, not code: `MAX_AGENT_ROUNDS`, `MAX_RETRIES`, `MAX_TOOL_CALLS`,
+`MAX_OUTPUT_TOKENS` and the model temperature (0.2 by default, for reproducible runs) are read from
+the environment with safe defaults, as the organisers' troubleshooting guide recommends.
+
 ## 8. Evidence and logs
 
 Written to stdout and to `logs/`, one file set per run:
@@ -197,8 +209,14 @@ answer key is used only by this script and is never visible to the agents.
 
 ## 10. Sample mode
 
-`SAMPLE_MODE=true` uses the local data adapter and needs no Zetaris access. Agent logic is unchanged.
-Model calls in sample mode are an open decision (see below).
+`SAMPLE_MODE=true` runs the whole system with no live credentials: the local data adapter replaces
+Zetaris, and model calls are served from a response cache. The organisers' checklist requires that
+sample mode "still runs real agent logic on cached data, rather than replaying a saved output", so the
+cache sits at the level of a single model call, keyed by a hash of the request. The agents, the
+engines and the queries all execute; only the model's reply comes from the cache, which is recorded
+from real runs of the example questions and committed with the samples. A cache miss returns a
+structured error saying that this question needs a model key. Sample mode is labelled as such in the
+result, the trace and the README. The default mode always calls the live model.
 
 ## 11. Technology
 
@@ -227,6 +245,15 @@ run.py  Dockerfile  requirements.txt  .env.example  metadata.json  README.md
 docs/
 ```
 
+## 12a. What the README must contain
+
+From the organisers' AI usage policy and checklists: setup and run commands from a clean clone; agent
+roles; the three examples; limitations stated plainly; a section "AI and Model Usage" (models, the
+four partner technologies and what each does here, that AI coding tools were used and the code was
+reviewed, how sample mode behaves); a section "Third-Party Code and Licences"; data sources with
+licence, the subset used and how to regenerate it; and a clear statement that the planted incidents are
+synthetic changes to real public data. `metadata.json` repeats the partner technology record.
+
 ## 13. Where each sponsor technology sits
 
 | Sponsor | Role in the build | Evidence in the submission |
@@ -240,9 +267,8 @@ docs/
 
 1. **How the data reaches Zetaris.** Not known until Zetaris publishes instance access (workshop on
    12 October): whether the instance can read uploaded CSV files, or needs a database we host.
-2. **Model calls in sample mode.** Options: require a model key even in sample mode, or replay
-   recorded model responses for the three example questions, clearly labelled. The organisers allow
-   a documented offline sample mode but forbid presenting stored answers as generated.
+2. **Model calls in sample mode — resolved on 7 Oct** from the organisers' disqualification checklist
+   and AI usage policy: a per-call response cache, see section 10.
 3. **Which Nemotron model.** Depends on the credits and limits NVIDIA announces.
 4. **Web page scope.** One page as described, or command line and API only if time runs short.
 5. **Repository size.** The planned sample is about 22–24 MB as CSV (5–6 MB gzipped); decide whether

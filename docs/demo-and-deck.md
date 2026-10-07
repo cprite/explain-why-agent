@@ -3,7 +3,12 @@
 Written 6 October 2026, before the build. The build should produce exactly what this demo shows.
 Numbers in square brackets are filled in from real runs; nothing in the video is staged.
 
-## Demo video — target 3 minutes (limit 4)
+## Demo video — keep it under 3 minutes
+
+The organisers' documents disagree on length: the newer participant documents say 1–4 minutes, the
+support FAQ and the draft rules say 2–3 minutes. A video under 3 minutes satisfies both. The timings
+below run to 3:20 and must be tightened by about 25 seconds when recording, by shortening the trace
+section.
 
 The organisers ask the video to show the main workflow, how the agent solves the challenge, its key
 features, and how Zetaris and Meterless are integrated.
