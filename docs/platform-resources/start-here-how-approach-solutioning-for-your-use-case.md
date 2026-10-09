@@ -1,6 +1,6 @@
 # How APPROACH Solutioning For Your Use Case
 
-Folder: Start here · updated 2026-10-07
+Folder: Start here · updated 2026-10-09
 
 # How to APPROACH Solutioning For Your Track
 
@@ -11,9 +11,9 @@ This guide helps you choose a feasible track and use case, scope your build corr
 The strongest teams will not necessarily pick the hardest idea. They will pick something they can execute convincingly within the hackathon constraints:
 
 - **144-hour build window (22 October, 00:00 UTC to 27 October, 23:45 UTC)**
-- **One primary track: one of the three challenge tracks, or the bonus Wildcard [Tinkerer] track for existing projects**
+- **One primary track: one of the three challenge tracks, or one of the two bonus tracks for existing projects (Wildcard [Tinkerer] or Wildcard [Bounty] with Bright Data)**
 - **Solo, or teams of up to 5 builders**
-- **Zetaris and Meterless integrated in every submission, Cursor used for development, and NVIDIA wherever it contributes**
+- **Zetaris and Meterless integrated in every submission, Cursor (with Space XAI) as your development environment, NVIDIA wherever it contributes, and Bright Data for the Bright Data bounty**
 - **A working agent, not a demo or a chatbot**
 - **Evidence of how the system reached its output**
 - **Submission through HackOS by 27 October, 23:45 UTC**
@@ -79,6 +79,10 @@ Use this format:
 **Wildcard [Tinkerer]: Bring Your Own Project**
 
 > We are extending our existing document-search prototype with Zetaris and Meterless to add a capability it did not have before, and showing clearly what was built during the hackathon.
+
+**Wildcard [Bounty]: Bring Your Own Project with Bright Data**
+
+> We are extending our existing price-tracking prototype with Bright Data to collect current competitor pricing from public websites, and showing how that web data drives the agent's recommendations.
 
 ### Weak Examples
 
@@ -202,6 +206,7 @@ If you prepare data before the build window opens, declare it as a pre-existing 
 | **The Agent That Can Explain Why** | Documents, articles, filings, papers, records, or reports relevant to one question | Bound the question, the time window, and the source count. Keep every conclusion traceable to the evidence behind it, and cache a sample so the demo works if an API fails. |
 | **Reasoning Architecture** | Operational records, rules or policies, and the state or memory of prior decisions | Define the decision and the action first, then the data, knowledge, and memory the agent needs to reach them reliably. |
 | **Wildcard [Tinkerer]** | Your existing project's data, plus what Zetaris and Meterless add | Keep what existed before separate from what you add during the hackathon, and declare pre-existing components, so the new work is easy to see. |
+| **Wildcard [Bounty] with Bright Data** | Web data collected or scraped through Bright Data, alongside your existing project's data | Target a small set of relevant websites, and show clearly how the collected data feeds your agent. Cache a sample so the demo works if a live collection run fails. |
 
 For all tracks, use small realistic or synthetic samples and avoid real personal or confidential data.
 
@@ -353,8 +358,9 @@ Your use case must fit the execution environment and the sponsor technology requ
 | Requirement | Rule |
 |---|---|
 | **Zetaris and Meterless** | Required: every submission must integrate both |
-| **Cursor** | Required: teams must use Cursor for development |
+| **Cursor (with Space XAI)** | Required: teams must use Cursor as their development environment |
 | **NVIDIA** | Integrate wherever it contributes to your project, workflow or use case |
+| **Bright Data** | Required for the Bright Data bounty: integrate Bright Data and show how it collects or scrapes relevant web data |
 | **Languages, frameworks, models** | Open choice, including closed-source APIs and sponsor credits |
 | **Pre-existing work** | Work committed before the build window is not eligible, except clearly declared pre-existing components |
 | **Runtime** | Keep runs bounded and predictable |
@@ -457,7 +463,7 @@ In `data/README.md`, document:
 
 ## 13. Step C — Confirm Evaluation Fit
 
-Your use case should be designed to score well against the judging criteria. Each submission is reviewed by at least three judges.
+Your use case should be designed to score well against the judging criteria. Judging begins immediately after submissions close, and each submission is reviewed by at least three judges.
 
 | Criterion | Points | How Your Use Case Choice Affects It |
 |---|---:|---|
@@ -466,7 +472,7 @@ Your use case should be designed to score well against the judging criteria. Eac
 | Innovation | 15 | Add a thoughtful agent pattern rather than a familiar workflow |
 | Demo | 15 | Choose something you can show clearly in 1–4 minutes |
 | Product & UX | 10 | Make the output intuitive and usable by the person it is meant for |
-| Sponsor Tech | 10 | Show how Zetaris, Meterless, Cursor and NVIDIA address the problem and enhance the product |
+| Sponsor Tech | 10 | Show how Zetaris, Meterless, Cursor and NVIDIA (and Bright Data, for the bounty) address the problem and enhance the product |
 | **Total** | **100** | |
 
 Ties are resolved on the Impact score, then on submission timestamp.
@@ -510,7 +516,7 @@ Before committing to a use case, make sure you can meet the submission requireme
 | **Demo video** | 1–4 minutes, showing the main workflow, how the agent solves the selected challenge, its key features, and how Zetaris and Meterless are integrated |
 | **Slide deck** | The problem and target users, the solution, the agent workflow or architecture, the technical stack, how Zetaris and Meterless were used, what was unique about your use of the sponsor technologies, product visuals, and future enhancements |
 | **GitHub repository** | All source code and a README covering setup, usage and dependencies. If your agents run in Google Colab, include the Colab links |
-| **Sponsor technology explanation** | How Zetaris and Meterless were integrated, how Cursor was used during development, where NVIDIA technology contributes, and what was unique about your use of the sponsor technologies |
+| **Sponsor technology explanation** | How Zetaris and Meterless were integrated, how Cursor was used during development, where NVIDIA technology contributes, and what was unique about your use of the sponsor technologies. For the Bright Data bounty, also explain how Bright Data was used to collect or scrape web data |
 
 Declare any pre-existing components, including pre-existing product code, in the submission form.
 
@@ -524,12 +530,13 @@ Declare any pre-existing components, including pre-existing product code, in the
 
 ## 15. Sponsor Technology Planning
 
-| Sponsors | Workshop |
-|---|---|
-| Zetaris and Cursor | 12 October, 22:00 UTC (3:00 PM PT) |
-| NVIDIA and Meterless | 14 October, 22:00 UTC (3:00 PM PT) |
+| Workshop | Sponsors and Focus | Date and Time |
+|---|---|---|
+| **Data Day** | Zetaris: serving internal data. Bright Data: scraping external data | 12 October, 22:00 UTC (3:00 PM PT) |
+| **Build Day** | Cursor: build with. GenAI Works: how to build (vibe coding). Meterless engines: build faster | To be confirmed |
+| **Power Day** | NVIDIA: cloud provider. Meterless: local and cloud provider | To be confirmed |
 
-Workshops are joined through the GenAI Academy course and recorded for HackOS. Each sponsor has a folder in Resources on HackOS with its documentation and resources. Technical questions go to the #help desk channel on HackOS.
+Workshops are joined through the GenAI Academy course and recorded for HackOS. Each sponsor has a folder in Resources on HackOS with its documentation and resources. Technical questions go to the #help desk channel, and sponsor questions to each sponsor's Help channel on HackOS.
 
 The sponsor technology exists so you do not have to rebuild foundations during the build window. Zetaris and Meterless are required in every submission, including the Wildcard [Tinkerer] track, so design them into your architecture from the start rather than adding them at the end.
 
@@ -554,6 +561,7 @@ Recommended:
 - **Solving Fragmented Intelligence** with three small sources
 - **The Agent That Can Explain Why** on one bounded question
 - **Wildcard [Tinkerer]** if you already have a working prototype
+- **Wildcard [Bounty] with Bright Data** if your existing project depends on fresh web data
 
 Avoid unless you have deep expertise:
 
@@ -739,6 +747,20 @@ You should reduce scope or pick another use case if:
 
 **Why it works:** scoring covers the new work rather than prior development, so a clear before-and-after makes that work easy to see and score.
 
+### Example 5 — Wildcard [Bounty]: Bring Your Own Project with Bright Data
+
+**User:** Your existing project's users  
+**Data:** Web data collected or scraped through Bright Data, plus your existing project's data  
+**Approach:**
+
+1. Record the state of your project before the build window opens, and declare it as a pre-existing component.
+2. Identify the web data your project is missing today.
+3. Use Bright Data to collect that data from a small set of relevant websites.
+4. Feed the collected data into your agent so it changes the decision, insight or action it produces.
+5. Show in your demo where the data comes from and how it is used.
+
+**Why it works:** the bounty rewards meaningful use of Bright Data, so a clear path from collected web data to a better output makes the integration easy to see.
+
 ---
 
 ## 20. Weak Use Case Examples
@@ -818,8 +840,9 @@ Complete this before building.
 |---|---|---|
 | Zetaris | Required |  |
 | Meterless | Required |  |
-| Cursor | Required for development |  |
+| Cursor (with Space XAI) | Required development environment |  |
 | NVIDIA | Where it contributes |  |
+| Bright Data | Required for the Bright Data bounty |  |
 
 ### Agents
 
@@ -853,7 +876,7 @@ Check all that apply:
 - [ ] No committed API keys
 - [ ] Logs show how the agent worked
 - [ ] Sample inputs and outputs included
-- [ ] Zetaris and Meterless integrated, Cursor used, NVIDIA use documented
+- [ ] Zetaris and Meterless integrated, Cursor used, NVIDIA (and Bright Data, for the bounty) use documented
 
 ---
 

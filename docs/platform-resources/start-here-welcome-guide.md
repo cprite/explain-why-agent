@@ -1,7 +1,8 @@
 # Welcome Guide
 
-Folder: Start here · updated 2026-10-07
+Folder: Start here · updated 2026-10-09
 
+````markdown
 # Welcome Guide
 
 ## OPEN AGENT HACKATHON 2026
@@ -18,7 +19,7 @@ The goal is simple:
 
 ## 1. What Is the Open Agent Hackathon?
 
-The **Open Agent Hackathon 2026** is a 144-hour online build event where participants build AI agents that can access relevant information, understand context and relationships, reason across multiple steps, maintain useful context, and turn that understanding into a useful outcome. Participants work across three challenge tracks and the bonus Wildcard [Tinkerer] track, supported by sponsor technologies, live technical workshops, mentors, and resources.
+The **Open Agent Hackathon 2026** is a 144-hour online build event where participants build AI agents that can access relevant information, understand context and relationships, reason across multiple steps, maintain useful context, and turn that understanding into a useful outcome. Participants work across three challenge tracks and two bonus tracks, supported by sponsor technologies, live technical workshops, mentors, and resources.
 
 | Item | Detail |
 |---|---|
@@ -29,14 +30,15 @@ The **Open Agent Hackathon 2026** is a 144-hour online build event where partici
 | **Cost** | Free |
 | **Event platform** | HackOS (all hackathon operations) |
 | **Community** | Discord (community chat and post-event activities) |
-| **Challenge tracks** | 3, plus the bonus Wildcard [Tinkerer] track |
-| **Sponsors** | NVIDIA, Zetaris, Cursor, Meterless |
+| **Challenge tracks** | 3, plus two bonus tracks: Wildcard [Tinkerer] and Wildcard [Bounty] with Bright Data |
+| **Sponsors** | Space XAI (with Cursor), NVIDIA, Bright Data, Zetaris, Meterless |
 | **Prize pool** | Up to $20,000 ($15,000 in cash prizes and $5,000 in in-kind rewards) |
-| **Sponsor workshops** | 12 and 14 October 2026, 22:00 UTC (3:00 PM PT) |
-| **Participant onboarding** | 21 October 2026, 16:00–17:30 UTC (9:00–10:30 AM PT) |
+| **Sponsor workshops** | Data Day on 12 October 2026, 22:00 UTC (3:00 PM PT); Build Day and Power Day dates to be confirmed |
+| **Participant onboarding** | 21 October 2026, 12:00–13:30 UTC (5:00–6:30 AM PT) |
 | **Build window** | 22 October 2026, 00:00 UTC to 27 October 2026, 23:45 UTC |
-| **Registration closes** | 22 October 2026, 23:59 UTC |
+| **Registration closes** | 22 October 2026, 23:45 UTC |
 | **Submissions close** | 27 October 2026, 23:45 UTC |
+| **Judging opens** | 28 October 2026, immediately after submissions close |
 | **Results announced** | 6 November 2026, 16:00 UTC |
 
 Employees of the organizer and of judging sponsors may participate but are not eligible for cash prizes. One account per participant; duplicate accounts disqualify the whole team. Full details are in the Official Rules on the event page.
@@ -134,11 +136,12 @@ Every submission selects exactly one primary track, which determines the judging
 | 2 | **The Agent That Can Explain Why** | Build agents that investigate complex questions across multiple data sources, connect findings, and produce evidence-backed answers or recommendations. |
 | 3 | **Reasoning Architecture** | Demonstrate a novel ability to turn data, knowledge, memory, and reasoning into reliable decisions and actions. |
 
-### Bonus track: Wildcard [Tinkerer]: Bring Your Own Project
+### Bonus tracks
 
 | Track | What You Build | Sponsor Technology |
 |---|---|---|
-| **Wildcard [Tinkerer]** | Bring an existing project, prototype or concept and extend it using Zetaris and Meterless. Judged on the same criteria as the other tracks and scored on the new work rather than prior development. | Zetaris, Meterless |
+| **Wildcard [Tinkerer]: Bring Your Own Project** | Bring an existing project, prototype or concept and extend it using Zetaris and Meterless. Judged on the same criteria as the other tracks and scored on the new work rather than prior development. | Zetaris, Meterless |
+| **Wildcard [Bounty]: Bring Your Own Project with Bright Data** | Bring an existing project, prototype or concept and extend it using Bright Data technology. To qualify, your project must meaningfully integrate Bright Data as part of the solution and demonstrate how it is used to collect or scrape relevant web data. | Bright Data |
 
 Each challenge page on HackOS includes:
 
@@ -158,14 +161,15 @@ All times are in **UTC**.
 
 | Date | Milestone | What You Should Do |
 |---|---|---|
-| **12 October, 22:00** | Zetaris and Cursor workshop | Attend live where possible. Recording is added to HackOS. |
-| **14 October, 22:00** | NVIDIA and Meterless workshop | Attend live where possible. Recording is added to HackOS. |
-| **21 October, 16:00–17:30** | Participant onboarding | Attend live. Confirm your track and how you will build. |
+| **12 October, 22:00** | Data Day workshop: Zetaris and Bright Data | Attend live where possible. Recording is added to HackOS. |
+| **Date to be confirmed** | Build Day workshop: Cursor, GenAI Works and Meterless | Attend live where possible. Recording is added to HackOS. |
+| **Date to be confirmed** | Power Day workshop: NVIDIA and Meterless | Attend live where possible. Recording is added to HackOS. |
+| **21 October, 12:00–13:30** | Participant onboarding | Attend live. Confirm your track and how you will build. |
 | **22 October, 00:00** | Build window opens | Start building. |
-| **22 October, 23:59** | Registration closes | Hard deadline to register. |
+| **22 October, 23:45** | Registration closes | Hard deadline to register. |
 | **22–27 October** | Build period | Use HackOS, mentors, and resources. Ask questions early. |
-| **27 October, 00:00** | Judging opens | Judging begins while final submissions come in. |
 | **27 October, 23:45** | Submissions close | Hard deadline. Submit all required materials. |
+| **28 October** | Judging opens | Judging begins immediately after submissions close. |
 | **6 November, 16:00** | Results announced | Live results call on HackOS. |
 
 ---
@@ -176,24 +180,25 @@ All times are in **UTC**.
 
 Sponsors run live workshops before the hackathon, covering their technology and how to use it in your build. All workshops are recorded, and the recordings and related resources are added to HackOS.
 
-| Sponsors | Date | Time |
-|---|---|---|
-| Zetaris and Cursor | 12 October 2026 | 22:00 UTC (3:00 PM PT) |
-| NVIDIA and Meterless | 14 October 2026 | 22:00 UTC (3:00 PM PT) |
+| Workshop | Sponsors and Focus | Date | Time |
+|---|---|---|---|
+| **Data Day** | Zetaris: serving internal data. Bright Data: scraping external data | 12 October 2026 | 22:00 UTC (3:00 PM PT) |
+| **Build Day** | Cursor: build with. GenAI Works: how to build (vibe coding). Meterless engines: build faster | To be confirmed | To be confirmed |
+| **Power Day** | NVIDIA: cloud provider. Meterless: local and cloud provider | To be confirmed | To be confirmed |
 
 Join the workshops through the Open Agent Hackathon 2026 course on GenAI Academy: https://academy.genai.works/courses/open-agent-hackathon-2026/details
 
 If you cannot attend live, watch the recordings on HackOS before the hackathon starts.
 
-### Participant onboarding (21 October, 16:00–17:30 UTC)
+### Participant onboarding (21 October, 12:00–13:30 UTC)
 
 Onboarding is the official start of the participant experience. It is delivered by the GenAI Works team, with technical walkthroughs from the Product Team.
 
 | Segment | What It Covers |
 |---|---|
 | Welcome | Event purpose, timeline, expectations |
-| Challenge tracks | The three tracks, the Wildcard [Tinkerer] track, and what strong solutions look like |
-| Sponsor technology | How Zetaris, Meterless, Cursor, and NVIDIA fit into your build |
+| Challenge tracks | The three tracks, the bonus tracks, and what strong solutions look like |
+| Sponsor technology | How Zetaris, Meterless, Cursor, NVIDIA, and Bright Data fit into your build |
 | HackOS walkthrough | Resources, teams, mentors, submission |
 | Q&A | Open questions before the build starts |
 
@@ -218,7 +223,7 @@ Use HackOS to:
 - Watch sponsor workshop recordings.
 - Find teammates and create or manage your team.
 - Attend mentor office hours.
-- Ask technical questions in the #help desk channel.
+- Ask technical questions in the #help desk channel, or sponsor questions in each sponsor's Help channel.
 - Submit your project.
 - Join the live results call.
 
@@ -226,7 +231,7 @@ Use HackOS to:
 
 ### Step 1: Register and log in to HackOS
 
-Complete your registration before **22 October, 23:59 UTC**, then log in to HackOS.
+Complete your registration before **22 October, 23:45 UTC**, then log in to HackOS.
 
 ### Step 2: Complete your profile
 
@@ -244,7 +249,7 @@ Recommended first reads:
 1. **Welcome Guide** (this document)
 2. **Challenge pages**
 3. **Event calendar**
-4. **Sponsor folders in Resources** (Zetaris, Meterless, Cursor, NVIDIA)
+4. **Sponsor folders in Resources** (Zetaris, Meterless, Space XAI and Cursor, NVIDIA, Bright Data)
 5. **Sponsor workshop recordings**
 6. **Submission requirements**
 
@@ -257,6 +262,7 @@ Recommended first reads:
 | **Team-finding** | Finding teammates and creating teams |
 | **Mentor office hours** | Getting help from mentors |
 | **#help desk** | Technical questions, answered by the technical team |
+| **Sponsor Help channels** | Help Zetaris, Help Meterless, Help Cursor, Help NVIDIA, Help Bright Data |
 | **Results call** | Live announcement of winners |
 
 ### Step 5: Confirm how you will build
@@ -275,16 +281,17 @@ Teams should agree internally on responsibilities, ownership of work, and how an
 
 ## 8. The Sponsor Technology: What You Need to Know
 
-The Open Agent Hackathon is backed by four sponsors: **NVIDIA**, **Zetaris**, **Cursor**, and **Meterless**.
+The Open Agent Hackathon is backed by **Space XAI (with Cursor)**, **NVIDIA**, **Bright Data**, **Zetaris**, and **Meterless**.
 
 | Sponsor | Requirement |
 |---|---|
 | **Zetaris** | Required: every submission must integrate Zetaris |
 | **Meterless** | Required: every submission must integrate Meterless |
-| **Cursor** | Required: teams must use Cursor for development |
+| **Cursor (with Space XAI)** | Required: teams must use Cursor as their development environment |
 | **NVIDIA** | Integrate wherever it contributes to your project, workflow or use case |
+| **Bright Data** | Required for the Bright Data bounty: integrate Bright Data and show how it collects or scrapes relevant web data |
 
-Each sponsor has a folder in Resources on HackOS with its documentation and resources. Resources are being updated as sponsors add material. For technical questions, use the #help desk channel on HackOS.
+Each sponsor has a folder in Resources on HackOS with its documentation and resources. Resources are being updated as sponsors add material. For technical questions, use the #help desk channel or the sponsor's Help channel on HackOS.
 
 You can use any language, framework, model or cloud, including closed-source APIs and sponsor credits. Pre-existing open-source libraries are fine. Generated code is allowed and expected; you own the result and are accountable for it.
 
@@ -314,7 +321,7 @@ Submissions close on **27 October 2026 at 23:45 UTC**. This is a hard deadline. 
 | **Demo video** | 1–4 minutes, showing the main workflow, how the agent solves the selected challenge, its key features, and how Zetaris and Meterless are integrated |
 | **Slide deck** | The problem and target users, the solution, the agent workflow or architecture, the technical stack, how Zetaris and Meterless were used, what was unique about your use of the sponsor technologies, product visuals, and future enhancements |
 | **GitHub repository** | All source code and a README covering setup, usage and dependencies. If your agents run in Google Colab, include the Colab links |
-| **Sponsor technology explanation** | How Zetaris and Meterless were integrated, how Cursor was used during development, where NVIDIA technology contributes, and what was unique about your use of the sponsor technologies |
+| **Sponsor technology explanation** | How Zetaris and Meterless were integrated, how Cursor was used during development, where NVIDIA technology contributes, and what was unique about your use of the sponsor technologies. For the Bright Data bounty, also explain how Bright Data was used to collect or scrape web data |
 
 Work committed before the build window opens is not eligible, except for clearly declared pre-existing components. Pre-existing product code must be declared in the submission form.
 
@@ -333,7 +340,7 @@ Use this checklist as soon as you have access.
 
 ### Minutes 5–10: Confirm your path
 
-- [ ] Review the three tracks and the Wildcard [Tinkerer] track.
+- [ ] Review the three tracks and the two bonus tracks.
 - [ ] Choose your track.
 - [ ] Confirm whether you are building:
   - [ ] Solo
@@ -342,12 +349,12 @@ Use this checklist as soon as you have access.
 
 ### Minutes 10–15: Set up support
 
-- [ ] Find the #help desk channel on HackOS.
+- [ ] Find the #help desk channel and the sponsor Help channels on HackOS.
 - [ ] Find the mentor office hours schedule.
 
 ### Minutes 15–20: Sponsor technology
 
-- [ ] Read the sponsor folders in Resources: Zetaris, Meterless, Cursor, and NVIDIA.
+- [ ] Read the sponsor folders in Resources: Zetaris, Meterless, Space XAI and Cursor, NVIDIA, and Bright Data.
 - [ ] Watch or bookmark the workshop recordings.
 - [ ] Complete any required access or setup steps.
 
@@ -418,7 +425,7 @@ The build window runs for 144 hours. Get a working end-to-end system early.
 
 ## 12. How You Will Be Evaluated
 
-Submissions are reviewed by expert judges against the published criteria. Each submission is reviewed by at least three judges. Scoring is out of 100 points.
+Submissions are reviewed by expert judges against the published criteria. Judging begins immediately after submissions close. Each submission is reviewed by at least three judges. Scoring is out of 100 points.
 
 | Criterion | Points | What Judges Look For |
 |---|---:|---|
@@ -441,7 +448,7 @@ All support during the hackathon happens on HackOS.
 | Need Help With | Go To |
 |---|---|
 | Track scope and expectations | Challenge pages on HackOS |
-| Sponsor technology setup and errors | Sponsor folder in Resources, then #help desk |
+| Sponsor technology setup and errors | Sponsor folder in Resources, then that sponsor's Help channel |
 | Technical questions | #help desk channel on HackOS |
 | Agent design, framework issues, debugging | Mentor office hours |
 | Rules questions | hackathons@genai.works (reply within one working day) |
@@ -469,12 +476,12 @@ Do not post API keys or secrets anywhere.
 Before the hackathon:
 
 1. Read this guide fully.
-2. Register before 22 October, 23:59 UTC.
-3. Attend or watch the sponsor workshops (12 and 14 October, 22:00 UTC).
-4. Review the three tracks and the Wildcard [Tinkerer] track.
+2. Register before 22 October, 23:45 UTC.
+3. Attend or watch the sponsor workshops (Data Day on 12 October, with Build Day and Power Day dates to follow).
+4. Review the three tracks and the two bonus tracks.
 5. Set up your HackOS profile.
 6. Decide whether you will build solo or in a team.
-7. Attend participant onboarding on 21 October, 16:00 UTC.
+7. Attend participant onboarding on 21 October, 12:00 UTC.
 
 When the hackathon starts on 22 October:
 
@@ -501,3 +508,4 @@ They will be the ones that show:
 - Useful outputs.
 
 **Welcome to the Open Agent Hackathon 2026.**
+````

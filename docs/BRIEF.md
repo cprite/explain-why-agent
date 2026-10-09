@@ -47,18 +47,19 @@ otherwise. All 32 platform documents are in `platform-resources/`.
 
 The organisers moved the event one week later on 7 Oct 2026 and added sponsors. The dates below are
 from their announcement and the HackOS event record. The HackOS documents in `platform-resources/`
-were re-dated by the organisers on 7 Oct and confirm the times below (`start-here-event-calendar.md`);
-the copies in `organiser-docs/` still show the old dates.
+were re-dated by the organisers on 7 Oct and revised again on 9 Oct; the table follows the 9 Oct
+version (`start-here-event-calendar.md`). The copies in `organiser-docs/` still show the old dates.
 
 | What | UTC | London |
 |---|---|---|
-| Zetaris + Cursor workshop | 12 Oct 22:00 | 12 Oct 23:00 |
-| NVIDIA + Meterless workshop | 14 Oct 22:00 | 14 Oct 23:00 |
-| Participant onboarding | 21 Oct 16:00–17:30 | 21 Oct 17:00–18:30 |
+| Data Day workshop (Zetaris + Bright Data) | 12 Oct 22:00 | 12 Oct 23:00 |
+| Build Day workshop (Cursor, GenAI Works, Meterless) | to be confirmed | — |
+| Power Day workshop (NVIDIA, Meterless) | to be confirmed | — |
+| Participant onboarding | 21 Oct 12:00–13:30 | 21 Oct 13:00–14:30 |
 | Build window opens | 22 Oct 00:00 | 22 Oct 01:00 |
-| Registration closes | 22 Oct 23:59 | 23 Oct 00:59 |
-| Judging opens | 27 Oct 00:00 | 27 Oct 00:00 |
+| Registration closes | 22 Oct 23:45 | 23 Oct 00:45 |
 | Submissions close (hard) | 27 Oct 23:45 | 27 Oct 23:45 (clocks change on 25 Oct) |
+| Judging opens | 28 Oct | 28 Oct |
 | Winners announced | 6 Nov 16:00 | 6 Nov 16:00 |
 
 The organisers' own day plan for the build window: 22–23 Oct working loop with Zetaris and Meterless
@@ -78,6 +79,18 @@ challenges and prizes will be presented at onboarding on 21 Oct, so the required
 change; re-check it then. Each sponsor has a help channel on HackOS under Messages → "Sponsor tech
 support" (Help Cursor, Help Bright Data, Help Meterless, Help Zetaris, Help NVIDIA Tools). The Help
 Cursor channel states that Cursor is the required development environment for every submission.
+
+Changes the organisers made on 9 Oct (six Start-here documents and the FAQ, diffed against the 7 Oct
+copies): the two workshops became three, and only Data Day keeps a date (the 14 Oct NVIDIA + Meterless
+session is gone; Build Day and Power Day are "to be confirmed"); onboarding moved four hours earlier
+and will be recorded; registration closes at 23:45, not 23:59; judging opens on 28 Oct, after
+submissions close, not during the last build day. Bright Data is now in the documents as a second
+bonus track, "Wildcard [Bounty]: Bring Your Own Project with Bright Data", for existing projects; it is
+required only for that track. The required stack for Track 02 is unchanged: Zetaris and Meterless
+integrated, Cursor ("with Space XAI") as the development environment, NVIDIA where it contributes. A
+submission has one primary track, so the bounty is not open to a Track 02 entry as the documents
+stand. On HackOS the "Hackathon Overview" page currently shows the text of the APPROACH guide (it
+looks like the organisers' paste error); the 7 Oct overview text is in the repository history.
 
 ## Submission (on HackOS)
 

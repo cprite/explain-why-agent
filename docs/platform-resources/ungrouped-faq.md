@@ -1,6 +1,6 @@
 # FAQ
 
-Folder: Ungrouped · updated 2026-10-07
+Folder: Ungrouped · updated 2026-10-09
 
 # Frequently Asked Questions
 
@@ -19,7 +19,7 @@ A fully online global hackathon where builders create AI agents that do real wor
 The build window runs from **22 October, 00:00 UTC** to **27 October 2026, 23:45 UTC**, a total of 144 hours.
 
 **Where does it take place?**  
-Fully online. HackOS runs all hackathon operations: announcements, team-finding and team creation, mentor office hours, the #help desk channel, submission, and the results call.
+Fully online. HackOS runs all hackathon operations: announcements, team-finding and team creation, mentor office hours, the #help desk and sponsor Help channels, submission, and the results call.
 
 **What is Discord for?**  
 Discord is the GenAI Works community space for community chat and activities after the hackathon: showcases, future events, workshops, and staying connected with other builders.
@@ -38,7 +38,7 @@ No. Registration, the platform workspace, mentor office hours, and submission ar
 Anyone aged 16 or older at the start of the build window, anywhere in the world, from students to senior engineers.
 
 **When does registration close?**  
-**22 October 2026, 23:59 UTC**. This is a hard deadline.
+**22 October 2026, 23:45 UTC**. Registration stays open through Day 1 of the build window, and this is a hard deadline.
 
 **How do I register?**  
 Sign up on hackathon.genai.works. One sign-up covers the event and community updates.
@@ -76,7 +76,7 @@ Equally among team members, unless the team submits a different split in writing
 ## 4. Tracks
 
 **How many tracks are there?**  
-Three challenge tracks plus the bonus Wildcard [Tinkerer] track. Every submission selects exactly one primary track, which determines the judging panel and the prizes it competes for.
+Three challenge tracks plus two bonus tracks. Every submission selects exactly one primary track, which determines the judging panel and the prizes it competes for.
 
 | # | Track | What You Build |
 |---:|---|---|
@@ -84,6 +84,7 @@ Three challenge tracks plus the bonus Wildcard [Tinkerer] track. Every submissio
 | 2 | **The Agent That Can Explain Why** | Build agents that investigate complex questions across multiple data sources, connect findings, and produce evidence-backed answers or recommendations. |
 | 3 | **Reasoning Architecture** | Demonstrate a novel ability to turn data, knowledge, memory, and reasoning into reliable decisions and actions. |
 | Bonus | **Wildcard [Tinkerer]: Bring Your Own Project** | Bring an existing project, prototype or concept and extend it using Zetaris and Meterless. Judged on the same criteria as the other tracks and scored on the new work rather than prior development. |
+| Bonus | **Wildcard [Bounty]: Bring Your Own Project with Bright Data** | Bring an existing project, prototype or concept and extend it using Bright Data technology. To qualify, your project must meaningfully integrate Bright Data and demonstrate how it is used to collect or scrape relevant web data. |
 
 **Can I submit to more than one track?**  
 No. Each submission selects exactly one primary track. Cross-track relevance is welcome but is not scored twice.
@@ -102,25 +103,26 @@ None of the tracks carries a difficulty rating. How ambitious your build is matt
 Any language, framework, model or cloud, including closed-source APIs and sponsor credits. Common options are LangGraph, CrewAI, AutoGen, the OpenAI Agent SDK, LangChain, LlamaIndex, or a custom Python stack. The framework itself is not scored.
 
 **Can I use code I wrote before the hackathon?**  
-Work committed before the build window opens is not eligible, except for clearly declared pre-existing components. Pre-existing open-source libraries are fine. Pre-existing product code must be declared in the submission form. The Wildcard [Tinkerer] track is designed for existing projects, and only the new work is scored.
+Work committed before the build window opens is not eligible, except for clearly declared pre-existing components. Pre-existing open-source libraries are fine. Pre-existing product code must be declared in the submission form. The two bonus tracks are designed for existing projects, and only the new work is scored.
 
 **Can I use AI-generated code?**  
 Yes. Generated code is allowed and expected. You own the result and are accountable for it.
 
-**Do I have to use the sponsor technologies?**  
-Yes, for some of them:
+**Who are the sponsors, and do I have to use their technology?**  
+The sponsors are **Space XAI (with Cursor)**, **NVIDIA**, **Bright Data**, **Zetaris** and **Meterless**. Some of their technology is required:
 
 | Sponsor | Requirement |
 |---|---|
 | **Zetaris** | Required: every submission must integrate Zetaris |
 | **Meterless** | Required: every submission must integrate Meterless |
-| **Cursor** | Required: teams must use Cursor for development |
+| **Cursor (with Space XAI)** | Required: teams must use Cursor as their development environment |
 | **NVIDIA** | Integrate wherever it contributes to your project, workflow or use case |
+| **Bright Data** | Required for the Bright Data bounty: integrate Bright Data and show how it collects or scrapes relevant web data |
 
 **Sponsor Tech is worth 10 points** in the rubric. Each sponsor has a folder in Resources on HackOS with its documentation and resources.
 
 **How do I get access to the sponsor technologies?**  
-Access instructions and setup steps are in each sponsor's folder in Resources on HackOS. Resources are being updated as sponsors add material. For technical questions, use the #help desk channel on HackOS.
+Access instructions and setup steps are in each sponsor's folder in Resources on HackOS. Resources are being updated as sponsors add material. For help with a sponsor's technology, use that sponsor's Help channel on HackOS (Help Zetaris, Help Meterless, Help Cursor, Help NVIDIA, Help Bright Data). For general technical questions, use the #help desk channel.
 
 **What data can I use?**  
 Open, accessible data you can use legally. Avoid private, proprietary, confidential, or restricted datasets, and avoid real personal data. Keep the repository light by using samples rather than full datasets, and include a fallback mode so your solution still runs if an external API is unavailable. If you prepare data before the build window, declare it as a pre-existing component.
@@ -135,10 +137,11 @@ Only if it makes the output usable. Product & UX is worth 10 points, but a polis
 **What are the sponsor workshops?**  
 Live sessions from the sponsors covering their technology and how to use it in a build. All sessions are recorded and published on HackOS.
 
-| Sponsors | Date | Time |
-|---|---|---|
-| Zetaris and Cursor | 12 October 2026 | 22:00 UTC (3:00 PM PT) |
-| NVIDIA and Meterless | 14 October 2026 | 22:00 UTC (3:00 PM PT) |
+| Workshop | Sponsors and Focus | Date | Time |
+|---|---|---|---|
+| **Data Day** | Zetaris: serving internal data. Bright Data: scraping external data | 12 October 2026 | 22:00 UTC (3:00 PM PT) |
+| **Build Day** | Cursor: build with. GenAI Works: how to build (vibe coding). Meterless engines: build faster | To be confirmed | To be confirmed |
+| **Power Day** | NVIDIA: cloud provider. Meterless: local and cloud provider | To be confirmed | To be confirmed |
 
 Join through the Open Agent Hackathon 2026 course on GenAI Academy: https://academy.genai.works/courses/open-agent-hackathon-2026/details
 
@@ -146,17 +149,17 @@ Join through the Open Agent Hackathon 2026 course on GenAI Academy: https://acad
 Watch the recording on HackOS before the build window opens.
 
 **What is participant onboarding?**  
-A live session on **21 October, 16:00–17:30 UTC (9:00–10:30 AM PT)** covering the event overview, the three tracks and the Wildcard [Tinkerer] track, the sponsor technology, a HackOS walkthrough, submission requirements, and Q&A.
+A live session on **21 October, 12:00–13:30 UTC (5:00–6:30 AM PT)** covering the event overview, the three tracks and the bonus tracks, the sponsor technology, a HackOS walkthrough, submission requirements, and Q&A. Additional challenges and prizes will also be presented.
 
 **Do I have to attend onboarding?**  
-It is strongly recommended. It is the fastest way to understand what judges expect.
+It is strongly recommended. It is the fastest way to understand what judges expect. If you can't attend live, the recording will be on HackOS.
 
 **Where do I get help during the build?**
 
 | Need Help With | Go To |
 |---|---|
 | Track scope and expectations | Challenge pages on HackOS |
-| Sponsor technology setup and errors | Sponsor folder in Resources, then #help desk |
+| Sponsor technology setup and errors | Sponsor folder in Resources, then that sponsor's Help channel |
 | Technical questions | #help desk channel on HackOS |
 | Agent design, framework issues, debugging | Mentor office hours |
 | Rules questions | hackathons@genai.works (reply within one working day) |
@@ -183,7 +186,7 @@ On HackOS.
 | **Demo video** | 1–4 minutes, showing the main workflow, how the agent solves the selected challenge, its key features, and how Zetaris and Meterless are integrated |
 | **Slide deck** | The problem and target users, the solution, the agent workflow or architecture, the technical stack, how Zetaris and Meterless were used, what was unique about your use of the sponsor technologies, product visuals, and future enhancements |
 | **GitHub repository** | All source code and a README covering setup, usage and dependencies. If your agents run in Google Colab, include the Colab links |
-| **Sponsor technology explanation** | How Zetaris and Meterless were integrated, how Cursor was used during development, where NVIDIA technology contributes, and what was unique about your use of the sponsor technologies |
+| **Sponsor technology explanation** | How Zetaris and Meterless were integrated, how Cursor was used during development, where NVIDIA technology contributes, and what was unique about your use of the sponsor technologies. For the Bright Data bounty, also explain how Bright Data was used to collect or scrape web data |
 
 Declare any pre-existing components in the submission form.
 
@@ -207,7 +210,7 @@ Never. Keep secrets in a local `.env` file, add it to `.gitignore`, and include 
 Expert judges review submissions against the published criteria. Each submission is reviewed by at least three judges.
 
 **When does judging happen?**  
-Judging opens on **27 October, 00:00 UTC** and starts immediately after submission. Results are announced on **6 November 2026, 16:00 UTC**.
+Judging opens on **28 October**, immediately after submissions close. Results are announced on **6 November 2026, 16:00 UTC**.
 
 **How is scoring broken down?**
 
@@ -231,7 +234,7 @@ A clear problem and user, agents that do real work rather than describe it, crit
 UI polish without depth, single-agent systems presented as agent systems, hardcoded demo paths, broad concepts with weak implementation, and unsupported claims of value.
 
 **Will I get feedback on my submission?**  
-Yes. Judging starts immediately after submission, and results are announced on 6 November.
+Yes. Judging starts immediately after submissions close, and results are announced on 6 November.
 
 ---
 
@@ -247,11 +250,13 @@ The prize pool is **up to $20,000** in total prize value: **$15,000 in cash priz
 | Reasoning Architecture | $2,000 | $1,300 | $1,000 |
 | Wildcard [Tinkerer] | $1,000 | $600 | $400 |
 
+Additional challenges and prizes, including the Bright Data bounty, will be presented at the participant onboarding call on 21 October.
+
 **How are cash prizes paid?**  
 By bank transfer within 30 days of the results announcement. Taxes and any local charges are the recipient's responsibility.
 
 **When are results announced?**  
-**6 November 2026, 16:00 UTC**, on the live results call on HackOS.
+**6 November 2026, 16:00 UTC**, on the live results call on HackOS. Winners receive their certificates.
 
 **Who owns the intellectual property in my project?**  
 You do. You keep all rights to what you build, and nothing transfers ownership to the organizer or sponsors. By submitting, you grant the organizer a license to show your demo, screenshots and description in event coverage. Sponsor-track submissions grant that sponsor the same non-exclusive promotional license.
@@ -262,5 +267,5 @@ You do. You keep all rights to what you build, and nothing transfers ownership t
 
 - Read the **Official Rules** on the event page. They cover eligibility, teams, tracks, the build window, what you can use, submission requirements, judging, prizes, intellectual property, and schedule changes.
 - Check the **Announcements** area on HackOS. It is the official source for all updates.
-- Ask technical questions in the **#help desk** channel on HackOS, or at **mentor office hours**.
+- Ask technical questions in the **#help desk** channel, sponsor questions in each sponsor's **Help** channel on HackOS, or bring them to **mentor office hours**.
 - Email rules questions to **hackathons@genai.works**. Expect a reply within one working day.
