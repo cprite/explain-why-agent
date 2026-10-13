@@ -28,7 +28,10 @@ Coordination: Nikolay talks to Claude Code; Claude Code posts tasks to agents in
   image you run yourself (about 8 GB of memory, probably x86) or an AWS free-tier install, from "Start
   free" on the Zetaris site. Sources are attached with SQL (Postgres over JDBC, REST, Kafka, PDF) and
   served through a Unified Semantic Layer over JDBC or REST. Getting-started repo:
-  https://github.com/zetaris/getting-started
+  https://github.com/zetaris/getting-started. Details in `research/zetaris-setup.md`: images are amd64
+  only (not for the Raspberry Pi), REST is the simpler interface from Python, Postgres registration
+  is documented but untested in their repo, CSV is tested only from S3, and the licence is a 30-day
+  evaluation.
 - **NVIDIA** — credits for Nemotron models through API keys; how to claim them not yet published.
 - **Cursor** — access for each team during the hackathon; how to get it not yet published.
 - The README and a `metadata.json` in the repo must say which sponsor technologies were used and where.

@@ -59,8 +59,9 @@ DataLayer
 ```
 
 - **Zetaris adapter (default):** each source is its own Postgres database, registered in Zetaris over
-  JDBC; a Unified Semantic Layer defined in DDL spans the four. The agents query that layer through
-  Zetaris's REST or JDBC interface, including cross-source joins. This is where Zetaris sits in the
+  JDBC (or, as the fallback, as files in S3-compatible storage); one Unified Semantic Layer defined in
+  DDL spans the four. The agents query that layer through Zetaris's REST interface, including
+  cross-source joins. This is where Zetaris sits in the
   build. Judges will not have our Zetaris instance, so the README says plainly that the default path
   needs one and that sample mode is the path anyone can run.
 - **Local adapter (sample mode):** the same sample files loaded into DuckDB, one schema per source.
@@ -274,12 +275,25 @@ synthetic changes to real public data. `metadata.json` repeats the partner techn
 
 ## 14. Open decisions
 
-1. **How the data reaches Zetaris — answered at the Data Day workshop (12 Oct), see
-   `research/workshops/data-day-notes.md`.** Zetaris attaches sources with SQL (Postgres over JDBC,
-   REST APIs, Kafka, PDFs) and exposes them through a Unified Semantic Layer queried over JDBC or
-   REST. So the four sources become four small Postgres databases registered in Zetaris, with one
-   semantic layer across them. Still open: **where Zetaris runs.** Participants get a Docker image
-   (about 8 GB of memory, probably x86 only) or an AWS free-tier install; nothing is hosted for us.
+1. **How the data reaches Zetaris — answered** (Data Day workshop, 12 Oct, and Zetaris's
+   getting-started repository, `research/zetaris-setup.md`). Zetaris attaches sources with SQL and
+   serves them through a Unified Semantic Layer. Two things are settled and two are not:
+   - Settled: the agents call Zetaris over its **REST** interface (`POST …/sql-editor/sqls/run` with a
+     bearer key created in the Zetaris interface and an `X-Org-ID` header). Zetaris's own guide
+     recommends REST when there is no Java runtime, and REST returns every value as a string, so the
+     adapter converts types.
+   - Settled: a semantic layer can join tables that come from two different sources; their repository
+     has a tested example. A foreign key across two separate semantic layers is unconfirmed, so all
+     four sources go into one layer.
+   - Not settled: **how our sources are registered.** Postgres over JDBC is documented syntax
+     (`CREATE DATASOURCE … jdbcdriver "org.postgresql.Driver" …`) but Zetaris's repository marks SQL
+     databases as "not ready for onboarding" and has no tested example. The tested routes are REST
+     sources and CSV or Parquet files in S3 storage. Plan: try Postgres first on a real instance
+     before the build window; if it fails, publish the four source folders as files in S3-compatible
+     storage and register them as filestore tables.
+   - Not settled: **where Zetaris runs.** The images are x86 (amd64) only, need about 8 GB of memory,
+     and are licensed for a 30-day evaluation. The Raspberry Pi cannot host it. Options: a Mac with
+     Docker Desktop (Apple Silicon works under emulation), an x86 machine, or an AWS instance.
 2. **Model calls in sample mode — resolved on 7 Oct** from the organisers' disqualification checklist
    and AI usage policy: a per-call response cache, see section 10.
 3. **Which Nemotron model.** Depends on the credits and limits NVIDIA announces.

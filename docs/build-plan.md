@@ -102,5 +102,9 @@ score, a clean run from a fresh clone, and the two required sponsor integrations
 - Data sample, injected incidents, answer key and detectability report (in progress, 6 October).
 - Build pipeline with Cursor's agent tested on a throwaway repository.
 - One live call to an NVIDIA-hosted model from a scratch script.
-- Zetaris and Cursor access steps, once the organisers publish them.
+- A running Zetaris instance and one proven way to register our sources in it (Postgres over JDBC, or
+  files in S3-compatible storage as the fallback), tested on throwaway data. This is learning the tool,
+  which the organisers encourage before kickoff; no project code comes out of it. See
+  `research/zetaris-setup.md`.
+- Cursor access steps, once the organisers publish them.
 - Demo script and slide outline.
