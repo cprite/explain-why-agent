@@ -24,7 +24,11 @@ Coordination: Nikolay talks to Claude Code; Claude Code posts tasks to agents in
   provenance). No API key, no Docker. For an investigation agent the docs suggest Markovian for the
   long investigation and World Model for the evidence trail. Files: `platform-resources/meterless-*.md`.
   Source and template prompts: https://github.com/Meterless/Meterless, https://meterless.ai/engines.html
-- **Zetaris** — a free instance per participant plus Markdown docs; access details not yet published.
+- **Zetaris** — per the Data Day workshop (12 Oct, `research/workshops/data-day-notes.md`): a free Docker
+  image you run yourself (about 8 GB of memory, probably x86) or an AWS free-tier install, from "Start
+  free" on the Zetaris site. Sources are attached with SQL (Postgres over JDBC, REST, Kafka, PDF) and
+  served through a Unified Semantic Layer over JDBC or REST. Getting-started repo:
+  https://github.com/zetaris/getting-started
 - **NVIDIA** — credits for Nemotron models through API keys; how to claim them not yet published.
 - **Cursor** — access for each team during the hackathon; how to get it not yet published.
 - The README and a `metadata.json` in the repo must say which sponsor technologies were used and where.
@@ -105,6 +109,10 @@ Impact 30 · Technical 20 · Innovation 15 · Demo 15 · Product & UX 10 · Spon
 Rewarded: agents that critique, retry, branch and recover; traceable evidence; reliable runs.
 Discounted: linear pipelines, single agents dressed up as several, hardcoded demo paths, UI polish
 without depth, sponsor technology bolted on at the end.
+
+**Heads-up from the organisers (12 Oct):** concrete challenge statements are published only at kickoff,
+and they warn against arriving with a pre-built solution (that is what the Tinkerer track is for).
+Treat the scenario below as provisional and keep the engine independent of it.
 
 ## Project (working idea, Nikolay's choice on 2026-10-05)
 

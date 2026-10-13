@@ -18,6 +18,12 @@ look and what to fix first when a number moves.
 
 Track: 02, "The Agent That Can Explain Why".
 
+The organisers said on 12 Oct that concrete challenge statements are published only at kickoff. The
+scenario below (a marketplace, the Olist data) is therefore a working scenario. The engine — the
+agents, the evidence record, the investigation loop, the evaluation harness — does not depend on the
+Olist schema: sources, metrics and hypothesis families are configuration, so a different statement
+means new data and questions, not a new system.
+
 ## 2. Design principles
 
 1. **Every claim carries its evidence.** A cause without a query and a number behind it is not
@@ -52,8 +58,11 @@ DataLayer
   query(source, sql, limit, timeout) -> rows + query id
 ```
 
-- **Zetaris adapter (default):** the four sources are registered in the Zetaris instance and queried
-  through it, including cross-source joins. This is where Zetaris sits in the build.
+- **Zetaris adapter (default):** each source is its own Postgres database, registered in Zetaris over
+  JDBC; a Unified Semantic Layer defined in DDL spans the four. The agents query that layer through
+  Zetaris's REST or JDBC interface, including cross-source joins. This is where Zetaris sits in the
+  build. Judges will not have our Zetaris instance, so the README says plainly that the default path
+  needs one and that sample mode is the path anyone can run.
 - **Local adapter (sample mode):** the same sample files loaded into DuckDB, one schema per source.
 
 Queries are read-only, row-limited and time-limited. Every query gets an id and is logged with its
@@ -265,8 +274,12 @@ synthetic changes to real public data. `metadata.json` repeats the partner techn
 
 ## 14. Open decisions
 
-1. **How the data reaches Zetaris.** Not known until Zetaris publishes instance access (workshop on
-   12 October): whether the instance can read uploaded CSV files, or needs a database we host.
+1. **How the data reaches Zetaris — answered at the Data Day workshop (12 Oct), see
+   `research/workshops/data-day-notes.md`.** Zetaris attaches sources with SQL (Postgres over JDBC,
+   REST APIs, Kafka, PDFs) and exposes them through a Unified Semantic Layer queried over JDBC or
+   REST. So the four sources become four small Postgres databases registered in Zetaris, with one
+   semantic layer across them. Still open: **where Zetaris runs.** Participants get a Docker image
+   (about 8 GB of memory, probably x86 only) or an AWS free-tier install; nothing is hosted for us.
 2. **Model calls in sample mode — resolved on 7 Oct** from the organisers' disqualification checklist
    and AI usage policy: a per-call response cache, see section 10.
 3. **Which Nemotron model.** Depends on the credits and limits NVIDIA announces.
