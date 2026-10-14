@@ -16,6 +16,7 @@ repository contained no source code, data or configuration before the window ope
 | `docs/research/zetaris-setup.md` | Setup note on Zetaris built from its public getting-started repository | Written by the team, 13 Oct 2026 |
 | `docs/research/workshops/` | Notes on the organisers' Data Day workshop and its caption transcript | Notes by the team, 13 Oct 2026; transcript from the organisers' recording |
 | `docs/organiser-docs/` | Six participant documents (welcome guide, overview, calendar, FAQ, journey map, solutioning guide) | Provided by the organisers |
+| `docs/organiser-docs/2026-10-14/` | Five supporting documents from the organisers (submission form preview, demo video guide, strong and weak examples, vibe coding guide) | Provided by the organisers, 14 Oct 2026 |
 | `docs/platform-resources/` | The Resources hub documents from HackOS, including the Meterless engine guides | Provided by the organisers and sponsors, copied 6 Oct 2026 |
 
 Data note: the Olist datasets referenced in the research plan are public Kaggle datasets under

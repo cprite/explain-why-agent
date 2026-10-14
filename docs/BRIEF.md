@@ -99,6 +99,32 @@ submission has one primary track, so the bounty is not open to a Track 02 entry 
 stand. On HackOS the "Hackathon Overview" page currently shows the text of the APPROACH guide (it
 looks like the organisers' paste error); the 7 Oct overview text is in the repository history.
 
+## Supporting materials received 14 Oct (`organiser-docs/2026-10-14/`)
+
+Five documents from the GenAI hub: submission form preview, demo video guide, strong and weak
+submission examples, vibe coding starter guide. What they add:
+
+- **Submission form:** one submission per team, made by the primary contact; the roster locks when
+  the first submission is created. The repository must be **public** when submitted, with GitHub
+  usernames matching the contributors. Video 1–4 minutes, recommended 2:30–3:30, viewable without
+  permission. Slide deck covers eight points. Sponsor explanation covers Zetaris, Meterless, Cursor
+  (with Space XAI) and NVIDIA, ending with what was unique. Pre-existing components declared.
+- **Meterless is shown as a model runtime.** In the strong-example architecture every model call
+  from every agent "runs through Meterless", which "runs model calls on NVIDIA Nemotron" and gives
+  "one configuration for local development and cloud runs"; the example repo has an
+  `app/services/meterless.py`. That is a different role from the reference engines in the HackOS
+  Meterless folder (World Model, Markovian, H-MEM), which our design uses. How a project routes
+  model calls through Meterless is not documented yet (Power Day, date to be confirmed, covers
+  "Meterless: local and cloud provider"). Plan: keep the engines, and put the model generator
+  behind a Meterless adapter as soon as its interface is known.
+- **Their main strong example is a Track 02 project shaped like ours:** "ChurnWhy", which explains
+  why churn rose across billing, support and usage data, with a Planner, Analyst, Evaluator and
+  Writer, evidence and confidence, and an Evaluator that verifies claims against Zetaris before
+  approving them. Our idea is therefore exactly what the organisers picture for this track, which is
+  reassuring for fit but means Innovation has to come from what ChurnWhy does not have: measured
+  accuracy against planted incidents, a critic whose refutations are visible, and an honest
+  "cannot be determined".
+
 ## Submission (on HackOS)
 
 Demo video 1–4 min · slide deck · GitHub repo with README (setup, usage, dependencies) · sponsor

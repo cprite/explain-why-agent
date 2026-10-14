@@ -154,6 +154,10 @@ One injected generator function, OpenAI-compatible, used by every agent and both
 - **Default:** an NVIDIA Nemotron model through NVIDIA's hosted API. This is where NVIDIA sits.
 - **Fallback:** a second OpenAI-compatible provider set by environment variable, used when the first
   fails or rate-limits.
+- **Meterless runtime (open, from the 14 Oct organiser examples):** the organisers' strong examples
+  route every model call through Meterless, which runs NVIDIA Nemotron. The generator is written as
+  an adapter so it can call Meterless instead of NVIDIA's endpoint directly once the interface is
+  published, without changing any agent or engine.
 - **Structured output:** agents return JSON validated against a schema; invalid output is retried
   once with the validation error.
 
