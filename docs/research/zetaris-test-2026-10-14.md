@@ -99,3 +99,36 @@ reported 3 of 3 rows valid for both the primary key and the foreign key.
 The throwaway containers `pgtest-a` and `pgtest-b`, the data sources `pgtest_a` and `pgtest_b`, and the
 semantic layer `lightning.metastore.usl_test.shop_usl`. None of it is project data; it can be removed
 before the build or left as a reference.
+
+## Real sample loaded and tested (14 Oct, afternoon)
+
+Nikolay asked to load the real data and start testing. The accepted Olist sample from `data-prep/out/`
+(declared pre-existing data) now lives on the instance as four separate Postgres databases, one per
+source system, each in its own container with a persistent volume, on the Zetaris network:
+
+| Database (container) | Tables | Rows |
+|---|---|---|
+| `olist-orders` | orders, order_items, customers, products, sellers, geolocation, category translation | 30,256 orders, 34,642 items, 30,369 customers, 14,222 products, 2,108 sellers |
+| `olist-payments` | order_payments | 31,560 |
+| `olist-reviews` | order_reviews | 30,185 |
+| `olist-marketing` | marketing_qualified_leads, closed_deals | 8,000 and 842 |
+
+Row counts match the CSV files exactly. Zetaris data sources: `olist_orders`, `olist_payments`,
+`olist_reviews`, `olist_marketing` (database password in `zetaris.env` as `OLIST_PG_PASSWORD`).
+
+Five incident metrics computed through Zetaris and independently with pandas on the same files:
+
+| Metric | Sources joined | Zetaris | pandas | Time |
+|---|---|---|---|---|
+| Orders on 24 Nov 2017 | orders | 1,176 | 1,176 | 0.5 s |
+| Watches review score, Jan 2018 | reviews × orders | 1.88 | 1.88 | 2.1 s |
+| Minas Gerais boleto share, 5–25 Mar 2018 | payments × orders | 8.6% | 8.6% | 1.3 s |
+| Rio de Janeiro average freight, Aug 2018 | orders | 32.62 | 32.62 | 1.1 s |
+| Orders and review score by month, Nov 2017–Feb 2018 | orders × reviews | identical, 4 rows | | 1.4 s |
+
+All five match. On the smallest instance (2 vCPUs) cross-source queries over the full sample answer in
+about 1–2 seconds, which is fast enough for an investigation loop of dozens of queries.
+
+More pitfalls: a data-source description may not contain a colon; product size columns arrive as
+decimals (`40.0`) and need a numeric type; the SQL dialect is Spark SQL (`date_format`, `DATE '…'`,
+`TIMESTAMP '…'`).
