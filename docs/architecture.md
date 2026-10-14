@@ -291,15 +291,13 @@ synthetic changes to real public data. `metadata.json` repeats the partner techn
    - Settled: a semantic layer can join tables that come from two different sources; their repository
      has a tested example. A foreign key across two separate semantic layers is unconfirmed, so all
      four sources go into one layer.
-   - Not settled: **how our sources are registered.** Postgres over JDBC is documented syntax
-     (`CREATE DATASOURCE … jdbcdriver "org.postgresql.Driver" …`) but Zetaris's repository marks SQL
-     databases as "not ready for onboarding" and has no tested example. The tested routes are REST
-     sources and CSV or Parquet files in S3 storage. Plan: try Postgres first on a real instance
-     before the build window; if it fails, publish the four source folders as files in S3-compatible
-     storage and register them as filestore tables.
-   - Not settled: **where Zetaris runs.** The images are x86 (amd64) only, need about 8 GB of memory,
-     and are licensed for a 30-day evaluation. The Raspberry Pi cannot host it. Options: a Mac with
-     Docker Desktop (Apple Silicon works under emulation), an x86 machine, or an AWS instance.
+   - Settled on 14 Oct by testing on our own instance (`research/zetaris-test-2026-10-14.md`):
+     **Postgres registration works.** Two separate Postgres databases were registered with
+     `CREATE DATASOURCE … jdbcdriver "org.postgresql.Driver"`, joined directly, and joined again
+     through a two-table semantic layer whose foreign-key check passed. The four sources will be four
+     Postgres containers on the Zetaris Docker network.
+   - Settled on 14 Oct: **Zetaris runs on AWS** (m7i-flex.large, Stockholm), reached from the Pi
+     through an SSH tunnel. The agents call its REST API with an API key.
 2. **Model calls in sample mode — resolved on 7 Oct** from the organisers' disqualification checklist
    and AI usage policy: a per-call response cache, see section 10.
 3. **Which Nemotron model.** Depends on the credits and limits NVIDIA announces.
