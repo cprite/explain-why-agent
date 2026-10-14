@@ -154,12 +154,14 @@ One injected generator function, OpenAI-compatible, used by every agent and both
 - **Default:** an NVIDIA Nemotron model through NVIDIA's hosted API. This is where NVIDIA sits.
 - **Fallback:** a second OpenAI-compatible provider set by environment variable, used when the first
   fails or rate-limits.
-- **Meterless runtime (open, from the 14 Oct organiser examples):** the organisers' strong examples
-  route every model call through Meterless, which runs NVIDIA Nemotron. The generator is written as
-  an adapter so it can call Meterless instead of NVIDIA's endpoint directly once the interface is
-  published, without changing any agent or engine.
-- **Structured output:** agents return JSON validated against a schema; invalid output is retried
-  once with the validation error.
+- **Meterless runtime (checked 14 Oct, `research/meterless-runtime.md`):** the organisers' strong
+  examples route every model call "through Meterless", but no Meterless model runtime is available
+  to participants: there is no package on PyPI or npm, and the only Meterless product with an
+  OpenAI-compatible endpoint (Nightshift) is an unreleased preorder for M5 Macs and DGX Spark. The
+  engines' own design takes an injected generator, so our Meterless integration is the two engines
+  plus that shared generator, kept in `app/services/meterless.py` to match the organisers' layout.
+  If a real runtime is announced (Power Day, or the Help Meterless channel), only that module
+  changes.
 
 ## 7. Interfaces
 
