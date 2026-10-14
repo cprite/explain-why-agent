@@ -13,6 +13,7 @@ repository contained no source code, data or configuration before the window ope
 | `docs/judge-prompt.md` | Prompt for a daily self-scoring pass against the published rubric | Written by the team, 6 Oct 2026 |
 | `docs/research/olist-dataset-and-incident-plan.md` | Dataset research and the design of the evaluation incidents | Written by the team, 6 Oct 2026 |
 | `docs/research/new-sponsors.md` | Research note on the sponsors added on 7 Oct | Written by the team, 7 Oct 2026 |
+| `docs/zetaris-aws-setup.md` | Step-by-step setup of a free Zetaris instance on AWS | Written by the team, 14 Oct 2026 |
 | `docs/research/meterless-runtime.md` | Research note on whether a Meterless model runtime exists | Written by the team, 14 Oct 2026 |
 | `docs/research/zetaris-setup.md` | Setup note on Zetaris built from its public getting-started repository | Written by the team, 13 Oct 2026 |
 | `docs/research/workshops/` | Notes on the organisers' Data Day workshop and its caption transcript | Notes by the team, 13 Oct 2026; transcript from the organisers' recording |
