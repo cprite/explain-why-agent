@@ -43,12 +43,14 @@ installs at run time · full run in 5–10 minutes with timeouts and capped loop
 that works with no network · traces as JSONL in `logs/` and on stdout showing handoffs, critique,
 retries · at least three sample inputs with outputs · no hardcoded outputs or hand-written logs.
 
-## Known conflict in the organisers' material
+## Organisers' rules (conflict resolved 14 Oct)
 
-The older "Official Rules" copy on HackOS (updated 30 Sep) says the partner stack is not mandatory and
-lists four differently named tracks. The newer Start-here documents (1 Oct) say Zetaris, Meterless and
-Cursor are required and list three tracks plus Wildcard. Plan as if required until the organisers say
-otherwise. All 32 platform documents are in `platform-resources/`.
+The HackOS "Official Rules" draft was rewritten by 14 Oct and now matches the other documents: every
+submission must integrate Zetaris and Meterless and be developed in Cursor, NVIDIA used wherever it
+contributes; three tracks plus the Wildcard [Tinkerer] bonus track; registration closes 22 Oct 23:45
+UTC; judging opens 28 Oct. It is still marked a working draft; the binding rules are on the event page.
+Small remaining inconsistency: that draft lists four sponsors and one bonus track, without Bright Data
+or the Bright Data bounty that the 9 Oct calendar describes. Neither affects Track 02.
 
 ## Dates (UTC → London)
 

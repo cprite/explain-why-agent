@@ -1,6 +1,6 @@
 # FAQ
 
-Folder: Ungrouped · updated 2026-10-09
+Folder: Ungrouped · updated 2026-10-13
 
 # Frequently Asked Questions
 
@@ -76,7 +76,7 @@ Equally among team members, unless the team submits a different split in writing
 ## 4. Tracks
 
 **How many tracks are there?**  
-Three challenge tracks plus two bonus tracks. Every submission selects exactly one primary track, which determines the judging panel and the prizes it competes for.
+Three challenge tracks plus one bonus track. Every submission selects exactly one primary track, which determines the judging panel and the prizes it competes for.
 
 | # | Track | What You Build |
 |---:|---|---|
@@ -84,7 +84,6 @@ Three challenge tracks plus two bonus tracks. Every submission selects exactly o
 | 2 | **The Agent That Can Explain Why** | Build agents that investigate complex questions across multiple data sources, connect findings, and produce evidence-backed answers or recommendations. |
 | 3 | **Reasoning Architecture** | Demonstrate a novel ability to turn data, knowledge, memory, and reasoning into reliable decisions and actions. |
 | Bonus | **Wildcard [Tinkerer]: Bring Your Own Project** | Bring an existing project, prototype or concept and extend it using Zetaris and Meterless. Judged on the same criteria as the other tracks and scored on the new work rather than prior development. |
-| Bonus | **Wildcard [Bounty]: Bring Your Own Project with Bright Data** | Bring an existing project, prototype or concept and extend it using Bright Data technology. To qualify, your project must meaningfully integrate Bright Data and demonstrate how it is used to collect or scrape relevant web data. |
 
 **Can I submit to more than one track?**  
 No. Each submission selects exactly one primary track. Cross-track relevance is welcome but is not scored twice.
@@ -103,13 +102,13 @@ None of the tracks carries a difficulty rating. How ambitious your build is matt
 Any language, framework, model or cloud, including closed-source APIs and sponsor credits. Common options are LangGraph, CrewAI, AutoGen, the OpenAI Agent SDK, LangChain, LlamaIndex, or a custom Python stack. The framework itself is not scored.
 
 **Can I use code I wrote before the hackathon?**  
-Work committed before the build window opens is not eligible, except for clearly declared pre-existing components. Pre-existing open-source libraries are fine. Pre-existing product code must be declared in the submission form. The two bonus tracks are designed for existing projects, and only the new work is scored.
+Work committed before the build window opens is not eligible, except for clearly declared pre-existing components. Pre-existing open-source libraries are fine. Pre-existing product code must be declared in the submission form. The Wildcard [Tinkerer] bonus track is designed for existing projects, and only the new work is scored.
 
 **Can I use AI-generated code?**  
 Yes. Generated code is allowed and expected. You own the result and are accountable for it.
 
 **Who are the sponsors, and do I have to use their technology?**  
-The sponsors are **Space XAI (with Cursor)**, **NVIDIA**, **Bright Data**, **Zetaris** and **Meterless**. Some of their technology is required:
+The sponsors are **Space XAI (with Cursor)**, **NVIDIA**, **Zetaris** and **Meterless**. Some of their technology is required:
 
 | Sponsor | Requirement |
 |---|---|
@@ -117,12 +116,11 @@ The sponsors are **Space XAI (with Cursor)**, **NVIDIA**, **Bright Data**, **Zet
 | **Meterless** | Required: every submission must integrate Meterless |
 | **Cursor (with Space XAI)** | Required: teams must use Cursor as their development environment |
 | **NVIDIA** | Integrate wherever it contributes to your project, workflow or use case |
-| **Bright Data** | Required for the Bright Data bounty: integrate Bright Data and show how it collects or scrapes relevant web data |
 
 **Sponsor Tech is worth 10 points** in the rubric. Each sponsor has a folder in Resources on HackOS with its documentation and resources.
 
 **How do I get access to the sponsor technologies?**  
-Access instructions and setup steps are in each sponsor's folder in Resources on HackOS. Resources are being updated as sponsors add material. For help with a sponsor's technology, use that sponsor's Help channel on HackOS (Help Zetaris, Help Meterless, Help Cursor, Help NVIDIA, Help Bright Data). For general technical questions, use the #help desk channel.
+Access instructions and setup steps are in each sponsor's folder in Resources on HackOS. Resources are being updated as sponsors add material. For help with a sponsor's technology, use that sponsor's Help channel on HackOS (Help Zetaris, Help Meterless, Help Cursor, Help NVIDIA). For general technical questions, use the #help desk channel.
 
 **What data can I use?**  
 Open, accessible data you can use legally. Avoid private, proprietary, confidential, or restricted datasets, and avoid real personal data. Keep the repository light by using samples rather than full datasets, and include a fallback mode so your solution still runs if an external API is unavailable. If you prepare data before the build window, declare it as a pre-existing component.
@@ -139,7 +137,7 @@ Live sessions from the sponsors covering their technology and how to use it in a
 
 | Workshop | Sponsors and Focus | Date | Time |
 |---|---|---|---|
-| **Data Day** | Zetaris: serving internal data. Bright Data: scraping external data | 12 October 2026 | 22:00 UTC (3:00 PM PT) |
+| **Data Day** | Zetaris: serving internal data | 12 October 2026 | Recording on HackOS |
 | **Build Day** | Cursor: build with. GenAI Works: how to build (vibe coding). Meterless engines: build faster | To be confirmed | To be confirmed |
 | **Power Day** | NVIDIA: cloud provider. Meterless: local and cloud provider | To be confirmed | To be confirmed |
 
@@ -149,7 +147,7 @@ Join through the Open Agent Hackathon 2026 course on GenAI Academy: https://acad
 Watch the recording on HackOS before the build window opens.
 
 **What is participant onboarding?**  
-A live session on **21 October, 12:00–13:30 UTC (5:00–6:30 AM PT)** covering the event overview, the three tracks and the bonus tracks, the sponsor technology, a HackOS walkthrough, submission requirements, and Q&A. Additional challenges and prizes will also be presented.
+A live session on **21 October, 12:00–13:30 UTC (5:00–6:30 AM PT)** covering the event overview, the three tracks and the bonus track, the sponsor technology, a HackOS walkthrough, submission requirements, and Q&A. Additional challenges and prizes will also be presented.
 
 **Do I have to attend onboarding?**  
 It is strongly recommended. It is the fastest way to understand what judges expect. If you can't attend live, the recording will be on HackOS.
@@ -186,7 +184,7 @@ On HackOS.
 | **Demo video** | 1–4 minutes, showing the main workflow, how the agent solves the selected challenge, its key features, and how Zetaris and Meterless are integrated |
 | **Slide deck** | The problem and target users, the solution, the agent workflow or architecture, the technical stack, how Zetaris and Meterless were used, what was unique about your use of the sponsor technologies, product visuals, and future enhancements |
 | **GitHub repository** | All source code and a README covering setup, usage and dependencies. If your agents run in Google Colab, include the Colab links |
-| **Sponsor technology explanation** | How Zetaris and Meterless were integrated, how Cursor was used during development, where NVIDIA technology contributes, and what was unique about your use of the sponsor technologies. For the Bright Data bounty, also explain how Bright Data was used to collect or scrape web data |
+| **Sponsor technology explanation** | How Zetaris and Meterless were integrated, how Cursor was used during development, where NVIDIA technology contributes, and what was unique about your use of the sponsor technologies |
 
 Declare any pre-existing components in the submission form.
 
@@ -250,7 +248,7 @@ The prize pool is **up to $20,000** in total prize value: **$15,000 in cash priz
 | Reasoning Architecture | $2,000 | $1,300 | $1,000 |
 | Wildcard [Tinkerer] | $1,000 | $600 | $400 |
 
-Additional challenges and prizes, including the Bright Data bounty, will be presented at the participant onboarding call on 21 October.
+Additional challenges and prizes will be presented at the participant onboarding call on 21 October.
 
 **How are cash prizes paid?**  
 By bank transfer within 30 days of the results announcement. Taxes and any local charges are the recipient's responsibility.

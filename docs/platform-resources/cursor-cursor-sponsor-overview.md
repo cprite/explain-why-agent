@@ -1,6 +1,6 @@
 # Cursor: Sponsor Overview
 
-Folder: Cursor · updated 2026-10-07
+Folder: Cursor · updated 2026-10-12
 
 # Cursor
 

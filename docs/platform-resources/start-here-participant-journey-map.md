@@ -1,6 +1,6 @@
 # Participant Journey Map
 
-Folder: Start here · updated 2026-10-09
+Folder: Start here · updated 2026-10-13
 
 # Participant Journey Map
 
@@ -16,7 +16,7 @@ All dates and deadlines are in **UTC**.
 
 ```mermaid
 flowchart LR
-    A[Registration<br/>Sign up on the event page<br/>Closes 22 Oct, 23:45] --> B[Sponsor Workshops<br/>Data Day 12 Oct, 22:00 UTC<br/>Build Day and Power Day<br/>dates to follow]
+    A[Registration<br/>Sign up on the event page<br/>Closes 22 Oct, 23:45] --> B[Sponsor Workshops<br/>Data Day 12 Oct, recording on HackOS<br/>Build Day and Power Day<br/>dates to follow]
     B --> C[HackOS Resources<br/>Sponsor folders, challenge pages,<br/>team formation]
     C --> D[21 Oct Participant Onboarding<br/>12:00 UTC: tracks, sponsor tech,<br/>HackOS walkthrough, Q&A]
     D --> E[22 - 27 Oct Build Window<br/>144 hours on HackOS]
@@ -33,7 +33,7 @@ flowchart LR
 | Stage | Date / Window | What Happens | Your Primary Action | Outcome |
 |---|---:|---|---|---|
 | **1. Register** | **14 Aug – 22 Oct, 23:45** | Sign up through the event page. One sign-up covers the event, Discord, and community updates. | Register, log in to HackOS, and complete your profile. | You are registered for the hackathon. |
-| **2. Sponsor Workshops** | **From 12 Oct** | Live workshops on GenAI Academy: Data Day (Zetaris and Bright Data) on 12 Oct at 22:00, with Build Day and Power Day dates to be confirmed. Recordings are added to HackOS. | Attend live or watch the recordings. | You understand the sponsor technology. |
+| **2. Sponsor Workshops** | **From 12 Oct** | Live workshops on GenAI Academy: Data Day (Zetaris) on 12 Oct, with Build Day and Power Day dates to be confirmed. Recordings are added to HackOS. | Attend live or watch the recordings. | You understand the sponsor technology. |
 | **3. HackOS Resources** | **Before 22 Oct** | Sponsor folders in Resources, challenge pages, and team-finding are available on HackOS. | Review resources, shortlist your track, and decide whether to build solo or in a team. | You have a track shortlist and a plan for how you will build. |
 | **4. Participant Onboarding** | **21 Oct, 12:00–13:30** | Official start of the participant experience, delivered by the GenAI Works team with technical walkthroughs from the Product Team. | Attend live, confirm your track, ask questions. | You are ready to build. |
 | **5. Build Window** | **22 Oct, 00:00 – 27 Oct, 23:45** | 144-hour build period. Mentor office hours, the #help desk channel and the sponsor Help channels are live on HackOS. | Build, test, and prepare your submission materials. | Working solution ready for submission. |
@@ -87,7 +87,7 @@ Sponsors run live workshops covering their technology and how to use it in your 
 
 | Workshop | Sponsors and Focus | Date | Time |
 |---|---|---|---|
-| **Data Day** | Zetaris: serving internal data. Bright Data: scraping external data | 12 October 2026 | 22:00 UTC (3:00 PM PT) |
+| **Data Day** | Zetaris: serving internal data | 12 October 2026 | Recording on HackOS |
 | **Build Day** | Cursor: build with. GenAI Works: how to build (vibe coding). Meterless engines: build faster | To be confirmed | To be confirmed |
 | **Power Day** | NVIDIA: cloud provider. Meterless: local and cloud provider | To be confirmed | To be confirmed |
 
@@ -120,7 +120,7 @@ All workshops are recorded. Recordings and related resources are added to HackOS
    - Welcome Guide
    - Challenge pages
    - Event calendar
-   - Sponsor folders in Resources (Zetaris, Meterless, Space XAI and Cursor, NVIDIA, Bright Data)
+   - Sponsor folders in Resources (Zetaris, Meterless, Space XAI and Cursor, NVIDIA)
    - Sponsor workshop recordings
    - Submission requirements
 4. Shortlist your track
@@ -144,8 +144,8 @@ Onboarding runs on **21 October, 12:00–13:30 UTC (5:00–6:30 AM PT)**. It is 
 | Segment | What It Covers |
 |---|---|
 | Welcome | Event purpose, timeline, expectations |
-| Challenge tracks | The three tracks, the bonus tracks, and what strong solutions look like |
-| Sponsor technology | How Zetaris, Meterless, Cursor, NVIDIA, and Bright Data fit into your build |
+| Challenge tracks | The three tracks, the bonus track, and what strong solutions look like |
+| Sponsor technology | How Zetaris, Meterless, Cursor, and NVIDIA fit into your build |
 | HackOS walkthrough | Resources, teams, mentors, submission |
 | Q&A | Open questions before the build starts |
 
@@ -178,7 +178,6 @@ Every submission selects exactly one primary track, which determines the judging
 | 2 | **The Agent That Can Explain Why** | Build agents that investigate complex questions across multiple data sources, connect findings, and produce evidence-backed answers or recommendations. |
 | 3 | **Reasoning Architecture** | Demonstrate a novel ability to turn data, knowledge, memory, and reasoning into reliable decisions and actions. |
 | Bonus | **Wildcard [Tinkerer]: Bring Your Own Project** | Bring an existing project, prototype or concept and extend it using Zetaris and Meterless. Judged on the same criteria as the other tracks and scored on the new work rather than prior development. |
-| Bonus | **Wildcard [Bounty]: Bring Your Own Project with Bright Data** | Bring an existing project, prototype or concept and extend it using Bright Data technology. To qualify, your project must meaningfully integrate Bright Data and demonstrate how it is used to collect or scrape relevant web data. |
 
 ---
 
@@ -190,7 +189,7 @@ Every submission selects exactly one primary track, which determines the judging
 | **Real-World Impact** | The project must address a clear, meaningful problem or user need. |
 | **Innovation** | The submission should demonstrate a novel or creative approach to the problem. |
 | **Demo Quality** | You must clearly demonstrate how the product works and its key functionality. |
-| **Use of Technology** | The project must integrate Zetaris and Meterless, be developed using Cursor, and use NVIDIA technology wherever it contributes. For the Bright Data bounty, the project must also integrate Bright Data. |
+| **Use of Technology** | The project must integrate Zetaris and Meterless, be developed using Cursor, and use NVIDIA technology wherever it contributes. |
 
 ---
 
@@ -266,7 +265,7 @@ Submit through HackOS.
 | **Demo video** | 1–4 minutes, showing the main workflow, how the agent solves the selected challenge, its key features, and how Zetaris and Meterless are integrated |
 | **Slide deck** | The problem and target users, the solution, the agent workflow or architecture, the technical stack, how Zetaris and Meterless were used, what was unique about your use of the sponsor technologies, product visuals, and future enhancements |
 | **GitHub repository** | All source code and a README covering setup, usage and dependencies. If your agents run in Google Colab, include the Colab links |
-| **Sponsor technology explanation** | How Zetaris and Meterless were integrated, how Cursor was used during development, where NVIDIA technology contributes, and what was unique about your use of the sponsor technologies. For the Bright Data bounty, also explain how Bright Data was used to collect or scrape web data |
+| **Sponsor technology explanation** | How Zetaris and Meterless were integrated, how Cursor was used during development, where NVIDIA technology contributes, and what was unique about your use of the sponsor technologies |
 
 Work committed before the build window opens is not eligible, except for clearly declared pre-existing components. Pre-existing product code must be declared in the submission form.
 
@@ -275,7 +274,7 @@ Work committed before the build window opens is not eligible, except for clearly
 - [ ] Demo video (1–4 minutes) is uploaded
 - [ ] Slide deck is complete
 - [ ] GitHub repository link works and the README covers setup, usage and dependencies
-- [ ] Sponsor technology explanation covers Zetaris, Meterless, Cursor and NVIDIA (and Bright Data, for the bounty)
+- [ ] Sponsor technology explanation covers Zetaris, Meterless, Cursor and NVIDIA
 - [ ] Any pre-existing components are declared
 - [ ] No API keys or credentials are committed
 - [ ] Submission is finalised before 23:45 UTC

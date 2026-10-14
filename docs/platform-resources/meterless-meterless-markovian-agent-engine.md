@@ -1,6 +1,6 @@
 # Meterless MARKOVIAN Agent Engine
 
-Folder: Meterless · updated 2026-09-18
+Folder: Meterless · updated 2026-10-12
 
 # Meterless Markovian Agent Engine — Headless Bounded-Context Reasoning for Long Agent Tasks
 

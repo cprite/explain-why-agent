@@ -1,6 +1,6 @@
 # Mentor Playbook
 
-Folder: Judge and Mentor Resources · updated 2026-10-07
+Folder: Judge and Mentor Resources · updated 2026-10-12
 
 # Mentor Playbook
 

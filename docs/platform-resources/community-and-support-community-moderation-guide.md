@@ -1,6 +1,6 @@
 # Community Moderation Guide
 
-Folder: Community and Support · updated 2026-10-07
+Folder: Community and Support · updated 2026-10-13
 
 # Community Moderation Guide
 
@@ -13,8 +13,8 @@ Folder: Community and Support · updated 2026-10-07
 
 This guide defines how moderators keep the Open Agent Hackathon community healthy, focused, safe and useful across:
 
-- HackOS track rooms, announcements and team-finding
-- Partner resource areas
+- HackOS channels: Announcements, #help desk, the sponsor Help channels and team-finding
+- Sponsor folders in Resources
 - Mentor office hours
 - Participant onboarding, 21 October
 - Sponsor workshops
@@ -35,7 +35,7 @@ Respond quickly. Apply rules the same way to a first-time student and a senior e
 
 ### 2.2 Keep the community useful
 
-Move questions to the right room. Cut duplicates by linking to official resources. Push for complete support requests with errors, logs and snippets. Keep announcements authoritative.
+Move questions to the right channel. Cut duplicates by linking to official resources. Push for complete support requests with errors, logs and snippets. Keep Announcements authoritative.
 
 ### 2.3 Protect participants
 
@@ -54,8 +54,10 @@ Don't give one team a private advantage others don't have. Anything that affects
 | Area | Purpose | Owner |
 |---|---|---|
 | **Announcements** | Official updates, read-only | Organizers |
-| **Track rooms** | Track scope, discussion, support for that track | Moderators + mentors |
-| **Partner resource areas** | Partner docs, setup, troubleshooting | Partner teams |
+| **#help desk** | General technical questions | Technical team + moderators |
+| **Sponsor Help channels** | Help Zetaris, Help Meterless, Help Cursor, Help NVIDIA | Sponsor teams + moderators |
+| **Sponsor folders in Resources** | Sponsor docs, setup, recordings | Sponsor teams |
+| **Challenge pages** | Track statements and requirements | Organizers |
 | **Mentor office hours** | Agent design, frameworks, debugging | Mentors |
 | **Team-finding** | Forming and joining teams | Moderators |
 
@@ -77,13 +79,13 @@ Do **not** use DMs for private eligibility interpretations, private deadline exc
 
 Assigns coverage, keeps response times on target, maintains the incident log, escalates to organizers, and approves any clarification that affects rules, submissions, eligibility or judging before it's published.
 
-### 4.2 Track moderator
+### 4.2 Channel moderator
 
-Monitors a track room, answers or routes questions, enforces posting rules, removes prohibited content, flags repeated questions for the FAQ, and escalates by severity.
+Monitors #help desk, the sponsor Help channels and team-finding; answers or routes questions, enforces posting rules, removes prohibited content, flags repeated questions for the FAQ, and escalates by severity.
 
 ### 4.3 Mentor
 
-Helps participants understand the tracks, navigate HackOS and the partner technologies, and get unstuck. Triages technical issues to the right place: provider, partner, framework or submission format.
+Helps participants understand the tracks, navigate HackOS and the sponsor technologies, and get unstuck. Triages technical issues to the right place: sponsor, provider, framework or submission format.
 
 Mentors do not write participant code, design a team's architecture or debug a full private repository.
 
@@ -102,12 +104,14 @@ All times **UTC**.
 | Period | Dates | Coverage |
 |---|---|---|
 | Pre-event | To 20 October | Business hours |
-| Sponsor workshops | TBA | Live during sessions |
-| Onboarding | 21 October | Live during the session |
-| Build window | 22–27 October | Daily active monitoring, rota across time zones |
+| Data Day workshop | 12 October | Live during the session |
+| Build Day and Power Day workshops | Dates announced on HackOS | Live during sessions |
+| Onboarding | 21 October, 12:00–13:30 | Live during the session |
+| Build window | 22 October, 00:00 – 27 October, 23:45 | Daily active monitoring, rota across time zones |
+| Registration close | 22 October, 23:45 | Watch for late-registration questions |
 | Submission day | 27 October to 23:45 | Extended coverage for submission blockers |
-| Judging | 27 October – 6 November | Monitoring for clarification requests |
-| Results | 6 November | Live during the call |
+| Judging | 28 October – 6 November | Monitoring for clarification requests |
+| Results | 6 November, 16:00 | Live during the call |
 
 **Coverage across time zones is the hard part.** A global event means 3am questions. Set an explicit rota and publish expected response windows so participants aren't waiting on silence.
 
@@ -117,7 +121,7 @@ All times **UTC**.
 |---|---|---|---|
 | **S0 — Safety or security** | Threat, harassment, leaked key, sensitive data exposure, live disruption | Immediate, within 5 minutes | 15 minutes |
 | **S1 — High event risk** | Eligibility dispute, contradictory official info, deadline confusion, platform outage | 15 minutes | 30 minutes |
-| **S2 — Blocker affecting many** | Partner service down, HackOS failure, submission form broken | 30 minutes | 1 hour |
+| **S2 — Blocker affecting many** | Sponsor service down, HackOS failure, submission form broken | 30 minutes | 1 hour |
 | **S3 — Standard support** | Docker error, track question, team formation | 4 hours | 1 day |
 | **S4 — Low or duplicate** | Repeat FAQ question, general chat | 1 day | Link and consolidate |
 
@@ -126,8 +130,8 @@ All times **UTC**.
 On 27 October, submission blockers take priority until 23:45. In order:
 
 1. Submission access or form failures
-2. Repository link problems
-3. Demo video link problems
+2. Repository link problems, including repositories still set to private
+3. Demo video and slide deck problems
 4. Required-component questions
 5. Everything else
 
@@ -161,7 +165,7 @@ The test: would you be willing to give this same help to every team that asked? 
 
 ### 6.4 No misinformation
 
-Correct or remove posts that get the deadline, required components, model rules, team rules, judging process or disqualification rules wrong.
+Correct or remove posts that get the deadline, required components, sponsor technology requirements, team rules, judging process or disqualification rules wrong.
 
 Use neutral language:
 
@@ -169,43 +173,43 @@ Use neutral language:
 
 ### 6.5 No spam
 
-No repeated identical posts across rooms, unrelated promotion, excessive tagging of organizers, thread hijacking or unapproved bot posting.
+No repeated identical posts across channels, unrelated promotion, excessive tagging of organizers, thread hijacking or unapproved bot posting.
 
 ### 6.6 No unsafe technical activity
 
-No requests for credential bypass, API abuse, rate-limit evasion or unauthorised access. No instructions for attacking HackOS, the partners, participants or third parties. No malware or exploit code.
+No requests for credential bypass, API abuse, rate-limit evasion or unauthorised access. No instructions for attacking HackOS, the sponsors, participants or third parties. No malware or exploit code.
 
 Security-flavoured builds must stay defensive, dataset-based and authorised.
 
 ---
 
-## 7. Room-Specific Rules
+## 7. Channel-Specific Rules
 
 ### 7.1 Announcements
 
 Official updates only, read-only for participants, everything dated in UTC. Any rule clarification is reviewed by the organizers before posting. No speculation. Pin deadline and submission updates.
 
-### 7.2 Track rooms
+### 7.2 #help desk
 
-**Allowed:** track interpretation, scope guidance, dataset questions, what counts as an agent doing real work, whether an approach is broadly aligned with the track.
+**Allowed:** general technical questions, track interpretation, scope guidance, dataset questions, what counts as an agent doing real work, whether an approach is broadly aligned with the track.
 
 **Not allowed:** approving a team's full solution, guaranteeing a score, telling a team they'll pass or fail, sharing non-public judging preferences.
 
 Say:
 
-> "This looks aligned with the track if you can show the agent doing real work and meet the submission requirements."
+> "This looks aligned with the track if you can show the agent doing real work, integrate Zetaris and Meterless, and meet the submission requirements."
 
 Not:
 
 > "This will definitely score well."
 
-Anything ambiguous that affects every team goes to the organizers, gets confirmed, then gets published publicly.
+Anything ambiguous that affects every team goes to the organizers, gets confirmed, then gets published in Announcements.
 
-### 7.3 Partner resource areas
+### 7.3 Sponsor Help channels
 
-Partner teams own these. Moderators route participants there first for setup, access and service errors, then back to the track room if the issue turns out to be the participant's own code.
+Sponsor teams own the answers. Moderators route participants to the sponsor's folder in Resources first, then the Help channel, and back to #help desk or mentor office hours if the issue turns out to be the participant's own code.
 
-The useful triage question: **does the partner's own quickstart work for you?** If yes, it's their code. If no, it's access or the service.
+The useful triage question: **does the sponsor's own quickstart or verification step work for you?** If yes, it's their code. If no, it's access or the service.
 
 ### 7.4 Mentor office hours
 
@@ -217,7 +221,11 @@ Ask for minimal reproducible examples. Keep snippets generic.
 
 ### 7.5 Team-finding
 
-Keep it to team formation. Redirect technical questions. Watch for anyone pressuring someone over roles, credit or prize splits, and remind teams to agree the split in writing before submitting.
+Keep it to team formation. Redirect technical questions. Watch for anyone pressuring someone over roles, credit or prize splits. Remind teams to:
+
+- Agree the split in writing before submitting
+- Confirm the roster before the first submission is created, because the team locks at that point
+- Use "happy to build solo" in the registration form if they're building alone
 
 ---
 
@@ -241,9 +249,9 @@ Acknowledge publicly, move details private, escalate to organizers, publish an a
 
 ### S2 — Blocker affecting many teams
 
-Partner service outage, HackOS failure, submission form broken, a broken official resource link.
+Sponsor service outage, HackOS failure, submission form broken, a broken official resource link.
 
-Acknowledge in the room, collect impact details, escalate to the owner, and **post status updates at least hourly** until it's fixed or there's a workaround. During a 144-hour window, silence during an outage does more damage than the outage.
+Acknowledge in the channel, collect impact details, escalate to the owner, and **post status updates at least hourly** until it's fixed or there's a workaround. During a 144-hour window, silence during an outage does more damage than the outage.
 
 ### S3 — Standard support
 
@@ -261,7 +269,7 @@ Use the least restrictive action that protects the community.
 
 | Action | When |
 |---|---|
-| **Public redirect** | Wrong room, duplicate |
+| **Public redirect** | Wrong channel, duplicate |
 | **Public reminder** | Minor rule issue |
 | **DM reminder** | First conduct issue, accidental sensitive detail |
 | **Edit request** | Partially sensitive or unclear content |
@@ -270,7 +278,7 @@ Use the least restrictive action that protects the community.
 | **Official correction** | Wrong rule or deadline shared |
 | **Warning** | Repeated or moderate violation |
 | **Temporary mute** | Continued disruption after a warning |
-| **Removal from a session or room** | Severe disruption, harassment, safety issue |
+| **Removal from a session or channel** | Severe disruption, harassment, safety issue |
 | **Escalation** | Anything affecting the event, people, safety or security |
 
 ---
@@ -280,7 +288,7 @@ Use the least restrictive action that protects the community.
 ### 10.1 Immediate steps
 
 1. **Hide or delete the content immediately**
-2. **Capture evidence first where possible:** screenshot, room, timestamp in UTC, username, what type of data was exposed
+2. **Capture evidence first where possible:** screenshot, channel, timestamp in UTC, username, what type of data was exposed
 3. **Notify the lead moderator**
 4. **DM the participant**
 5. **Escalate** based on what was exposed
@@ -289,9 +297,9 @@ Use the least restrictive action that protects the community.
 
 Remove it, then DM:
 
-> "Your message included what looked like an API key or credential, so we removed it. **Rotate the key with your provider now** — deleting the message doesn't un-leak it. Repost a redacted version if you still need help."
+> "Your message included what looked like an API key or credential, so we removed it. **Rotate the key now** — deleting the message doesn't un-leak it. Repost a redacted version if you still need help."
 
-**Rotation is the participant's job and their provider's system**, not something moderators can do for them. Say so plainly and quickly. Log the incident.
+**Rotation is the participant's job.** For a Zetaris, Meterless or NVIDIA key, they create a new one in that service; for any other provider, only that provider can revoke it. Say so plainly and quickly. Log the incident.
 
 ### 10.3 If personal or sensitive data is posted
 
@@ -311,22 +319,30 @@ Before reposting, strip: keys and tokens, email addresses not needed for support
 
 ### 11.1 High-risk misinformation for this event
 
-- "The deadline is later than 23:45."
-- "You can still register after 22 October."
-- "Late submissions are accepted."
-- "Team size can be more than five."
-- "You must use [specific provider]." — model choice is open
-- "Partner tech is mandatory." — it isn't, but it's worth 10 points
-- "A fixed A → B → C chain is fine."
-- "A demo video can replace a working project."
-- "Hardcoded outputs are fine for the demo."
-- "You can commit `.env` if the repo is private."
-- "Judges will install missing dependencies for you."
-- "There's a 30-point bonus." — the rubric totals 100
+| Wrong | Correct position |
+|---|---|
+| "The deadline is later than 23:45." | Submissions close **27 October, 23:45 UTC** |
+| "Registration closes at 23:59." | Registration closes **22 October, 23:45 UTC** |
+| "You can still register after 22 October." | No late registration |
+| "Late submissions are accepted." | They are not evaluated |
+| "Team size can be more than five." | Maximum five |
+| "You can change your team after submitting." | The team locks when the first submission is created |
+| "You must use [specific model provider]." | Model choice is open |
+| "Sponsor technology is optional." | Zetaris and Meterless are required in every submission; Cursor is the required development environment; NVIDIA wherever it contributes |
+| "There's a Bright Data bounty track." | There isn't. Three tracks plus Wildcard [Tinkerer] |
+| "Your repository can stay private." | It must be public |
+| "The demo can be any length." | 1–4 minutes |
+| "A slide deck is optional." | It's a required component |
+| "A fixed A → B → C chain is fine." | Judges look for real collaboration |
+| "A demo video can replace a working project." | It can't |
+| "Hardcoded outputs are fine for the demo." | They are a disqualification risk |
+| "Old code is fine without declaring it." | Pre-existing work must be declared |
+| "Judges will install missing dependencies for you." | They won't |
+| "There's a 30-point bonus." | The rubric totals 100 |
 
 ### 11.2 Correction template
 
-> **Moderator clarification:** the official position is: [rule]. See [link]. We've removed conflicting guidance to keep the room accurate.
+> **Moderator clarification:** the official position is: [rule]. See [link]. We've removed conflicting guidance to keep the channel accurate.
 
 ### 11.3 Approval required
 
@@ -344,7 +360,7 @@ Someone wants to leave, a team wants to remove someone, disagreement over an ide
 
 Minor:
 
-> "Please keep it professional. For team changes, use the team-finding process on HackOS and confirm with everyone affected."
+> "Please keep it professional. For team changes, use team-finding on HackOS and confirm with everyone affected. Remember the team locks when your first submission is created."
 
 A dispute:
 
@@ -352,7 +368,7 @@ A dispute:
 
 ### 12.3 Prize splits
 
-Prizes split equally among team members by default. Teams that want something else must agree it in writing **before** submitting.
+Cash prizes are split equally among team members unless the team submits a different split in writing.
 
 Moderators should push this early and often during team formation, because it's far easier to settle on 22 October than on 6 November when there's money on the table.
 
@@ -372,10 +388,11 @@ Moderators must not decide who owns an idea, remove team members outside the app
 | Confirm host, co-hosts, speakers | Lead moderator | ☐ |
 | Confirm chat and Q&A settings | Session moderator | ☐ |
 | Prepare the pinned welcome message | Session moderator | ☐ |
-| Prepare resource links | Track moderator | ☐ |
+| Prepare resource links | Channel moderator | ☐ |
 | Set up the escalation backchannel | Lead moderator | ☐ |
 | Confirm who can remove attendees | Host | ☐ |
 | Confirm the recording policy | Organizers | ☐ |
+| Confirm participants can access the session without paying | Organizers | ☐ |
 
 ### 13.2 Settings
 
@@ -383,13 +400,13 @@ Moderated Q&A on. Attendees muted by default. Screen sharing limited to presente
 
 ### 13.3 Pinned welcome
 
-> Welcome to the Open Agent Hackathon. Keep the chat professional and use Q&A for questions. Do not post API keys, credentials or personal data. For support during the event, use your track room, the partner resource areas, or mentor office hours on HackOS.
+> Welcome to the Open Agent Hackathon. Keep the chat professional and use Q&A for questions. Do not post API keys, credentials or personal data. For support during the event, use the #help desk channel, the sponsor Help channels, or mentor office hours on HackOS.
 
 ### 13.4 Q&A
 
 Group duplicates, prioritise questions affecting everyone, route to the right speaker, never read out a question containing private information, rephrase hostile questions neutrally, and capture the unanswered ones for follow-up.
 
-Priority order: platform access, track selection, partner setup, team formation, build expectations, submission requirements, judging, prizes.
+Priority order: platform access, track selection, sponsor setup, team formation, build expectations, submission requirements, judging, prizes.
 
 ### 13.5 Disruption
 
@@ -406,32 +423,32 @@ Remove an attendee immediately for threats, harassment, discriminatory language,
 
 ### 13.6 After the session
 
-Within 24 hours: publish the recording if approved, publish resources, post answers to common questions, open follow-up threads for unresolved issues, log incidents, and review gaps before the next session.
+Within 24 hours: publish the recording on HackOS if approved, publish resources, post answers to common questions, open follow-up threads for unresolved issues, log incidents, and review gaps before the next session.
 
 ---
 
 ## 14. Response Templates
 
-**Wrong room**
+**Wrong channel**
 
-> Thanks. This belongs in [room], where the right people can help. Please repost with the error message and any relevant snippet, secrets removed.
+> Thanks. This belongs in [channel], where the right people can help. Please repost with the error message and any relevant snippet, secrets removed.
 
 **Duplicate**
 
-> Answered here: [link]. Closing duplicates to keep the room readable.
+> Answered here: [link]. Closing duplicates to keep the channel readable.
 
 **Missing detail**
 
 > Happy to help, but we need a few things first:
 > - What command did you run?
 > - What's the exact error?
-> - Framework and provider?
+> - Framework and model provider?
 > - Local or Docker?
 > - What have you already tried?
 
 **Credential posted**
 
-> We removed your message because it included what looked like a key or credential. **Rotate that key with your provider now** — deleting the message doesn't protect it. Repost a redacted version if you still need help.
+> We removed your message because it included what looked like a key or credential. **Rotate that key now** — deleting the message doesn't protect it. Repost a redacted version if you still need help.
 
 **Conduct reminder**
 
@@ -449,13 +466,17 @@ Within 24 hours: publish the recording if approved, publish resources, post answ
 
 > Extensions are decided by the organizers, not moderators. Unless an official announcement says otherwise, the deadline remains **27 October, 23:45 UTC**.
 
+**Sponsor technology requirement**
+
+> Zetaris and Meterless are required in every submission, including Wildcard [Tinkerer]. Cursor is the required development environment, and NVIDIA should be used wherever it contributes. Setup is in each sponsor's folder in Resources.
+
 **Provider error**
 
-> This looks like an issue with your model provider rather than the event. Check whether a minimal SDK call works outside your framework. If it fails there too, your provider's support will be faster than we can be. If it works there but not in your framework, bring it to mentor office hours.
+> Check whether a minimal SDK call works outside your framework. If it fails on Meterless or NVIDIA, ask in that sponsor's Help channel. For any other provider, their support will be faster than we can be. If the minimal call works but your framework doesn't, bring it to mentor office hours.
 
-**Partner service**
+**Sponsor service**
 
-> Please check [partner]'s resource area on HackOS first: getting started, troubleshooting and FAQs. If their own quickstart works for you but your code doesn't, bring it back to your track room with the error.
+> Please check [sponsor]'s folder in Resources on HackOS first, then ask in Help [sponsor]. If their own quickstart works for you but your code doesn't, bring it to #help desk or mentor office hours with the error.
 
 **Full repo debugging request**
 
@@ -471,10 +492,10 @@ Log every S0 and S1, and repeated S2s.
 Incident ID:
 Date/time reported (UTC):
 Reported by:
-Room or session:
+Channel or session:
 Participants involved:
 Severity: S0 / S1 / S2 / S3 / S4
-Category: Conduct / Security / Partner / Submission / Platform / Session / Other
+Category: Conduct / Security / Sponsor / Submission / Platform / Session / Other
 Summary:
 Content removed? yes/no
 Evidence captured? yes/no
@@ -505,9 +526,9 @@ Don't answer definitively. Escalate to organizers. Publish only the approved ans
 Move it private. Escalate. No public investigation.
 
 **4. Is this a technical platform issue?**
-Partner service → partner resource area, then partner support.
-HackOS → organizers.
-Model provider → the participant's own provider.
+Sponsor service → the sponsor's folder and Help channel, then sponsor support.
+HackOS or GenAI Academy → HackOS escalations.
+Non-sponsor model provider → the participant's own provider.
 Submission format → Official Rules, then organizers if genuinely ambiguous.
 
 **5. Is this normal support?**
@@ -527,7 +548,7 @@ If a clarification helps more than one team, post it publicly once approved.
 
 ### 17.3 Link to published resources
 
-Welcome Guide, Official Rules, submission requirements, technical guide, FAQ, troubleshooting guide, partner resource areas.
+Welcome Guide, Official Rules, Submission Requirements, Technical Execution Guide, FAQ, Troubleshooting Guide, Help Desk Guide, and the sponsor folders in Resources.
 
 ### 17.4 Avoid judging language
 
@@ -542,17 +563,23 @@ Welcome Guide, Official Rules, submission requirements, technical guide, FAQ, tr
 **A key is posted publicly**
 Remove, DM with rotation instructions, log it, escalate if the exposure was significant or the key isn't theirs.
 
-**Someone says a specific provider is required**
-Correct publicly: model choice is open. Link the rules.
+**Someone says a specific model provider is required**
+Correct publicly: model choice is open. Zetaris and Meterless integration is what's required. Link the rules.
 
-**Someone says partner tech is mandatory**
-Correct publicly: it's optional, but Sponsor Tech is 10 points.
+**Someone says sponsor technology is optional**
+Correct publicly: Zetaris and Meterless are required in every submission, Cursor is the required development environment, and NVIDIA should be used wherever it contributes. Link the rules.
+
+**Someone asks about the Bright Data bounty**
+Correct publicly: there is no Bright Data track. The tracks are the three challenge tracks plus Wildcard [Tinkerer].
 
 **A public complaint about eligibility**
 Acknowledge, don't discuss anyone's eligibility publicly, escalate, move private.
 
 **Teammates argue publicly**
 Conduct reminder, ask them to pause, escalate. If it's about the prize split, point at the default equal split and the need for a written agreement.
+
+**A team wants to change its roster after submitting**
+Explain that the team locked when the first submission was created. Escalate to organizers only if it's an obvious administrative error.
 
 **Q&A flooded with duplicates**
 Pin an answer, group in Q&A, say duplicates are being consolidated, publish a follow-up FAQ.
@@ -561,10 +588,10 @@ Pin an answer, group in Q&A, say duplicates are being consolidated, publish a fo
 Don't approve. State the deadline. Escalate only if there's a platform problem.
 
 **Full repo debugging request**
-Decline, ask for a minimal reproducible error, point at the troubleshooting guide.
+Decline, ask for a minimal reproducible error, point at the Troubleshooting Guide.
 
-**A provider outage mid-build**
-Not our outage, but it hits teams hard. Remind them that sample mode is what keeps a project demonstrable when a provider is down, and that judges need it too.
+**A sponsor or provider outage mid-build**
+Escalate to the sponsor through its Help channel and post hourly updates. Remind teams that sample mode keeps a project demonstrable when a service is down, and that judges need it too.
 
 ---
 
@@ -572,7 +599,7 @@ Not our outage, but it hits teams hard. Remind them that sample mode is what kee
 
 ### Daily during the build window
 
-- [ ] Review every room
+- [ ] Review every channel
 - [ ] Clear unanswered S1 and S2 items
 - [ ] Scan for leaked secrets, including in screenshots
 - [ ] Move misplaced questions
@@ -584,6 +611,7 @@ Not our outage, but it hits teams hard. Remind them that sample mode is what kee
 ### Submission day, 27 October
 
 - [ ] Pin the submission checklist and the deadline
+- [ ] Remind teams that repositories must be public
 - [ ] Monitor submission issues continuously
 - [ ] Escalate platform failures immediately
 - [ ] Correct deadline misinformation instantly
@@ -594,6 +622,7 @@ Not our outage, but it hits teams hard. Remind them that sample mode is what kee
 ### Live session day
 
 - [ ] Confirm roles and the escalation backchannel
+- [ ] Confirm participants can join without paying
 - [ ] Pin the welcome and conduct message
 - [ ] Monitor Q&A continuously
 - [ ] Remove unsafe content immediately
@@ -607,21 +636,22 @@ Not our outage, but it hits teams hard. Remind them that sample mode is what kee
 
 | Escalate to | For |
 |---|---|
-| **Organizers** | Event decisions, deadlines, eligibility, prizes, official announcements, platform outages, conduct, anything affecting many teams |
-| **Partner support** | A partner service down, credentials not provisioning, platform-level errors |
-| **The participant's own provider** | Model auth, rate limits, billing |
+| **Organizers** | Event decisions, deadlines, eligibility, prizes, official announcements, conduct, anything affecting many teams |
+| **HackOS escalations** | HackOS and GenAI Academy platform failures, access problems |
+| **Sponsor support** | A sponsor service down, credentials or credits not provisioning, platform-level errors |
+| **The participant's own provider** | Auth, rate limits, billing on a non-sponsor provider |
 | **Organizers, privately** | Exposed credentials, sensitive data, security or safety concerns |
 
 | Role | Name | Contact |
 |---|---|---|
-| Lead moderator | [Isreal] | [@isreal] |
-| Organizer escalation | [TBC] | [TBC] |
-| Conduct and safety escalation | [TBC] | [TBC] |
-| Platform owner | [TBC] | [TBC] |
-| Zetaris support | [TBC] | [TBC] |
-| NVIDIA support | [TBC] | [TBC] |
-| Cursor support | [TBC] | [TBC] |
-| Meterless support | [TBC] | [TBC] |
+| Lead moderator | Isreal | @isreal |
+| Organizer escalation | GenAI Works organizing team | hackathons@genai.works |
+| Conduct and safety escalation | GenAI Works organizing team | hackathons@genai.works |
+| Platform escalation | HackOS escalations | HackOS escalations |
+| Zetaris support | Zetaris team | Help Zetaris channel |
+| Meterless support | Meterless team | Help Meterless channel |
+| Cursor support | Space XAI and Cursor team | Help Cursor channel |
+| NVIDIA support | NVIDIA team | Help NVIDIA channel |
 
 ---
 

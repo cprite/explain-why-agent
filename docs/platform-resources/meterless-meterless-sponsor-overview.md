@@ -1,6 +1,6 @@
 # Meterless: Sponsor Overview
 
-Folder: Meterless · updated 2026-09-30
+Folder: Meterless · updated 2026-10-12
 
 # Meterless
 

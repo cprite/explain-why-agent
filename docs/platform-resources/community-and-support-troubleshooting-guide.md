@@ -1,14 +1,14 @@
 # Troubleshooting Guide
 
-Folder: Community and Support · updated 2026-09-30
+Folder: Community and Support · updated 2026-10-13
 
 # Troubleshooting Guide
 
 **OPEN AGENT HACKATHON 2026 | Build an agent that does real work**
 
-This guide covers the problems that eat build time: Docker, dependencies, provider auth, rate limits, data downloads, runaway agent loops and logs. Work through it before asking in your track room.
+This guide covers the problems that eat build time: Docker, dependencies, provider auth, rate limits, sponsor technology setup, data downloads, runaway agent loops and logs. Work through it before asking for help.
 
-Support during the event lives on HackOS: your track room, the partner resource areas and mentor office hours.
+Support during the event lives on HackOS: the #help desk channel, each sponsor's Help channel, the sponsor folders in Resources, and mentor office hours.
 
 ---
 
@@ -22,7 +22,7 @@ Support during the event lives on HackOS: your track room, the partner resource 
 | `401` or `403` from your model provider | Missing or wrong key, wrong base URL | [4. Provider auth](#4-provider-authentication) |
 | `429` or rate limit error | Too many calls, too much concurrency | [5. Rate limits and cost](#5-rate-limits-and-cost) |
 | `model_not_found` | Wrong model name for your provider | [6. Model errors](#6-model-errors) |
-| Partner service won't connect | Credentials, URI, network, setup step missed | [7. Partner stack](#7-partner-stack) |
+| Zetaris, Meterless, NVIDIA or Cursor problem | Setup step missed, wrong settings | [7. Sponsor technology](#7-sponsor-technology) |
 | Data fails to download | Broken URL, auth required, timeout | [8. Data](#8-data) |
 | Run never finishes | Unbounded loops, heavy calls, no timeouts | [9. Runs that never end](#9-runs-that-never-end) |
 | Logs don't show the agent working | No trace logging, or a linear pipeline | [10. Logs](#10-logs-and-traces) |
@@ -49,7 +49,7 @@ curl -X POST http://localhost:8000/run \
   -d @input_examples/example_1.json
 ```
 
-Dependencies install at build time, it runs CPU-only, and a run finishes in minutes.
+Dependencies install at build time, it runs without a local GPU, and a run finishes in minutes.
 
 ### 2.2 Build fails
 
@@ -196,12 +196,14 @@ Start clean and add packages one at a time:
 python -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install fastapi uvicorn openai python-dotenv
-pip install langgraph        # then your agent framework
+pip install fastapi uvicorn openai python-dotenv requests
+pip install langgraph           # then your agent framework
 pip freeze > requirements.txt   # only once it works
 ```
 
 Every extra dependency is another way the build can fail. Keep the list short.
+
+If `pip install` fails with `externally-managed-environment`, your system Python blocks global installs. Use a virtual environment as above.
 
 ### 3.4 Baseline requirements
 
@@ -223,6 +225,7 @@ fastapi==0.115.0
 uvicorn==0.30.6
 openai>=1.40.0
 python-dotenv==1.0.1
+requests>=2.32.0
 langchain
 langchain-openai
 langgraph
@@ -237,7 +240,7 @@ faiss-cpu
 tiktoken
 ```
 
-Avoid GPU-only libraries. Assume a judge has a plain CPU machine.
+Avoid libraries that need a local GPU. Assume a judge has an ordinary machine.
 
 ### 3.5 Never install at runtime
 
@@ -256,8 +259,9 @@ Model choice is open, so the exact errors depend on your provider. The causes ra
 ### 4.1 Environment variables, always
 
 ```bash
-export OPENAI_API_KEY="your-key"
-export OPENAI_BASE_URL="https://api.your-provider.example/v1"
+export MODEL_API_KEY="your-key"
+export MODEL_BASE_URL="https://api.your-provider.example/v1"
+export MODEL_NAME="your-model"
 ```
 
 `.env.example` gets placeholders only. `.env` goes in `.gitignore`.
@@ -271,12 +275,12 @@ import os
 from openai import OpenAI
 
 client = OpenAI(
-    api_key=os.environ["OPENAI_API_KEY"],
-    base_url=os.environ.get("OPENAI_BASE_URL"),
+    api_key=os.environ["MODEL_API_KEY"],
+    base_url=os.environ.get("MODEL_BASE_URL"),
 )
 
 response = client.chat.completions.create(
-    model=os.environ.get("MODEL_NAME"),
+    model=os.environ["MODEL_NAME"],
     messages=[{"role": "user", "content": "Reply with: connection OK"}],
     temperature=0,
 )
@@ -290,20 +294,21 @@ print(response.choices[0].message.content)
 - Extra spaces or quotes around the key
 - Wrong key copied
 - Key rotated or revoked
+- The key doesn't match the provider in `MODEL_BASE_URL`
 - Code not actually reading the environment variable
 
 Check what your process sees:
 
 ```bash
-echo "$OPENAI_BASE_URL"
-echo "${OPENAI_API_KEY:0:8}..."
+echo "$MODEL_BASE_URL"
+echo "${MODEL_API_KEY:0:8}..."
 ```
 
 Never paste a full key anywhere, including a support request.
 
 ### 4.4 `403 Forbidden`
 
-Usually the key is valid but not entitled to that model, or the account needs billing enabled. Try your provider's cheapest model first. If that works, it's an entitlement problem, not a key problem.
+Usually the key is valid but not entitled to that model, or the account needs billing or credit enabled. Try your provider's cheapest model first. If that works, it's an entitlement problem, not a key problem.
 
 ### 4.5 Base URL mistakes
 
@@ -321,7 +326,7 @@ docker run --rm -p 8000:8000 --env-file .env oah-submission
 
 ## 5. Rate Limits and Cost
 
-You pick your provider, so you carry its limits and its bill.
+You pick your provider, so you carry its limits and its bill, except where sponsor credits or free access cover it.
 
 ### 5.1 `429` and rate limit errors
 
@@ -366,16 +371,17 @@ def call_with_retries(fn, max_retries=3):
             time.sleep(wait)
 ```
 
-Never retry indefinitely. An unbounded retry loop can burn a day's budget while you sleep.
+Never retry indefinitely. An unbounded retry loop can burn a day's budget or credit while you sleep.
 
-### 5.2 Watching the bill
+### 5.2 Watching usage
 
 Agent loops multiply token use fast. A planner ↔ executor ↔ evaluator loop over three rounds is nine calls per run, and you will run it hundreds of times in six days.
 
-- Set a spend alert with your provider on day one
-- Use a cheaper model for routine steps, the expensive one for the hard reasoning step
-- Develop against sample mode so you're not paying to test plumbing
+- Check your credit or rate limits with your provider on day one
+- Use a smaller model for routine steps, a larger one for the hard reasoning step
+- Develop against sample mode so you're not spending on testing plumbing
 - Cap `MAX_AGENT_ROUNDS`
+- Keep your product's model key out of Cursor, so coding never uses it
 
 ---
 
@@ -383,7 +389,7 @@ Agent loops multiply token use fast. A planner ↔ executor ↔ evaluator loop o
 
 ### 6.1 `model_not_found`
 
-The model name doesn't exist on that provider, or your account lacks access. Model names differ between providers and change often. Check your provider's current list rather than copying a name from a tutorial.
+The model name doesn't exist on that provider, or your account lacks access. Model names differ between providers and change often. Copy the exact model ID from your provider rather than from a tutorial.
 
 Read it from configuration, never hardcode:
 
@@ -422,29 +428,78 @@ Pre-compute embeddings where you can, rather than doing it inside a judged run.
 
 ---
 
-## 7. Partner Stack
+## 7. Sponsor Technology
 
-[TBC: setup, credentials and troubleshooting for each partner are published in their resource areas on HackOS. Check there first, then your track room.]
+Setup steps and documentation for each sponsor are in its folder in Resources on HackOS. Check there first, then ask in that sponsor's Help channel.
 
 ### 7.1 Zetaris
 
-[TBC]
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| You don't have the platform bundle or registry credentials | They haven't reached you yet | Ask in Help Zetaris, well before the event |
+| `./preflight.sh` reports failures | Docker isn't running, has too little memory or disk, or the registry sign-in is missing | Give Docker 8 GB and 4 CPUs, free 15 GB of disk, rerun the registry sign-in, then rerun preflight |
+| `docker compose pull` fails with "denied" or "unauthorized" | The registry didn't accept your sign-in | Rerun `docker login` with the registry credentials you were given |
+| `./verify.sh` fails right after starting | First-time setup is still running | Wait until bootstrap shows `Exited (0)`, wait a minute, run it again |
+| Very slow first start on a Mac | Apple Silicon runs the images under emulation | Turn on **Use Rosetta** in Docker Desktop and allow extra time |
+| Sign-in fails | Wrong email or password; editing `.env` after the first start doesn't reset an existing account | Use the details you set before the first start |
+| REST requests return `401` | Zetaris API key missing, wrong or expired | Create a new key in the Zetaris web interface and update `.env` |
+| REST requests return `400` | Wrong `X-Org-ID`, or `X-Request-ID` isn't a UUID | Use organisation ID `1` on a local install and a fresh UUID for every request |
+| "Object already exists" | You already ran that create statement | Check the existing object matches, then move on |
+| A table is created but returns no rows | Zetaris can't reach the source, or the path is wrong | Check the source address, and that Zetaris itself can reach it |
+| A file on your laptop won't query | Zetaris can't read files on your laptop | Put the file in storage Zetaris can reach, such as an S3 bucket, then register it |
+| Your Dockerised agent can't reach Zetaris on `localhost` | Inside a container, `localhost` means the container | Use `http://host.docker.internal:8888/api/v1.0` on Mac and Windows, or run with `--network host` on Linux |
 
-### 7.2 NVIDIA
+Quick REST check:
 
-[TBC]
+```python
+import os, uuid, requests
 
-### 7.3 Meterless
+r = requests.post(
+    os.environ["ZETARIS_REST_URL"].rstrip("/") + "/sql-editor/sqls/run",
+    headers={
+        "Authorization": "Bearer " + os.environ["ZETARIS_API_KEY"],
+        "X-Org-ID": os.environ["ZETARIS_ORG_ID"],
+        "X-Request-ID": str(uuid.uuid4()),
+    },
+    json={"queryId": str(uuid.uuid4()), "sql": "SELECT 1", "source": "SqlEditor", "limit": 1},
+    timeout=60,
+)
+print(r.status_code, r.text[:200])
+```
 
-[TBC]
+### 7.2 Meterless
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Calls fail even though each setting looks right | Settings mixed from two routes, such as a Meterless key with another provider's address | Take the address, key and model ID all from your Meterless account |
+| `401` | The key doesn't match the address | Copy the key again from Meterless |
+| `404` or "model not found" | The model ID doesn't match the Meterless model list | Copy the exact model ID shown in Meterless |
+| Credit or rate-limit error | Your Meterless credit has run out | Check your credit, and ask in Help Meterless |
+| Meterless credit drops while you're coding | Your Meterless key is in Cursor's settings | Remove it from Cursor; code with Cursor's own models |
+
+### 7.3 NVIDIA
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `401` | Key doesn't match the route, or was mistyped | Create or copy your key again on build.nvidia.com; keys start with `nvapi-` |
+| `404` or "model not found" | Wrong model ID | Copy the exact model ID from the model page on build.nvidia.com |
+| Calls fail with a Meterless key | Settings mixed from two routes | Use NVIDIA's address, key and model ID together |
+| Rate-limit errors | Free-tier limits reached | Wait and retry, check your limits, or switch routes |
+
+NVIDIA's API address is `https://integrate.api.nvidia.com/v1`. Create keys only on build.nvidia.com itself: look-alike sites are not run by NVIDIA.
 
 ### 7.4 Cursor
 
-[TBC]
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Composer or Grok missing from the model menu, or requests stop | Your Cursor credit isn't active or has run out | Check your plan and usage in Cursor's settings, then ask in Help Cursor |
+| Charges on your product's provider while coding | Your provider key is in Cursor's settings | Remove it; code with Cursor's own models |
+| An MCP server doesn't appear in Cursor | A JSON typo or wrong token in `.cursor/mcp.json` | Open the Output panel, choose MCP Logs, fix the error and restart Cursor |
+| The Agent can't edit files or run commands | Workspace or permission issue | Reopen the project folder in Cursor and approve the tool call when asked |
 
 ### 7.5 General advice
 
-Put every partner call behind an adapter with a timeout and a fallback. If a service is down during judging, a project that degrades gracefully still scores; one that crashes does not.
+Put every sponsor call behind an adapter with a timeout and a fallback. If a service is down during judging, a project that degrades gracefully still scores; one that crashes does not.
 
 ---
 
@@ -524,7 +579,7 @@ This is what lets a judge without your credentials see the system work.
 | Enormous prompts | Retrieve the relevant chunks only |
 | Unbounded agent debate | Cap the rounds |
 | No request timeouts | Add them everywhere |
-| Heavy local models | Avoid them |
+| Heavy local models | Use hosted models instead |
 
 ### 9.2 A global deadline
 
@@ -619,7 +674,7 @@ def trace(agent_name, action, input_summary, output_summary="", target_agent=Non
         f.write(line + "\n")
 ```
 
-Add it on day one. Retrofitting traces at 11pm on day six is how teams lose Technical points.
+Add it on day one. Retrofitting traces at 11pm on day six is how teams lose Technical points. Log your Zetaris and Meterless calls too, so judges can see the sponsor technology at work.
 
 ### 10.3 Weak versus strong
 
@@ -635,9 +690,9 @@ Strong:
 
 ```text
 Planner delegated to ResearchAgent.
-ResearchAgent returned incomplete evidence.
+ResearchAgent queried Zetaris and returned incomplete evidence.
 Evaluator challenged ResearchAgent.
-ResearchAgent retried with a fallback source.
+ResearchAgent retried with a narrower query.
 Planner revised the plan on the Evaluator's critique.
 ```
 
@@ -656,7 +711,7 @@ The classic final-day failure.
 | You use absolute paths | The path doesn't exist in the container |
 | You rely on cached data | The cache wasn't copied in |
 | You started from a notebook | `run.py` is incomplete |
-| A partner service runs on your machine | `localhost` means the container |
+| Zetaris runs on your machine | `localhost` means the container; use `host.docker.internal` |
 
 Test the real path:
 
@@ -684,30 +739,37 @@ git status
 git diff --cached
 
 grep -R "sk-" . --exclude-dir=.git || true
+grep -R "nvapi-" . --exclude-dir=.git || true
 grep -R "API_KEY=" . --exclude-dir=.git --exclude=.env.example || true
 ```
 
 ### 12.2 If you commit a key
 
 1. **Rotate it immediately.** This is the step that matters.
-2. Remove it from the repository.
-3. Assume the old key is compromised, even in a private repo.
+2. Remove it from the repository history.
+3. Assume the old key is compromised.
 
-Deleting the commit is not enough on its own.
+Deleting the commit is not enough on its own, and your repository will be public.
 
 ### 12.3 `.env.example`
 
 ```env
 # Model provider
-OPENAI_API_KEY=your-api-key-here
-OPENAI_BASE_URL=https://api.your-provider.example/v1
+MODEL_API_KEY=your-api-key-here
+MODEL_BASE_URL=https://api.your-provider.example/v1
 MODEL_NAME=your-default-model
 EMBEDDING_MODEL=your-embedding-model
 
-# Partner services
+# Zetaris
+ZETARIS_REST_URL=http://localhost:8888/api/v1.0
+ZETARIS_ORG_ID=1
 ZETARIS_API_KEY=your-key-here
-NVIDIA_API_KEY=your-key-here
+
+# Meterless
 METERLESS_API_KEY=your-key-here
+
+# NVIDIA (if used directly)
+NVIDIA_API_KEY=your-key-here
 
 # Runtime
 SAMPLE_MODE=true
@@ -730,19 +792,19 @@ from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
     model=os.getenv("MODEL_NAME"),
-    api_key=os.environ["OPENAI_API_KEY"],
-    base_url=os.getenv("OPENAI_BASE_URL"),
+    api_key=os.environ["MODEL_API_KEY"],
+    base_url=os.getenv("MODEL_BASE_URL"),
 )
 ```
 
 ### CrewAI
 
-Set the environment before the crew starts:
+CrewAI reads OpenAI-style variable names. Map yours before the crew starts:
 
 ```bash
-export OPENAI_API_KEY="your-key"
-export OPENAI_BASE_URL="https://api.your-provider.example/v1"
-export OPENAI_MODEL_NAME="your-model"
+export OPENAI_API_KEY="$MODEL_API_KEY"
+export OPENAI_BASE_URL="$MODEL_BASE_URL"
+export OPENAI_MODEL_NAME="$MODEL_NAME"
 ```
 
 ### AutoGen
@@ -751,8 +813,8 @@ export OPENAI_MODEL_NAME="your-model"
 llm_config = {
     "config_list": [{
         "model": os.getenv("MODEL_NAME"),
-        "api_key": os.environ["OPENAI_API_KEY"],
-        "base_url": os.getenv("OPENAI_BASE_URL"),
+        "api_key": os.environ["MODEL_API_KEY"],
+        "base_url": os.getenv("MODEL_BASE_URL"),
     }],
     "temperature": 0.2,
 }
@@ -762,8 +824,8 @@ llm_config = {
 
 ```python
 client = OpenAI(
-    api_key=os.environ["OPENAI_API_KEY"],
-    base_url=os.getenv("OPENAI_BASE_URL"),
+    api_key=os.environ["MODEL_API_KEY"],
+    base_url=os.getenv("MODEL_BASE_URL"),
 )
 ```
 
@@ -796,7 +858,7 @@ def limit_text(text: str, max_chars: int = 12000) -> str:
 
 ### Retrieve, don't dump
 
-Send the top relevant chunks, not the whole dataset.
+Send the top relevant chunks or query results, not the whole dataset. Let Zetaris filter with SQL before data reaches the model.
 
 ### Deterministic for demos
 
@@ -808,17 +870,18 @@ Send the top relevant chunks, not the whole dataset.
 
 | Error | Meaning | Fix |
 |---|---|---|
-| `401 Unauthorized` | Missing or invalid key | Check the environment variable reaches the process |
-| `403 Forbidden` | No access to that model, or billing issue | Try a cheaper model; check your account |
+| `401 Unauthorized` | Missing or invalid key | Check the environment variable reaches the process, and matches the route |
+| `403 Forbidden` | No access to that model, or a billing or credit issue | Try a smaller model; check your account |
 | `429` | Rate limited | Lower concurrency, add backoff |
-| `model_not_found` | Wrong model name | Check your provider's current list |
-| `Connection refused` | Not running, or wrong port | Bind to `0.0.0.0` |
+| `model_not_found` | Wrong model ID | Copy the exact ID from your provider |
+| `Connection refused` | Not running, or wrong port | Bind to `0.0.0.0`; check the port |
 | `ModuleNotFoundError` | Missing dependency | Add to `requirements.txt` |
 | `No such file or directory` | Wrong path in Docker | Use relative paths |
 | `JSONDecodeError` | Malformed JSON | `python -m json.tool file.json` |
 | `ReadTimeout` | External call timed out | Add a timeout and a fallback |
-| `Killed` | Out of memory | Smaller data, smaller model |
+| `Killed` | Out of memory | Smaller data, smaller model, more Docker memory |
 | `Permission denied: entrypoint.sh` | Not executable | `chmod +x entrypoint.sh` |
+| `externally-managed-environment` | System Python blocks installs | Use a virtual environment |
 
 ---
 
@@ -826,9 +889,10 @@ Send the top relevant chunks, not the whole dataset.
 
 ### Repository
 
+- [ ] Repository is public
 - [ ] Entry point exists and is documented
 - [ ] A programmatic interface works, not only a UI
-- [ ] README covers local and Docker runs
+- [ ] README covers setup, usage and dependencies, locally and in Docker
 - [ ] `.env.example` present, no real keys
 - [ ] At least 3 input examples and 3 matching outputs
 - [ ] `logs/` exists or is created automatically
@@ -842,11 +906,11 @@ Send the top relevant chunks, not the whole dataset.
 - [ ] Dependencies install at build time
 - [ ] No runtime `pip install`
 
-### Provider and partners
+### Provider and sponsor technology
 
 - [ ] Credentials read from environment variables
-- [ ] The connection test passes
-- [ ] Partner services connect, or fail gracefully
+- [ ] The provider connection test passes
+- [ ] Zetaris and Meterless connect, or fail gracefully
 - [ ] `SAMPLE_MODE=true` works with no credentials at all
 
 ### Runtime
@@ -860,8 +924,6 @@ Send the top relevant chunks, not the whole dataset.
 ---
 
 ## 17. Asking for Help
-
-Post in your track room, or bring it to mentor office hours.
 
 ```text
 Issue summary:
@@ -899,11 +961,15 @@ I confirm no API keys are in this message.
 
 | Issue | Where |
 |---|---|
-| Partner setup, access, errors | Partner resource area, then your track room |
+| General technical questions | #help desk channel on HackOS |
+| Zetaris setup, access, errors | Zetaris folder in Resources, then Help Zetaris |
+| Meterless setup, access, errors | Meterless folder in Resources, then Help Meterless |
+| Cursor setup and credit | Space XAI and Cursor folder in Resources, then Help Cursor |
+| NVIDIA setup and errors | NVIDIA folder in Resources, then Help NVIDIA |
 | Agent design, framework, debugging | Mentor office hours |
-| Track scope | Your track room |
-| Submission requirements | Official Rules on the event page |
-| Model provider errors | Your provider's own support |
+| Track scope | Challenge pages on HackOS |
+| Rules and submission requirements | Official Rules, or hackathons@genai.works |
+| Your own model provider account | Your provider's support |
 
 Mentors can help you get unstuck. They can't debug your provider account for you.
 
@@ -960,6 +1026,7 @@ Most lost points are preventable:
 
 - Broken Docker build
 - Nothing a judge can run programmatically
+- Zetaris or Meterless not working, with no fallback
 - No logs showing how the agent worked
 - Hardcoded outputs
 - Keys committed to the repository

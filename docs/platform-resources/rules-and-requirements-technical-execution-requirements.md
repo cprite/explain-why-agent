@@ -1,6 +1,6 @@
 # Technical Execution Requirements
 
-Folder: Rules and Requirements · updated 2026-09-30
+Folder: Rules and Requirements · updated 2026-10-13
 
 # Technical Execution Guide
 
@@ -8,7 +8,7 @@ Folder: Rules and Requirements · updated 2026-09-30
 
 This guide covers how to make your submission runnable, reproducible and judgeable. Judges have limited time per project. Anything they cannot start, call or read counts against you.
 
-> **The official requirements are in section 6 of the Official Rules on the event page.** Where this guide and the Official Rules disagree, the Official Rules apply. Everything below is recommended practice, not a rule, unless the Rules say otherwise.
+> **The official requirements are in the Official Rules on the event page.** Where this guide and the Official Rules disagree, the Official Rules apply. Everything below is recommended practice, not a rule, unless the Rules say otherwise.
 
 ---
 
@@ -19,12 +19,13 @@ This guide covers how to make your submission runnable, reproducible and judgeab
 | **Startup** | Runs from a clean checkout with a documented command, no manual fixing |
 | **Interface** | Exposes a programmatic entry point, not only a user interface |
 | **Reproducibility** | Docker or a documented environment setup that installs everything at build time |
-| **Hardware** | Runs on a standard CPU machine; no GPU requirement |
+| **Hardware** | Runs on a standard machine; any GPU compute is reached through a hosted or cloud service |
 | **Runtime** | A single run completes in minutes, not hours, with internal timeouts |
 | **Secrets** | Loaded from environment variables only, never committed |
 | **Data** | Small samples in the repository, scripts or APIs for anything larger |
 | **Logs** | Printed to stdout and saved to `logs/`, showing how the agent worked |
 | **Examples** | At least three sample inputs and their outputs |
+| **Sponsor technology** | Zetaris and Meterless integrated, developed in Cursor, NVIDIA wherever it contributes |
 
 ---
 
@@ -115,7 +116,7 @@ Your image should:
 - Build with a standard `docker build` command
 - Install all dependencies at **build time**
 - Start without manual shell steps
-- Run on CPU only
+- Run without a local GPU
 - Take secrets as runtime environment variables, never at build time
 
 ### Reference Dockerfile
@@ -158,11 +159,11 @@ Any dependency manager is fine (`pip`, `poetry`, `uv`, `conda`) as long as nothi
 
 ---
 
-## 4. CPU-Only
+## 4. Hardware
 
 Assume a judge has an ordinary machine.
 
-Do not require GPUs, CUDA, NVIDIA drivers, TPU runtimes or local model weights that need an accelerator. Hosted model APIs, lightweight local models, CPU-compatible vector stores and small classifiers are all fine. If your project can use a GPU, it should still run correctly without one.
+Your project should not need a local GPU, CUDA drivers or local model weights that require an accelerator to run. Where your build uses NVIDIA technology, reach it through hosted or cloud access, as covered in the Power Day workshop, so a judge can run your project without NVIDIA hardware. Hosted model APIs, lightweight local models, CPU-compatible vector stores and small classifiers are all fine.
 
 ---
 
@@ -190,19 +191,19 @@ Also:
 
 All credentials come from environment variables.
 
-Never put keys in source code, `README.md`, notebooks, config files committed to the repo, logs, or screenshots in your demo video.
+Never put keys in source code, `README.md`, notebooks, config files committed to the repo, logs, or screenshots in your demo video or slide deck.
 
 Ship a `.env.example` with placeholders only:
 
 ```bash
 # Model provider
-OPENAI_API_KEY=your-api-key-here
-OPENAI_BASE_URL=https://api.your-provider.example/v1
+MODEL_API_KEY=your-api-key-here
+MODEL_BASE_URL=https://api.your-provider.example/v1
 
-# Partner services
+# Sponsor services
 ZETARIS_API_KEY=your-key-here
-NVIDIA_API_KEY=your-key-here
 METERLESS_API_KEY=your-key-here
+NVIDIA_API_KEY=your-key-here
 
 # Runtime behaviour
 SAMPLE_MODE=false
@@ -217,8 +218,8 @@ import os
 from openai import OpenAI
 
 client = OpenAI(
-    api_key=os.environ["OPENAI_API_KEY"],
-    base_url=os.environ.get("OPENAI_BASE_URL")
+    api_key=os.environ["MODEL_API_KEY"],
+    base_url=os.environ.get("MODEL_BASE_URL")
 )
 ```
 
@@ -238,7 +239,7 @@ Keep the repository light. A judge cloning a multi-gigabyte repo is a judge who 
 
 Avoid: large raw datasets, private or proprietary data, anything requiring manual download or approval, and real personal, clinical or financial records.
 
-Document every source in your README: where it came from, the licence, what subset you used, and how to regenerate it.
+Document every source in your README: where it came from, the licence, what subset you used, and how to regenerate it. If you prepared data before the build window opened, declare it as a pre-existing component in the submission form.
 
 ---
 
@@ -255,6 +256,7 @@ Write to both **stdout** and a `logs/` directory.
 - Critique or validation steps
 - Refinement loops
 - Retries, fallbacks and recovery
+- Calls to sponsor services such as Zetaris and Meterless
 - The final synthesis
 - Errors, with what happened next
 
@@ -264,7 +266,7 @@ One JSONL file per run, `logs/trace-<run_id>.jsonl`, one JSON object per line:
 
 ```json
 {
-  "timestamp": "2026-10-17T18:42:11Z",
+  "timestamp": "2026-10-24T18:42:11Z",
   "run_id": "demo-001",
   "agent_name": "Planner",
   "action": "delegate_task",
@@ -282,7 +284,7 @@ One JSONL file per run, `logs/trace-<run_id>.jsonl`, one JSON object per line:
 ```text
 [INFO] run_id=demo-001 Starting run
 [INFO] run_id=demo-001 Planner delegated retrieval to Researcher
-[INFO] run_id=demo-001 Researcher returned 5 candidate records
+[INFO] run_id=demo-001 Researcher queried Zetaris and returned 5 candidate records
 [INFO] run_id=demo-001 Evaluator flagged a conflict between sources 2 and 3
 [INFO] run_id=demo-001 Planner requested a second pass on source 3
 [INFO] run_id=demo-001 Writer produced final reconciliation
@@ -294,23 +296,25 @@ One JSONL file per run, `logs/trace-<run_id>.jsonl`, one JSON object per line:
 Mask them:
 
 ```text
-OPENAI_API_KEY=sk-...redacted
+MODEL_API_KEY=sk-...redacted
 ```
 
 ---
 
-## 9. Partner Technology
+## 9. Sponsor Technology
 
-Sponsor Tech is worth 10 points, so document where each partner technology fits in your build rather than leaving a judge to guess.
+Sponsor Tech is worth 10 points, so document where each sponsor technology fits in your build rather than leaving a judge to guess. Your submission includes a sponsor technology explanation covering exactly this.
 
-| Layer | Partner | Setup |
-|---|---|---|
-| **Data** | Zetaris | [TBC: see the partner resource area on HackOS] |
-| **Models** | NVIDIA | [TBC: see the partner resource area on HackOS] |
-| **Cognition** | Meterless | [TBC: see the partner resource area on HackOS] |
-| **Coding** | Cursor | [TBC: see the partner resource area on HackOS] |
+| Sponsor | Requirement | Workshop | Setup and help |
+|---|---|---|---|
+| **Zetaris** | Required: every submission must integrate Zetaris | Data Day (recording on HackOS) | Zetaris folder in Resources on HackOS; Help Zetaris channel |
+| **Meterless** | Required: every submission must integrate Meterless | Build Day and Power Day | Meterless folder in Resources on HackOS; Help Meterless channel |
+| **Cursor (with Space XAI)** | Required: use Cursor as your development environment | Build Day | Space XAI and Cursor folder in Resources on HackOS; Help Cursor channel |
+| **NVIDIA** | Integrate wherever it contributes to your project, workflow or use case | Power Day | NVIDIA folder in Resources on HackOS; Help NVIDIA channel |
 
-Keep the integration behind an adapter so a service outage does not take your whole project down during judging, and so a judge without your credentials can still run sample mode.
+For general technical questions, use the #help desk channel on HackOS.
+
+Keep each sponsor integration behind an adapter so a service outage does not take your whole project down during judging, and so a judge without your credentials can still run sample mode.
 
 ---
 
@@ -319,6 +323,7 @@ Keep the integration behind an adapter so a service outage does not take your wh
 ```text
 /project-root
 │── app/                 # Core agent logic
+│── app/adapters/        # Zetaris, Meterless and other service integrations
 │── data/                # Small static data or download scripts
 │── scripts/             # Helper scripts
 │── run.py               # Entry point
@@ -328,8 +333,10 @@ Keep the integration behind an adapter so a service outage does not take your wh
 │── output_examples/     # Matching outputs
 │── logs/                # Agent traces
 │── .env.example         # No real keys
-│── README.md            # Setup, usage, architecture, limitations
+│── README.md            # Setup, usage, dependencies, architecture, limitations
 ```
+
+If your agents run in Google Colab, include the Colab links in your README.
 
 ---
 
@@ -378,6 +385,8 @@ If any step needs a fix you make by hand, your README is incomplete.
 | **Localhost binding** | API unreachable from outside the container | Bind to `0.0.0.0` |
 | **Works on my machine** | Undocumented setup steps | Test from a fresh clone |
 | **Silent crash** | Process dies with no output | Return a structured error |
+| **Sponsor tech bolted on** | Zetaris or Meterless added at the end with no real role | Design them into the architecture from day one |
+| **Private repository** | Judges cannot open the GitHub link | Make the repository public before you submit |
 
 ---
 
@@ -394,12 +403,12 @@ If any step needs a fix you make by hand, your README is incomplete.
 
 - [ ] Docker build succeeds, or setup is fully documented
 - [ ] Dependencies install at build time
-- [ ] Runs on CPU only
+- [ ] Runs without a local GPU
 - [ ] No runtime installs or model downloads
 
 ### Secrets
 
-- [ ] No keys in code, logs, examples or the demo video
+- [ ] No keys in code, logs, examples, the demo video or the slide deck
 - [ ] `.env.example` present with placeholders
 - [ ] `.env` is gitignored
 
@@ -423,12 +432,16 @@ If any step needs a fix you make by hand, your README is incomplete.
 - [ ] Show agent handoffs, critique, retries and recovery
 - [ ] Contain no secrets
 
-### Evidence
+### Submission
 
+- [ ] GitHub repository is public, with a README covering setup, usage and dependencies
 - [ ] At least three sample inputs and outputs
-- [ ] README covers setup, architecture and limitations
-- [ ] Partner technology use documented
-- [ ] Demo recorded and accessible
+- [ ] Zetaris and Meterless integrated, and the project developed in Cursor
+- [ ] Sponsor technology explanation covers Zetaris, Meterless, Cursor and NVIDIA
+- [ ] Demo video (1–4 minutes) recorded and uploaded
+- [ ] Slide deck complete
+- [ ] Pre-existing components declared in the submission form
+- [ ] Submitted on HackOS before 27 October, 23:45 UTC
 
 ---
 
@@ -437,9 +450,10 @@ If any step needs a fix you make by hand, your README is incomplete.
 **Runnable** — starts cleanly from a documented command.
 **Reachable** — can be driven programmatically, not only through a screen.
 **Reproducible** — no manual setup, no hidden dependencies.
-**CPU-compatible** — no GPU requirement.
+**Portable** — no local GPU requirement.
 **Bounded** — finishes in minutes, with timeouts and caps.
 **Secure** — secrets only through environment variables.
 **Data-conscious** — light repository, documented sources.
 **Observable** — logs to stdout and `logs/`.
+**Integrated** — Zetaris and Meterless have a real role in the build.
 **Agentic** — the traces show the agent doing real work.

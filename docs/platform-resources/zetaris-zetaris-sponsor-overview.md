@@ -1,6 +1,6 @@
 # Zetaris: Sponsor Overview
 
-Folder: Zetaris · updated 2026-10-07
+Folder: Zetaris · updated 2026-10-12
 
 # Zetaris
 

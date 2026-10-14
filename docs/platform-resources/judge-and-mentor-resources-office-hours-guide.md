@@ -1,6 +1,6 @@
 # Office Hours Guide
 
-Folder: Judge and Mentor Resources · updated 2026-10-07
+Folder: Judge and Mentor Resources · updated 2026-10-12
 
 # Mentor Office Hours Guide
 

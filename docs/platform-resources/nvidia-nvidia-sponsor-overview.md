@@ -1,6 +1,6 @@
 # NVIDIA: Sponsor Overview
 
-Folder: NVIDIA · updated 2026-10-07
+Folder: NVIDIA · updated 2026-10-12
 
 # NVIDIA
 

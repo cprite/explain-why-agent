@@ -1,6 +1,6 @@
 # Disqualification Checklist
 
-Folder: Rules and Requirements · updated 2026-10-07
+Folder: Rules and Requirements · updated 2026-10-13
 
 # Pre-Submission Self-Check
 
@@ -11,34 +11,41 @@ Run this before you submit. It won't tell you whether you'll win, but it catches
 > **Submissions close:** **27 October 2026, 23:45 UTC.** Hard deadline.
 > **The principle:** a judge who has never seen your project should be able to run it, watch it work, and see how it got there.
 
-> **The binding disqualification conditions are in the Official Rules on the event page.** This document is preparation guidance, not the rule list. Where the two differ, the Official Rules apply.
+> **The binding rules are the Official Rules on the event page.** This document is preparation guidance. Where the two differ, the Official Rules apply.
 
 ---
 
-## 1. The Two Confirmed Disqualifiers
+## 1. The Hard Requirements
 
-Only two conditions are confirmed from the published rules:
+Miss any of these and your submission is at risk before a judge looks at it.
 
-| Condition | Rule |
+| Requirement | Rule |
 |---|---|
-| **Late submission** | Submissions close 27 October, 23:45 UTC. This is hard. |
-| **Duplicate accounts** | One account per participant. Duplicates disqualify the whole team. |
+| **Deadline** | Submissions close 27 October, 23:45 UTC. Late submissions are not evaluated. |
+| **One account** | One account per participant. Duplicates disqualify the whole team. |
+| **One team** | Each participant belongs to one team and appears on one submission. |
+| **Zetaris and Meterless** | Both must be integrated in every submission. |
+| **Cursor** | The project must be developed in Cursor (with Space XAI). |
+| **Required components** | Demo video (1–4 minutes), slide deck, public GitHub repository with README, sponsor technology explanation. |
+| **Pre-existing work** | Work committed before 22 October, 00:00 UTC is not eligible unless declared in the submission form. |
+| **One track** | Each submission selects exactly one primary track. |
 
-[TBC: the full disqualification conditions are in the Official Rules. Check them before relying on this document.]
+Your team locks when your first submission is created, so confirm the roster before you create it.
 
 ---
 
 ## 2. The Things That Actually Cost You
 
-These aren't published disqualifiers, but each one takes points off a project that deserved them. In rough order of damage:
+These take points off a project that deserved them. In rough order of damage:
 
 | Problem | What it costs |
 |---|---|
 | A judge can't run it | Technical and Demo both collapse; you're judged on your video alone |
+| Repository is private | Judges can't open it at all |
 | No traces or logs | No evidence the agent did the work; Technical suffers |
 | Hardcoded outputs | Reads as a mockup, and raises an integrity question |
 | Secrets committed | Bad practice, a real security risk to you, and it looks careless |
-| Partner tech mentioned but not used | Sponsor Tech scores near zero, and judges check |
+| Sponsor tech mentioned but not used | Sponsor Tech scores near zero, and judges check |
 | README overclaims | Costs credibility across every criterion |
 | Only works on your laptop | Same as "can't run it" |
 | Submitted at 23:44 | No margin when something goes wrong, and something will |
@@ -52,6 +59,7 @@ There's no mandated structure. This one is easy for a judge to navigate:
 ```text
 /project-root
 │── app/                # Core agent logic
+│── app/adapters/       # Zetaris, Meterless and other service integrations
 │── data/               # Small samples or download scripts
 │── scripts/            # Helper scripts
 │── run.py              # Entry point
@@ -61,13 +69,14 @@ There's no mandated structure. This one is easy for a judge to navigate:
 │── output_examples/    # At least 3 matching outputs
 │── logs/               # Agent traces
 │── .env.example        # Placeholders only
-│── README.md           # Setup, run, architecture, limitations
+│── README.md           # Setup, usage, dependencies, architecture, limitations
 ```
 
-- [ ] Repository is accessible to judges by the deadline
+- [ ] Repository is **public** by the deadline
 - [ ] An entry point exists and is documented
 - [ ] `.env.example` exists, placeholders only
-- [ ] README covers setup, run commands, agent roles, examples and limitations
+- [ ] README covers setup, usage and dependencies, plus agent roles, examples and limitations
+- [ ] Colab links are in the README, if your agents run in Google Colab
 - [ ] Sample inputs and matching outputs are included
 - [ ] `logs/` exists or is created at runtime
 - [ ] The repository is light; no large datasets committed
@@ -106,7 +115,7 @@ python run.py
 - [ ] Build or install completes with no errors
 - [ ] Nothing installs after the app starts
 - [ ] It starts with no manual edits
-- [ ] No GPU required
+- [ ] No local GPU required; any NVIDIA compute is reached through hosted or cloud access
 - [ ] A run finishes in minutes, not hours
 - [ ] It runs from a fresh clone, on a machine that isn't yours
 
@@ -141,8 +150,6 @@ curl -X POST http://localhost:8000/run \
 - [ ] The UI, if present, doesn't block the programmatic path
 - [ ] Failures return a useful message, not a stack trace or a hang
 
-[TBC: whether a specific interface, port or endpoint is required. See section 6 of the Official Rules.]
-
 ---
 
 ## 6. No Hidden Manual Steps
@@ -163,7 +170,7 @@ The test: give the README to someone on your team who hasn't touched the repo an
 
 ## 7. Sample Mode
 
-More important here than at events with a mandated provider, because **judges may not have credentials for whichever model provider you chose.**
+Model choice is open, and every project calls Zetaris and Meterless, so **judges may not have credentials for the services you used.**
 
 - [ ] `SAMPLE_MODE=true` runs the whole thing with no live credentials
 - [ ] It's documented in the README
@@ -212,6 +219,7 @@ This is how a judge verifies your agent did the work rather than took one long p
 - At least two named agents doing distinct things
 - Handoffs between them
 - Critique, validation, retry, escalation or branching
+- Calls to Zetaris and Meterless where they happen
 - Status of each step
 - Logs tied to the input actually being processed
 
@@ -239,8 +247,8 @@ WriterAgent -> final response
 Print to stdout and save to `logs/`. JSONL works well:
 
 ```json
-{"timestamp":"2026-10-18T20:14:03Z","agent_name":"PlannerAgent","action":"delegate","input_summary":"User requested a supplier reconciliation","output_summary":"Delegated source retrieval to ReconcilerAgent","target_agent":"ReconcilerAgent","confidence":0.86,"retry_count":0,"status":"success"}
-{"timestamp":"2026-10-18T20:14:19Z","agent_name":"ConflictCritic","action":"critique","input_summary":"Merged record set","output_summary":"Rejected the resolution for Supplier C as unsupported","target_agent":"ReconcilerAgent","confidence":0.79,"retry_count":0,"status":"needs_revision"}
+{"timestamp":"2026-10-25T20:14:03Z","agent_name":"PlannerAgent","action":"delegate","input_summary":"User requested a supplier reconciliation","output_summary":"Delegated source retrieval to ReconcilerAgent","target_agent":"ReconcilerAgent","confidence":0.86,"retry_count":0,"status":"success"}
+{"timestamp":"2026-10-25T20:14:19Z","agent_name":"ConflictCritic","action":"critique","input_summary":"Merged record set","output_summary":"Rejected the resolution for Supplier C as unsupported","target_agent":"ReconcilerAgent","confidence":0.79,"retry_count":0,"status":"needs_revision"}
 ```
 
 ### Pass criteria
@@ -257,17 +265,25 @@ Print to stdout and save to `logs/`. JSONL works well:
 
 ---
 
-## 10. Partner Technology
+## 10. Sponsor Technology
 
 Sponsor Tech is worth **10 points**. It's the easiest ten points to lose by omission and the easiest to lose by faking.
 
-- [ ] You've documented which of Zetaris, NVIDIA, Cursor and Meterless you used
-- [ ] You've documented where each one sits in the build
-- [ ] Each is load-bearing, not decorative
-- [ ] Each call has a timeout and a fallback, so an outage during judging degrades rather than kills
-- [ ] Partner credentials come from environment variables
+| Sponsor | Requirement |
+|---|---|
+| **Zetaris** | Required in every submission |
+| **Meterless** | Required in every submission |
+| **Cursor (with Space XAI)** | Required development environment |
+| **NVIDIA** | Wherever it contributes |
 
-A partner named in the README but absent from the code scores worse than not mentioning it, because it reads as padding.
+- [ ] Zetaris and Meterless are integrated and load-bearing, not decorative
+- [ ] The project was developed in Cursor
+- [ ] NVIDIA is used wherever it genuinely contributes
+- [ ] Your sponsor technology explanation covers how Zetaris and Meterless were integrated, how Cursor was used, where NVIDIA contributes, and what was unique about your use of them
+- [ ] Each sponsor call has a timeout and a fallback, so an outage during judging degrades rather than kills
+- [ ] Sponsor credentials come from environment variables
+
+A sponsor named in the README but absent from the code scores worse than not mentioning it, because it reads as padding.
 
 ---
 
@@ -281,9 +297,12 @@ API keys of any kind, cloud credentials, database passwords, SSH private keys, O
 
 ```bash
 # .env.example — placeholders only
-OPENAI_API_KEY=your-api-key-here
-OPENAI_BASE_URL=https://api.your-provider.example/v1
+MODEL_API_KEY=your-api-key-here
+MODEL_BASE_URL=https://api.your-provider.example/v1
 MODEL_NAME=your-model
+ZETARIS_API_KEY=your-key-here
+METERLESS_API_KEY=your-key-here
+NVIDIA_API_KEY=your-key-here
 SAMPLE_MODE=false
 ```
 
@@ -301,7 +320,7 @@ credentials/
 
 ```bash
 grep -RIn --exclude-dir=.git \
-  -E "(sk-|api[_-]?key|secret|token|password|BEGIN RSA PRIVATE KEY|BEGIN OPENSSH PRIVATE KEY)" .
+  -E "(sk-|nvapi-|api[_-]?key|secret|token|password|BEGIN RSA PRIVATE KEY|BEGIN OPENSSH PRIVATE KEY)" .
 
 git ls-files | grep -E "(\.env$|\.pem$|\.key$|credentials|secrets)"
 ```
@@ -316,34 +335,48 @@ git ls-files | grep -E "(\.env$|\.pem$|\.key$|credentials|secrets)"
 - [ ] No real `.env` committed
 - [ ] `.env.example` has placeholders only
 - [ ] Git history exposes no active secrets
-- [ ] Your demo video shows no keys on screen
+- [ ] Your demo video and slide deck show no keys
 
 That last one catches people. Check your video frame by frame around any terminal.
 
 ---
 
-## 12. Demo Video
+## 12. Demo Video and Slide Deck
+
+### Demo video
 
 Demo is worth **15 points**.
 
-- [ ] 2 to 3 minutes
+- [ ] 1 to 4 minutes
 - [ ] Shows the system actually running
-- [ ] Shows the agents and how they interact
-- [ ] Shows the final output and why it's useful
-- [ ] The link works for someone who isn't logged in as you
+- [ ] Shows the main workflow and how the agent solves the selected challenge
+- [ ] Shows the key features
+- [ ] Shows how Zetaris and Meterless are integrated
 - [ ] No credentials visible anywhere
 
-Test the link in a private browser window. A dead or permission-locked link costs you the whole 15 points.
+If you share the video as a link, test it in a private browser window. A dead or permission-locked link costs you the whole 15 points.
+
+### Slide deck
+
+- [ ] The problem and target users
+- [ ] The solution
+- [ ] The agent workflow or architecture
+- [ ] The technical stack
+- [ ] How Zetaris and Meterless were used
+- [ ] What was unique about your use of the sponsor technologies
+- [ ] Product visuals
+- [ ] Future enhancements
 
 ---
 
 ## 13. Honesty Check
 
-Read your README as if you were a judge who will check every claim, because they are.
+Read your README and slide deck as if you were a judge who will check every claim, because they are.
 
 - [ ] Every capability claimed is one the code has
 - [ ] Data sources are described accurately, including whether they're live or cached
 - [ ] The agent description matches what the traces show
+- [ ] Pre-existing components are declared in the submission form
 - [ ] Limitations are stated honestly
 - [ ] Nothing is described as production-ready that isn't
 
@@ -384,7 +417,7 @@ ls logs/
 cat logs/* | head -50
 
 # 8. Scan for secrets
-grep -RIn --exclude-dir=.git -E "(sk-|api[_-]?key|secret|token|password)" .
+grep -RIn --exclude-dir=.git -E "(sk-|nvapi-|api[_-]?key|secret|token|password)" .
 
 # 9. THE ONE PEOPLE SKIP: no credentials at all
 rm .env
@@ -401,15 +434,20 @@ Step 9 is how a judge without your keys will experience your project. If it fail
 Submit only when all of these are true:
 
 - [ ] It builds and runs from a clean clone
+- [ ] The GitHub repository is public
 - [ ] A judge can drive it without your UI
 - [ ] No hidden manual setup
 - [ ] Outputs are generated, not stored
 - [ ] Traces show real agent interaction
 - [ ] Sample mode works with no credentials
-- [ ] No secrets anywhere, including the video
-- [ ] Partner technology use is documented and real
+- [ ] No secrets anywhere, including the video and slide deck
+- [ ] Zetaris and Meterless are integrated, and the project was developed in Cursor
+- [ ] The sponsor technology explanation is complete
 - [ ] The README is accurate and honest
-- [ ] Demo video is 2–3 minutes and the link works
+- [ ] Demo video is 1–4 minutes
+- [ ] Slide deck is complete
+- [ ] Pre-existing components are declared
+- [ ] Your team roster is correct, since it locks when the first submission is created
 - [ ] Examples and traces match your track
 - [ ] You're submitting with hours to spare, not minutes
 
@@ -424,6 +462,15 @@ Submit only when all of these are true:
 5. Confirm no secrets got introduced in the fix
 6. Submit
 
-**If you're blocked:** mentor office hours for build problems, your track room for scope questions, the partner resource area for partner issues, your provider's support for auth and rate limits, and the Official Rules for what's required.
+**If you're blocked:**
+
+| Problem | Where to go |
+|---|---|
+| Build problems, agent design, debugging | Mentor office hours |
+| General technical questions | #help desk channel on HackOS |
+| Sponsor technology | That sponsor's Help channel on HackOS (Help Zetaris, Help Meterless, Help Cursor, Help NVIDIA) |
+| Track scope | Challenge pages on HackOS |
+| Your own model provider | Your provider's support |
+| Rules and requirements | Official Rules, or hackathons@genai.works |
 
 **Don't leave this to 27 October.** Run the full flow on day four, when you still have two days to fix what it finds. Almost everything on this list is preventable with 48 hours' notice and unfixable with two.

@@ -1,6 +1,6 @@
 # Help Desk Instructions
 
-Folder: Community and Support · updated 2026-10-07
+Folder: Community and Support · updated 2026-10-13
 
 # Help Desk Guide
 
@@ -18,13 +18,17 @@ Everything during the event happens on HackOS.
 
 | You need help with | Go to |
 |---|---|
-| Track scope, what counts, use case questions | **Your track room** |
-| Partner setup, access, errors | **The partner's resource area**, then your track room |
+| General technical questions | **#help desk** channel |
+| Zetaris setup, access, errors | **Zetaris folder** in Resources, then **Help Zetaris** |
+| Meterless setup, access, errors | **Meterless folder** in Resources, then **Help Meterless** |
+| Cursor setup and credit | **Space XAI and Cursor folder** in Resources, then **Help Cursor** |
+| NVIDIA setup and errors | **NVIDIA folder** in Resources, then **Help NVIDIA** |
 | Agent design, framework bugs, debugging | **Mentor office hours** |
-| Submission requirements | **Official Rules** on the event page |
+| Track scope and what counts | **Challenge pages**, then **#help desk** |
+| Rules and submission requirements | **Official Rules** on the event page, or **hackathons@genai.works** |
 | Finding teammates | **Team-finding** |
-| Platform access, schedule, admin | **Announcements**, or a moderator |
-| Your model provider's errors | **Your provider's own support** |
+| Schedule and official updates | **Announcements** |
+| Your own model provider's errors | **Your provider's support** |
 
 Discord is the community space for after the hackathon, not event support.
 
@@ -36,7 +40,7 @@ Discord is the community space for after the hackathon, not event support.
 
 **Do:**
 
-- Post in the right room
+- Post in the right channel
 - Lead with the issue in one sentence
 - Include the exact error, not a paraphrase
 - Include your environment: OS, Python version, framework, local or Docker
@@ -48,7 +52,7 @@ Discord is the community space for after the hackathon, not event support.
 **Don't:**
 
 - Post API keys, `.env` contents, passwords or tokens
-- Post the same question in several rooms at once
+- Post the same question in several channels at once
 - Direct-message organizers first unless asked to
 - Paste your entire repository into a message
 - Say only "it doesn't work"
@@ -63,14 +67,14 @@ Put a severity label at the front of your post.
 | Level | Meaning | Examples |
 |---|---|---|
 | **P0 — Deadline risk** | You cannot submit, or many teams are affected | Platform outage, submission failing hours before the deadline |
-| **P1 — Blocking my team** | You cannot proceed, but it looks team-specific | Docker build broken, agent loop crashing, partner service unreachable |
-| **P2 — Need guidance** | You can keep working but need advice | Trace design, scope, which partner layer fits |
+| **P1 — Blocking my team** | You cannot proceed, but it looks team-specific | Docker build broken, agent loop crashing, Zetaris unreachable |
+| **P2 — Need guidance** | You can keep working but need advice | Trace design, scope, where Meterless fits |
 | **P3 — Clarification** | Non-blocking question | Demo length, README wording, a deadline detail |
 
 Example title:
 
 ```text
-P1 — Postgres connection refused from inside Docker, works locally
+P1 — Zetaris REST calls return 400 from inside Docker, work locally
 ```
 
 ---
@@ -82,7 +86,7 @@ P1 — Postgres connection refused from inside Docker, works locally
 ```text
 Team name:
 Track:
-Framework and provider:
+Framework and model provider:
 Local or Docker:
 OS:
 Python version:
@@ -119,7 +123,7 @@ That last section is what separates a five-minute answer from a fifty-minute one
 
 Before you post a log, screenshot or snippet, strip:
 
-- API keys and tokens of any kind
+- API keys and tokens of any kind, including Zetaris, Meterless and NVIDIA keys
 - `.env` contents
 - Git tokens and cloud credentials
 - Dataset URLs with credentials embedded
@@ -128,13 +132,14 @@ Before you post a log, screenshot or snippet, strip:
 Use placeholders:
 
 ```text
-OPENAI_API_KEY=[REDACTED]
+MODEL_API_KEY=[REDACTED]
+ZETARIS_API_KEY=[REDACTED]
 Authorization: Bearer [REDACTED]
 ```
 
 **If you expose a key:**
 
-1. **Rotate it immediately** with your provider. This is the step that matters.
+1. **Rotate it immediately.** This is the step that matters.
 2. Delete or edit the post.
 3. Tell a moderator, so they can confirm it's gone from any cached view.
 
@@ -144,16 +149,17 @@ Deleting the message does not un-leak the key.
 
 ## 6. By Issue Type
 
-### 6.1 Provider errors (401, 403, 429, model not found)
+### 6.1 Model provider errors (401, 403, 429, model not found)
 
-These are between you and your provider. Check first:
+Check first:
 
 - Does your connection test script work outside the agent framework?
 - Does the environment variable reach the process, in Docker as well as locally?
-- Is the model name current for that provider?
-- Is billing active and is the account entitled to that model?
+- Is the model ID exactly what your provider lists?
+- Is billing or credit active, and is the account entitled to that model?
+- Are your address, key and model ID all from the same route?
 
-If a minimal script works but your framework doesn't, it's a framework configuration problem, and that one belongs at mentor office hours. If the minimal script fails too, it's a provider problem, and your provider's support is faster than we are.
+If a minimal script works but your framework doesn't, it's a framework configuration problem: bring it to mentor office hours. If the minimal script fails too, it's a provider problem. For Meterless or NVIDIA, ask in that sponsor's Help channel; for any other provider, its own support is faster.
 
 **Include:**
 
@@ -165,25 +171,25 @@ Does it fail locally, in Docker, or both?
 Exact error (no keys):
 ```
 
-### 6.2 Partner stack
+### 6.2 Sponsor technology
 
-Check the partner's resource area on HackOS first: getting started, docs, troubleshooting and FAQs. Then post in your track room.
+Check the sponsor's folder in Resources on HackOS first: getting started, docs and troubleshooting. Then post in that sponsor's Help channel.
 
 **Include:**
 
 ```text
-Partner: Zetaris / NVIDIA / Cursor / Meterless
+Sponsor: Zetaris / Meterless / Cursor / NVIDIA
 What you were doing:
 Exact error:
 Local or Docker:
-Does the partner's own quickstart work for you? Yes/No
+Does the sponsor's own quickstart or verification step work for you? Yes/No
 ```
 
 That last question separates "my code is wrong" from "my access is wrong", which are handled by different people.
 
 ### 6.3 Agent design and collaboration
 
-Track rooms for "does this count", mentor office hours for "why doesn't this work".
+Challenge pages and #help desk for "does this count", mentor office hours for "why doesn't this work".
 
 **Include:**
 
@@ -193,32 +199,33 @@ Problem you are solving:
 Agents and roles:
 Current flow:
 Where critique, retry or escalation happens:
+Where Zetaris and Meterless fit:
 Your question:
 ```
 
 **Good example:**
 
 ```text
-P2 — Is our agent pattern strong enough for Fragmented?
+P2 — Is our agent pattern strong enough for Solving Fragmented Intelligence?
 
 Team: SupplyLens
-Track: Fragmented
+Track: Solving Fragmented Intelligence
 
 Agents:
 1. Source Mapper — decides which of 3 sources can answer which part
-2. Reconciler — merges records and resolves conflicts
+2. Reconciler — merges records through Zetaris and resolves conflicts
 3. Conflict Critic — challenges resolutions with weak support
 4. Reporter — produces the sourced summary
 
 Flow:
-Source Mapper plans retrieval. Reconciler merges. Conflict Critic
-rejects unsupported resolutions and sends them back. Reconciler
-re-queries the disputed source. Unresolved conflicts are reported
-as unresolved rather than guessed.
+Source Mapper plans retrieval. Reconciler queries all three sources
+through Zetaris and merges them. Conflict Critic rejects unsupported
+resolutions and sends them back. Reconciler re-queries the disputed
+source. Unresolved conflicts are reported as unresolved rather than
+guessed.
 
 Question:
-Is the critic loop enough, or do judges expect branching on
-confidence as well?
+Is the critic loop enough, or should we also branch on confidence?
 ```
 
 ### 6.4 Trace log issues
@@ -254,7 +261,7 @@ Share the last 100 to 200 lines of `docker logs`, not the whole thing.
 
 ### 6.6 Submission questions
 
-The Official Rules are the authority. If the rules genuinely don't cover your case, ask in your track room and quote the section you already read.
+The Official Rules are the authority. If they genuinely don't cover your case, ask in #help desk and quote the section you already read. For rules questions, email hackathons@genai.works.
 
 ---
 
@@ -285,6 +292,7 @@ Branch: debug/planner-retry
 | Issue | Share |
 |---|---|
 | Provider not connecting | Client initialisation, env loading |
+| Zetaris or Meterless not connecting | The adapter file, the request (keys removed) and the response |
 | Agent loop failing | Orchestration function, the relevant agent |
 | Docker build failing | Dockerfile, requirements.txt, build log |
 | Endpoint failing | run.py, the route, the request and response |
@@ -306,7 +314,7 @@ find . -maxdepth 3 -type f -not -path "./.git/*" -not -path "./.venv/*" | sort
 
 Team:
 Track:
-Framework and provider:
+Framework and model provider:
 Local or Docker:
 OS / Python:
 Relevant files:
@@ -328,17 +336,17 @@ Already tried:
 Question:
 ```
 
-### 9.2 Partner stack
+### 9.2 Sponsor technology
 
 ```text
-[Severity] — [Partner] — [Short title]
+[Severity] — [Sponsor] — [Short title]
 
 Team:
 Track:
 What I was doing:
 Local or Docker:
 
-Does the partner quickstart work for me? Yes/No
+Does the sponsor quickstart or verification step work for me? Yes/No
 
 Exact error:
 
@@ -358,6 +366,7 @@ Problem:
 Agents and roles:
 Current flow:
 Where critique / retry / escalation happens:
+Where Zetaris and Meterless fit:
 
 Question:
 ```
@@ -386,15 +395,15 @@ Deadline impacted? Yes/No
 P1 — Agent loop hangs after the evaluator requests a retry
 
 Team: ResearchMesh
-Track: Autonomous Intelligence
-Framework: LangGraph + [provider] SDK
+Track: The Agent That Can Explain Why
+Framework: LangGraph, model calls through Meterless
 Local and Docker: both
 OS: Ubuntu 22.04, Python 3.11
 Files: app/graph.py, app/agents/evaluator.py, logs/agent_trace.jsonl
 
 Expected:
 Planner → Retriever → Summarizer → Evaluator completes and returns
-a report.
+a cited answer.
 
 Actual:
 When evaluator confidence is under 0.7 it requests a retry from the
@@ -409,15 +418,15 @@ Trace excerpt:
 Already tried:
 1. Set max retries to 2
 2. Added a timeout on each model call
-3. Reduced retrieved documents from 10 to 3
-4. Confirmed a minimal provider call works
+3. Reduced retrieved records from 10 to 3
+4. Confirmed a minimal Meterless call works
 
 Question:
 Is our LangGraph edge condition wrong, or is the retry state not
 being updated?
 ```
 
-Right room, clear severity, expected versus actual, evidence, what was already tried, and a specific question.
+Right channel, clear severity, expected versus actual, evidence, what was already tried, and a specific question.
 
 ### Weak
 
@@ -434,7 +443,7 @@ No context, no error, no logs, no question anyone can answer.
 ### First response
 
 1. Confirm the severity and whether it blocks submission
-2. Check the post is in the right room
+2. Check the post is in the right channel
 3. Ask for the missing information rather than guessing
 4. Don't diagnose from a screenshot alone; ask for text
 5. Suggest the smallest next diagnostic step
@@ -446,7 +455,7 @@ Example:
 This looks like a framework configuration issue rather than an
 auth one. Could you share:
 1. Whether a minimal SDK call works outside the framework
-2. The exact model name you're passing
+2. The exact model ID you're passing
 3. Your client initialisation, keys removed
 
 Don't paste your key. With those three we can narrow it down.
@@ -455,21 +464,22 @@ Don't paste your key. With those three we can narrow it down.
 ### Triage
 
 ```text
-Provider auth, limits or model names?
-→ Confirm whether a minimal call works. If it fails, it's the
-  provider's support, not ours.
+Model provider auth, limits or model IDs?
+→ Confirm whether a minimal call works. If it fails on Meterless or
+  NVIDIA, route to that sponsor's Help channel. Any other provider:
+  the participant's provider support.
 
-Partner technology?
-→ Partner resource area first, then the track room.
+Zetaris, Meterless, Cursor or NVIDIA setup?
+→ Sponsor folder in Resources first, then that sponsor's Help channel.
 
 Track scope, "does this count"?
-→ Track room.
+→ Challenge pages, then #help desk.
 
 Code, Docker, framework, orchestration?
 → Mentor office hours.
 
-Submission requirements?
-→ Official Rules.
+Rules and submission requirements?
+→ Official Rules, or hackathons@genai.works.
 
 Exposed credentials, sensitive data or a safety concern?
 → Take it private immediately. Do not continue the public thread.
@@ -484,9 +494,9 @@ Everything you tell one team, you should be willing to tell every team. If a que
 | Escalate to | When |
 |---|---|
 | **Organizers** | Platform outage, access problems, schedule, conduct, anything affecting many teams |
-| **Partner support** | Partner service down, credentials not provisioning, platform-level errors |
-| **The participant's own provider** | Model auth, rate limits, billing |
-| **Organizers, privately** | Exposed credentials, sensitive data, security or safety concerns |
+| **Sponsor support** (via their Help channel) | Sponsor service down, credentials or credit not provisioning, platform-level errors |
+| **The participant's own provider** | Auth, rate limits or billing on a non-sponsor provider |
+| **Organizers, privately** (hackathons@genai.works) | Exposed credentials, sensitive data, security or safety concerns |
 
 ```text
 Escalation summary
@@ -508,18 +518,27 @@ Sensitive information involved? Yes/No
 Before you ask for help on 27 October, check:
 
 - [ ] The project runs from a clean clone
+- [ ] The GitHub repository is public
+- [ ] Zetaris and Meterless are integrated, and the project was developed in Cursor
 - [ ] A judge can drive it without your UI
 - [ ] `.env.example` exists, no real keys
 - [ ] Sample inputs and outputs are in the repository
 - [ ] Traces show agent interaction, not a straight line
 - [ ] Sample mode works with no credentials
-- [ ] Demo video is recorded and the link works
-- [ ] README covers setup and running
+- [ ] Demo video (1–4 minutes) is recorded and ready
+- [ ] Slide deck is complete
+- [ ] Sponsor technology explanation is written
+- [ ] Pre-existing components are listed
+- [ ] README covers setup, usage and dependencies
 - [ ] Nothing secret is committed
 
-**Don't leave these to the last hours:** a broken Docker build, a project that only runs on your laptop, a missing demo link, or repository access problems. They are the things that cost teams their scores, and they need hours, not minutes.
+**Don't leave these to the last hours:** a broken Docker build, a project that only runs on your laptop, a missing demo video or slide deck, or a private repository. They cost teams their scores, and they need hours, not minutes.
+
+Remember that your team locks when your first submission is created. Confirm the roster before you create it.
 
 ### If it's genuinely a deadline risk
+
+Post in #help desk:
 
 ```text
 P0 — Deadline risk — [issue]
@@ -538,7 +557,7 @@ Submissions close at **27 October, 23:45 UTC**, and it's a hard deadline. Submit
 
 ## 13. Private Escalation
 
-Do **not** continue in a public room if the issue involves an exposed credential, sensitive or personal data, a security vulnerability, suspicious platform behaviour or a safety concern.
+Do **not** continue in a public channel if the issue involves an exposed credential, sensitive or personal data, a security vulnerability, suspicious platform behaviour or a safety concern.
 
 Post a minimal message asking for private contact, with no details:
 
@@ -550,13 +569,13 @@ We may have exposed a credential. Public reference removed.
 Need guidance on next steps — please advise a private route.
 ```
 
-Then rotate the credential immediately while you wait.
+Or email **hackathons@genai.works** directly. Then rotate the credential immediately while you wait.
 
 ---
 
 ## 14. Before You Post
 
-- [ ] Right room
+- [ ] Right channel
 - [ ] Severity label
 - [ ] Team and track
 - [ ] Expected versus actual

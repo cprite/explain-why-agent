@@ -1,14 +1,14 @@
 # FAQ
 
-Folder: Community and Support · updated 2026-10-07
+Folder: Community and Support · updated 2026-10-13
 
 # OPEN AGENT HACKATHON 2026 FAQ
 
 **Build an agent that does real work**
 
-Your first stop for questions about the schedule, teams, tracks, the partner stack, submissions, judging and prizes.
+Your first stop for questions about the schedule, teams, tracks, sponsor technology, submissions, judging and prizes.
 
-> All times are **UTC**. Registration closes **22 October 2026, 23:59** and submissions close **27 October 2026, 23:45**. Where this FAQ and the Official Rules disagree, the Official Rules apply.
+> All times are **UTC**. Registration closes **22 October 2026, 23:45** and submissions close **27 October 2026, 23:45**. Where this FAQ and the Official Rules disagree, the Official Rules apply.
 
 ---
 
@@ -20,11 +20,11 @@ Your first stop for questions about the schedule, teams, tracks, the partner sta
 - [4. Teams](#4-teams)
 - [5. Tracks](#5-tracks)
 - [6. Models, Providers and Cost](#6-models-providers-and-cost)
-- [7. The Partner Stack](#7-the-partner-stack)
+- [7. Sponsor Technology](#7-sponsor-technology)
 - [8. Frameworks and Tech Stack](#8-frameworks-and-tech-stack)
 - [9. What Counts as a Strong Agent](#9-what-counts-as-a-strong-agent)
 - [10. Data and Licensing](#10-data-and-licensing)
-- [11. Technical Requirements](#11-technical-requirements)
+- [11. Technical Practice](#11-technical-practice)
 - [12. Submission](#12-submission)
 - [13. Demo Video](#13-demo-video)
 - [14. Judging](#14-judging)
@@ -47,18 +47,18 @@ Developers, researchers and builders worldwide, from students to senior engineer
 
 ### Is it online or in person?
 
-Fully online. Everything happens on HackOS.
+Fully online. Everything during the event happens on HackOS.
 
 ### How long is it?
 
-144 hours, from 22 October 00:00 to 27 October.
+144 hours, from 22 October, 00:00 to 27 October, 23:45 UTC.
 
 ### What do I actually have to do?
 
-1. Register before 22 October
-2. Pick one of the four tracks
-3. Build a working agent during the build window
-4. Submit on HackOS before 27 October, 23:45
+1. Register before 22 October, 23:45 UTC
+2. Pick one track
+3. Build a working agent during the build window, integrating Zetaris and Meterless and developing in Cursor
+4. Submit on HackOS before 27 October, 23:45 UTC
 
 ---
 
@@ -67,26 +67,27 @@ Fully online. Everything happens on HackOS.
 | Milestone | Date (UTC) |
 |---|---|
 | Registration opens | 14 August, 00:00 |
-| Sponsor workshops | TBA |
-| Participant onboarding | 21 October |
+| Data Day workshop (Zetaris) | 12 October — recording on HackOS |
+| Build Day and Power Day workshops | Dates announced on HackOS |
+| Participant onboarding | 21 October, 12:00–13:30 |
 | Build window opens | 22 October, 00:00 |
-| Registration closes | **22 October, 23:59** |
+| Registration closes | **22 October, 23:45** |
 | Build window | 22–27 October |
-| Judging opens | 27 October, 00:00 |
 | Submissions close | **27 October, 23:45** |
+| Judging opens | 28 October, immediately after submissions close |
 | Results announced | 6 November, 16:00 |
 
 ### What time zone is used?
 
 UTC, everywhere, for everything.
 
-### Why does judging open before submissions close?
+### Are the deadlines really hard?
 
-So judges can start on the submissions that are already in. It doesn't shorten your build window. Anything submitted before 23:45 on 27 October is judged.
+Yes. Registration closes at 22 October, 23:45 with no late entry, and submissions close at 27 October, 23:45. Submit early and update rather than submitting once at the last minute.
 
-### Are the two deadlines really hard?
+### What if I miss a workshop?
 
-Yes. Registration closes at 22 October 23:59 with no late entry, and submissions close at 27 October 23:45. Submit early and update rather than submitting once at the last minute.
+All workshops are recorded and published on HackOS. Watch them before the build window opens.
 
 ---
 
@@ -98,7 +99,11 @@ Anyone aged 16 or older at the start of the build window, anywhere in the world.
 
 ### Does it cost anything?
 
-No. Registration, the platform, mentor office hours and submission are free. You pay for any model API you choose to use.
+No. Registration, HackOS, workshops, mentor office hours and submission are free. You pay for any model API you choose to use, except where sponsor credits cover it.
+
+### How do I register?
+
+Sign up on hackathon.genai.works, then log in to HackOS and complete your profile.
 
 ### Can I create more than one account?
 
@@ -106,15 +111,11 @@ No. One account per participant. Duplicate accounts disqualify the whole team.
 
 ### Can organizer or sponsor employees take part?
 
-They may participate, but they are not eligible for cash prizes.
+Employees of the organizer and of judging sponsors may participate, but they are not eligible for cash prizes.
 
 ### Do I need previous agent-building experience?
 
 No. You need to be able to build something that runs and explain how it works.
-
-### Is there a registration review or approval step?
-
-[TBC: registration is open on hackathon.genai.works. Check the Official Rules for any approval or verification step.]
 
 ---
 
@@ -122,7 +123,7 @@ No. You need to be able to build something that runs and explain how it works.
 
 ### Can I take part alone?
 
-Yes. Teams are 1 to 5 builders.
+Yes. Select **"happy to build solo"** in the registration form. Solo entries compete in the same pool as teams.
 
 ### Can I register with a team already formed?
 
@@ -130,7 +131,7 @@ Yes.
 
 ### Can I find a team after registering?
 
-Yes. Use team-finding on HackOS. Form or join a team before the build window opens.
+Yes. Use team-finding on HackOS. Try to settle your team before the build window opens.
 
 ### What's the maximum team size?
 
@@ -138,15 +139,15 @@ Five.
 
 ### Can I be on two teams?
 
-No. One submission per participant.
+No. A participant may belong to exactly one team and appear on one submission. Mentors may advise any number of teams.
+
+### Can we change the roster?
+
+Yes, until your team's first submission is created. Before that, you may join, leave or merge teams freely. **Team composition locks once the first submission is created.**
 
 ### Does team size affect the prize?
 
-No. Prizes are split equally among team members by default. If your team wants a different split, agree it in writing **before** you submit.
-
-### Can we change the roster mid-build?
-
-Yes, during the build window. The roster must be accurate at the deadline. After that, changes are only for correcting obvious administrative errors.
+No. Cash prizes are split equally among team members unless the team submits a different split in writing. Agree it **before** you submit.
 
 ### What if the team falls out?
 
@@ -158,24 +159,24 @@ Teams resolve their own internal matters: who does what, how decisions are made,
 
 ### How many tracks are there?
 
-Four. Pick one and build for it.
+Three challenge tracks plus one bonus track. Every submission selects exactly one primary track, which determines the judging panel and the prizes it competes for.
 
-| # | Track | What you build |
+| # | Track | What You Build |
 |---:|---|---|
-| 1 | **Fragmented** | Agents that discover and query information scattered across disconnected systems, APIs, databases and data sources, and turn it into actionable insights, decisions, reports or recommendations. |
-| 2 | **Autonomous Intelligence** | Agents that investigate complex questions across multiple data sources, connect findings, and produce evidence-backed answers or recommendations. |
-| 3 | **Persistent Memory Agents** | Agents that remember previous interactions, maintain state, and continue useful work across longer-running tasks or workflows. |
-| 4 | **Real-World Industry Agents** | Agents designed for a specific industry or community, solving a concrete operational problem that could realistically be used in practice. |
+| 1 | **Solving Fragmented Intelligence** | Demonstrate a clever ability to discover and work across fragmented data sources. |
+| 2 | **The Agent That Can Explain Why** | Build agents that investigate complex questions across multiple data sources, connect findings, and produce evidence-backed answers or recommendations. |
+| 3 | **Reasoning Architecture** | Demonstrate a novel ability to turn data, knowledge, memory, and reasoning into reliable decisions and actions. |
+| Bonus | **Wildcard [Tinkerer]: Bring Your Own Project** | Bring an existing project, prototype or concept and extend it using Zetaris and Meterless. Judged on the same criteria as the other tracks and scored on the new work rather than prior development. |
 
-Full track statements are on HackOS.
+Full challenge statements are on HackOS.
 
 ### Can I submit to more than one track?
 
-Pick one track and build for it. [TBC: see section 3 of the Official Rules.]
+No. Each submission selects exactly one primary track. Cross-track relevance is welcome but is not scored twice.
 
 ### Can I change track after starting?
 
-[TBC: see section 3 of the Official Rules.]
+Yes. You can change your track any time before the submission deadline from your team workspace.
 
 ### Which track is easiest?
 
@@ -183,7 +184,7 @@ None carries a difficulty rating. How ambitious you are matters far more than wh
 
 ### How do I pick?
 
-Match the track to a problem you understand and data you can actually get. If you know an industry, track 4 gives you an unfair advantage. If you have access to several messy systems, track 1 does.
+Match the track to a problem you understand and data you can actually get. If you have several messy systems to work across, Solving Fragmented Intelligence fits. If your users need answers they can trust, The Agent That Can Explain Why fits. If you're turning data and memory into decisions and actions, Reasoning Architecture fits. If you already have a working project, Wildcard [Tinkerer] lets you extend it.
 
 ---
 
@@ -191,65 +192,65 @@ Match the track to a problem you understand and data you can actually get. If yo
 
 ### Which models can I use?
 
-Any. Open choice, including closed-source models and paid APIs.
+Any. Open choice, including closed-source models, paid APIs and sponsor credits.
 
 ### Is there a mandated provider?
 
-No.
+No. But Zetaris and Meterless must be integrated in every submission, and NVIDIA technology should be used wherever it contributes.
 
 ### Who pays for the API calls?
 
-You do, unless a partner provides credits. Two practical consequences:
+You do, unless sponsor credits or free access cover it. Details are in each sponsor's folder in Resources on HackOS. Two practical consequences:
 
-- **Set a spend alert on day one.** Agent loops multiply token use fast, and an unbounded retry loop can burn a budget overnight.
+- **Check your limits and set a spend alert on day one.** Agent loops multiply token use fast, and an unbounded retry loop can burn a budget overnight.
 - **Judges may not have your keys.** Ship a documented sample mode so someone can see the system work without your credentials.
 
 ### Can I run models locally?
 
-Yes, but assume a judge has an ordinary CPU machine. If your project needs a GPU to run at all, most judges can't run it.
+Yes, but assume a judge has an ordinary machine without a GPU. Where your build uses NVIDIA technology, reach it through hosted or cloud access so a judge can run your project.
 
 ### How do I keep costs down?
 
-Use a cheaper model for routine steps and the expensive one only where reasoning is hard. Cap agent rounds, cap retries, shorten prompts, cache repeated calls, and develop against sample mode rather than paying to test plumbing.
+Use a smaller model for routine steps and a larger one only where reasoning is hard. Cap agent rounds, cap retries, shorten prompts, cache repeated calls, and develop against sample mode rather than paying to test plumbing.
 
 ### Can I use AI coding assistants?
 
-Yes. Cursor, Copilot, Claude Code, chat assistants, autocomplete, all fine. You remain responsible for the code: it must be reviewed, tested and understood by your team. Judges may ask how something works.
+Yes. Cursor is the required development environment, and other assistants may be used alongside it. Generated code is allowed and expected, but you remain responsible for it: it must be reviewed, tested and understood by your team. Judges may ask how something works.
 
 ---
 
-## 7. The Partner Stack
+## 7. Sponsor Technology
 
-### What is it?
+### Who are the sponsors?
 
-Four partners so you spend the build window on your solution rather than on infrastructure.
+**Space XAI (with Cursor)**, **NVIDIA**, **Zetaris** and **Meterless**.
 
-| Layer | Partner | Role |
+### What's required?
+
+| Sponsor | Requirement | Workshop |
 |---|---|---|
-| **Data** | Zetaris | [TBC] |
-| **Models** | NVIDIA | [TBC] |
-| **Cognition** | Meterless | [TBC] |
-| **Coding** | Cursor | [TBC] |
+| **Zetaris** | Required: every submission must integrate Zetaris | Data Day: serving internal data |
+| **Meterless** | Required: every submission must integrate Meterless | Build Day and Power Day: building faster; local and cloud provider |
+| **Cursor (with Space XAI)** | Required: use Cursor as your development environment | Build Day: building with Cursor |
+| **NVIDIA** | Integrate wherever it contributes to your project, workflow or use case | Power Day: cloud provider |
 
-### Is using it mandatory?
+These requirements apply to every track, including Wildcard [Tinkerer].
 
-No. But **Sponsor Tech is worth 10 points** in the rubric, so a build that uses the stack meaningfully scores where one that ignores it doesn't.
+### How is it scored?
 
-### Do I have to use all three?
-
-No. Use the layers that genuinely help. A partner bolted on at the end with no real role scores close to zero anyway, and judges can tell.
+**Sponsor Tech is worth 10 points**: how effectively your solution uses the sponsors' technology to address the problem and enhance the overall product. A sponsor bolted on at the end with no real role scores close to zero, and judges can tell.
 
 ### How do I get access?
 
-[TBC: access instructions are published in each partner's resource area on HackOS.]
+Access instructions, setup steps and any credits are in each sponsor's folder in Resources on HackOS. Set everything up before 22 October.
 
-### Where do I get help with a partner technology?
+### Where do I get help with a sponsor technology?
 
-The partner's resource area on HackOS first: getting started, docs, tutorial, workshop recording, troubleshooting, FAQs. Then your track room.
+The sponsor's folder in Resources first, then that sponsor's Help channel on HackOS: Help Zetaris, Help Meterless, Help Cursor or Help NVIDIA.
 
-### What if a partner service goes down during judging?
+### What if a sponsor service goes down during judging?
 
-Put every partner call behind an adapter with a timeout and a fallback. A project that degrades gracefully still scores; one that crashes doesn't.
+Put every sponsor call behind an adapter with a timeout and a fallback. A project that degrades gracefully still scores; one that crashes doesn't.
 
 ---
 
@@ -261,7 +262,7 @@ Any. LangGraph, CrewAI, AutoGen, the OpenAI Agent SDK, LangChain, LlamaIndex, or
 
 ### Does the framework affect my score?
 
-No. Judges evaluate agent behaviour, technical implementation, product quality and impact. The framework is a means.
+No. Judges evaluate agent behaviour, technical implementation, product quality, sponsor technology use and impact. The framework is a means.
 
 ### When would I use each?
 
@@ -270,7 +271,7 @@ No. Judges evaluate agent behaviour, technical implementation, product quality a
 - **AutoGen** — conversational multi-agent reasoning, debate, iterative refinement
 - **OpenAI Agent SDK** — if your team already thinks in those abstractions
 - **LangChain / LlamaIndex** — retrieval-heavy, document-heavy work
-- **A custom stack** — Python, FastAPI, direct API calls, a trace log and a vector store is often enough and easier to debug at 2am
+- **A custom stack** — Python, FastAPI, direct API calls, a trace log and a vector store is often enough, and easier to debug at 2am
 
 ### Can I build without a framework?
 
@@ -314,10 +315,10 @@ Yes, in practice. Logs are how a judge verifies your agent did the work rather t
 
 ```json
 {
-  "timestamp": "2026-10-18T10:15:30Z",
+  "timestamp": "2026-10-24T10:15:30Z",
   "agent_name": "ReconcilerAgent",
   "action": "merge_records",
-  "input_summary": "Records from 3 supplier sources",
+  "input_summary": "Records from 3 supplier sources, queried through Zetaris",
   "output_summary": "Merged 240 records; 3 conflicts unresolved",
   "target_agent": "ConflictCritic",
   "confidence": 0.84,
@@ -342,9 +343,9 @@ Yes: public datasets and public APIs with appropriate licences.
 
 No, unless you're authorised to and it's legally permitted. Avoid real personal, clinical, financial or confidential records. When in doubt, use open or synthetic data.
 
-### Is there a size limit on data in the repository?
+### How big can my repository be?
 
-[TBC: any repository size limit is set by the Official Rules.] Regardless, keep it light. A judge cloning a multi-gigabyte repo is a judge who moves on.
+Keep it light. Use small samples rather than full datasets. A judge cloning a multi-gigabyte repository is a judge who moves on.
 
 ### What are my options?
 
@@ -360,37 +361,41 @@ Strongly recommended. `SAMPLE_MODE=true` running on cached data with no external
 
 Yes, especially for sensitive domains. Say so in the README.
 
+### What if I prepared data before the build window?
+
+Declare it as a pre-existing component in the submission form.
+
 ### What about regulated domains?
 
 If your use case touches health, finance, law or security, include caveats and safety boundaries. Don't present outputs as a diagnosis, investment advice or legal advice. Cybersecurity builds should focus on detection and response, not exploitation.
 
 ---
 
-## 11. Technical Requirements
+## 11. Technical Practice
 
-### What does my submission need to do technically?
+### What should my project do technically?
 
-[TBC: the requirements are in section 6 of the Official Rules. The guidance below is recommended practice.]
+Recommended practice:
 
 - Runs from a clean clone with a documented command
 - Can be driven programmatically, not only through a UI
 - Installs dependencies at build or setup time, never during a run
-- Runs on a standard CPU machine
+- Runs on an ordinary machine without a local GPU
 - Finishes in minutes, with timeouts and capped loops
 - Loads secrets from environment variables
 - Writes logs to stdout and `logs/`
 
-### Is Docker required?
+### Should I use Docker?
 
-[TBC.] It's the most reliable way to make sure a judge gets the same result you do, and it's strongly recommended either way.
+It's strongly recommended. It's the most reliable way to make sure a judge gets the same result you do.
 
 ### Can I include a UI?
 
 Yes, and Product & UX is worth 10 points. But give judges a way to run the agent without clicking through screens. A polished interface over a weak system scores badly.
 
-### Is there a time limit per run?
+### How long should a run take?
 
-[TBC.] Even without one, a run that takes an hour is hard to demo, hard to judge and more likely to fail. Aim for 5 to 10 minutes.
+Aim for 5 to 10 minutes or less. A run that takes an hour is hard to demo, hard to judge and more likely to fail.
 
 ### Can dependencies install at runtime?
 
@@ -398,7 +403,7 @@ No. Install at build time.
 
 ### What should happen when something fails?
 
-Fail gracefully: timeouts, capped retries with backoff, fallback to sample data, a clear error, and logs showing the failure and the recovery. Robustness is part of the Technical score.
+Fail gracefully: timeouts, capped retries with backoff, fallback to sample data, a clear error, and logs showing the failure and the recovery. Reliability is part of the Technical score.
 
 ---
 
@@ -410,24 +415,30 @@ On HackOS, before 27 October, 23:45 UTC.
 
 ### What do I submit?
 
-[TBC: see section 6 of the Official Rules.] At minimum, prepare:
-
-| Component | Why |
+| Component | Requirement |
 |---|---|
-| Repository | The working project, accessible to judges |
-| README | Setup, run instructions, architecture, limitations |
-| Demo video | 2–3 minutes showing the agent running |
-| Logs or traces | Evidence of how the agent worked |
-| Sample inputs and outputs | At least three of each |
-| Partner technology record | What you used and where |
+| **Demo video** | 1–4 minutes, showing the main workflow, how the agent solves the selected challenge, its key features, and how Zetaris and Meterless are integrated |
+| **Slide deck** | The problem and target users, the solution, the agent workflow or architecture, the technical stack, how Zetaris and Meterless were used, what was unique about your use of the sponsor technologies, product visuals, and future enhancements |
+| **GitHub repository** | Public, with all source code and a README covering setup, usage and dependencies. If your agents run in Google Colab, include the Colab links |
+| **Sponsor technology explanation** | How Zetaris and Meterless were integrated, how Cursor was used during development, where NVIDIA technology contributes, and what was unique about your use of the sponsor technologies |
+
+You also declare any pre-existing components in the submission form.
+
+### Does my repository have to be public?
+
+Yes, so judges can open it without requesting access.
+
+### Can I use code I wrote before the hackathon?
+
+Work committed before the build window opens is not eligible, except for clearly declared pre-existing components. Pre-existing open-source libraries are fine. Wildcard [Tinkerer] is designed for existing projects, and only the new work is scored.
 
 ### Can I update my submission?
 
-Yes, up to the deadline.
+Yes, up to the deadline. Remember your team locks when the first submission is created.
 
 ### Can I submit a notebook?
 
-A notebook is fine as explanation, but the project needs to run as a system, not only as cells someone steps through.
+A notebook is fine as explanation, and Colab links can go in your README, but the project needs to run as a system, not only as cells someone steps through.
 
 ### Can I submit a UI-only project?
 
@@ -439,7 +450,7 @@ No. Hardcoded outputs are a disqualification risk. The default mode must run rea
 
 ### What are the most common ways teams lose points?
 
-A judge can't run it, the traces don't exist, the README claims more than the code does, secrets are committed, the partner tech is decorative, or the project only works on the author's laptop.
+A judge can't run it, the repository is private, the traces don't exist, the README claims more than the code does, secrets are committed, Zetaris or Meterless is decorative, or the project only works on the author's laptop.
 
 ---
 
@@ -451,22 +462,22 @@ Yes, and Demo is worth **15 points**.
 
 ### How long?
 
-2 to 3 minutes.
+1 to 4 minutes.
 
 ### What should it cover?
 
 | Segment | Time | Show |
 |---|---:|---|
-| Problem | 15–25s | What you're solving and for whom |
+| Problem | 15–25s | The track, the user and the problem |
 | Solution | 20–30s | What your agent does |
 | Agents | 30–45s | The roles and how they interact |
-| Live run | 45–60s | The system actually running |
+| Live run | 45–60s | The main workflow actually running |
+| Sponsor technology | 20–30s | How Zetaris and Meterless are integrated |
 | Output | 30–45s | The result, and why it's useful |
-| Value | 15–25s | Who benefits |
 
 ### Does it have to be live?
 
-No, recorded is fine.
+No, recorded is fine. The input and output must be real.
 
 ### Can I use sample data?
 
@@ -482,27 +493,27 @@ No. Show the agent working. A video of only slides doesn't demonstrate a working
 
 ### How does it work?
 
-Expert judges review submissions against the published criteria. Judging opens 27 October, 00:00 and runs while final submissions come in.
+Judging opens on 28 October, immediately after submissions close. Expert judges review submissions against the published criteria, and each submission is reviewed by at least three judges. Wildcard [Tinkerer] is scored on the new work rather than prior development.
 
 ### What's the scoring?
 
-| Criterion | Points | What judges look for |
+| Criterion | Points | What Judges Look For |
 |---|---:|---|
-| **Impact** | 30 | A real problem, a clear user, an output that improves a decision or workflow |
-| **Technical** | 20 | A functional working system, effective use of tools, APIs, models and data |
-| **Innovation** | 15 | Novel approach, creative use of agent design patterns |
-| **Demo** | 15 | Clarity of explanation and quality of the demonstration |
-| **Product & UX** | 10 | Whether the output is usable by the person it's meant for |
-| **Sponsor Tech** | 10 | Meaningful use of the partner stack where it helps |
+| **Impact** | 30 | Consistency with the challenge statements: how effectively the solution addresses a meaningful real-world problem for its intended users |
+| **Technical** | 20 | How well the solution is built, including its technical implementation, reliability and architecture |
+| **Innovation** | 15 | How original or creative the approach to solving the problem is |
+| **Demo** | 15 | How clearly the demo shows the solution, its functionality, and the value it provides to its intended users |
+| **Product & UX** | 10 | How intuitive, accessible, and easy to use the product is for its intended users |
+| **Sponsor Tech** | 10 | How effectively the solution uses the sponsors' technology to address the problem and enhance the overall product |
 | **Total** | **100** | |
 
 ### What happens in a tie?
 
-Ties for third place are decided on the **Impact** score.
+Ties are resolved on the **Impact** score, then on submission timestamp.
 
 ### What do judges reward?
 
-Agents that act rather than describe, a clear problem and user, critique and recovery instead of a fixed pipeline, reliable execution, partner tech that's load-bearing, an output someone could actually use, and a demo that explains itself.
+Agents that act rather than describe, a clear problem and user, critique and recovery instead of a fixed pipeline, reliable execution, sponsor technology that's load-bearing, an output someone could actually use, and a demo that explains itself.
 
 ### What do they discount?
 
@@ -514,7 +525,7 @@ Possibly. Your project should handle reasonable unseen inputs for your track, no
 
 ### Do I get feedback?
 
-[TBC: see the Official Rules.]
+Yes. Participants receive feedback on their submissions.
 
 ### Are decisions final?
 
@@ -526,11 +537,18 @@ Yes, on eligibility, disqualification, scoring and winner selection.
 
 ### What's the prize?
 
-A prize pool of **up to $20,000** across the winning submissions, with a feature in the community showcase for the top project.
+A prize pool of **up to $20,000**: **$15,000 in cash prizes** and **$5,000 in in-kind rewards**, with a feature in the community showcase for the top project.
+
+| Track | 1st | 2nd | 3rd |
+|---|---:|---:|---:|
+| Solving Fragmented Intelligence | $2,000 | $1,350 | $1,000 |
+| The Agent That Can Explain Why | $2,000 | $1,350 | $1,000 |
+| Reasoning Architecture | $2,000 | $1,300 | $1,000 |
+| Wildcard [Tinkerer] | $1,000 | $600 | $400 |
 
 ### How is a team prize split?
 
-Equally among team members by default.
+Equally among team members, unless the team submits a different split in writing.
 
 ### Does team size change the prize?
 
@@ -538,15 +556,15 @@ No.
 
 ### When are winners announced?
 
-6 November, 16:00 UTC, on the live results call on HackOS.
+6 November, 16:00 UTC, on the live results call on HackOS. Winners receive certificates.
 
 ### How and when do prizes get paid?
 
-[TBC: payment method, timeline and any identity or tax documentation required.]
+Cash prizes are paid by bank transfer within 30 days of the results announcement. Taxes and any local charges are the recipient's responsibility.
 
 ### Who owns what I built?
 
-[TBC: see section 9 of the Official Rules for the IP terms.]
+You do. You keep all rights to what you build, and nothing transfers ownership to the organizer or sponsors. By submitting, you grant the organizer a licence to show your demo, screenshots and description in event coverage. Sponsor-track submissions grant that sponsor the same non-exclusive promotional licence.
 
 ### Is there an incubation or deployment pathway?
 
@@ -562,13 +580,14 @@ Everything during the event is on HackOS.
 
 | Need | Where |
 |---|---|
-| Track scope and expectations | Your track room |
-| Partner setup and errors | Partner resource area, then your track room |
+| Track scope and expectations | Challenge pages on HackOS |
+| General technical questions | #help desk channel |
+| Sponsor setup and errors | Sponsor folder in Resources, then that sponsor's Help channel (Help Zetaris, Help Meterless, Help Cursor, Help NVIDIA) |
 | Agent design, frameworks, debugging | Mentor office hours |
-| Submission requirements | Official Rules on the event page |
+| Rules questions | Official Rules, or hackathons@genai.works |
 | Finding teammates | Team-finding |
 | Official updates | Announcements, check daily |
-| Your model provider's errors | Your provider's own support |
+| Your own model provider's errors | Your provider's support |
 
 ### What is Discord for?
 
@@ -576,7 +595,7 @@ Community activity after the hackathon: showcases, future events, workshops, sta
 
 ### What do mentors do?
 
-They help you understand the tracks, navigate HackOS and the partner technologies, answer technical and use-case questions, and get you unstuck. They don't build your project, and they can't debug your provider account for you.
+They help you understand the tracks, navigate HackOS and the sponsor technologies, answer technical and use-case questions, and get you unstuck. They don't build your project, and they can't debug your provider account for you.
 
 ### How do I get a fast answer?
 
@@ -584,7 +603,7 @@ Include: what you're trying to do, what you expected, what happened, the exact e
 
 Good:
 
-> "LangGraph with [provider]. Works locally, fails in Docker with a 401. Key is passed as an environment variable and a minimal SDK call works. Sanitised error below. Any ideas?"
+> "LangGraph with Meterless. Works locally, fails in Docker with a 401. Key is passed as an environment variable and a minimal SDK call works. Sanitised error below. Any ideas?"
 
 Not useful:
 
@@ -593,32 +612,37 @@ Not useful:
 ### What if my provider key doesn't work?
 
 1. Check the environment variable actually reaches the process, in Docker as well as locally
-2. Check the base URL character by character
+2. Check the base URL character by character, and that the key, address and model ID are all from the same route
 3. Run a minimal SDK call outside your framework
 
-If the minimal call works and your framework doesn't, that's a configuration problem and mentors can help. If the minimal call fails too, it's your provider's support.
+If the minimal call works and your framework doesn't, that's a configuration problem and mentors can help. If the minimal call fails on Meterless or NVIDIA, ask in that sponsor's Help channel.
 
 ### What if I accidentally commit a key?
 
-**Rotate it immediately.** Then remove it from the repository and tell a moderator. Deleting the commit is not enough on its own.
+**Rotate it immediately.** Then remove it from the repository history and tell a moderator. Deleting the commit is not enough on its own.
 
 ### What if my issue is sensitive?
 
-Exposed credentials, personal data, a security concern or a safety issue: don't post details publicly. Ask for a private route and rotate anything exposed while you wait.
+Exposed credentials, personal data, a security concern or a safety issue: don't post details publicly. Email hackathons@genai.works or ask a moderator for a private route, and rotate anything exposed while you wait.
 
 ### Final checklist before submitting
 
 - [ ] Picked one track and built for it
+- [ ] Zetaris and Meterless integrated; developed in Cursor
 - [ ] Runs from a clean clone with a documented command
+- [ ] Repository is public
 - [ ] A judge can drive it without your UI
 - [ ] `.env.example` present, no real keys
 - [ ] Sample mode works with no credentials
 - [ ] At least 3 sample inputs and matching outputs
 - [ ] Logs show real agent interaction
 - [ ] No secrets committed anywhere
-- [ ] README covers setup, architecture and limitations
-- [ ] Partner technology use documented
-- [ ] Demo video 2–3 minutes, link works
+- [ ] README covers setup, usage and dependencies
+- [ ] Demo video 1–4 minutes
+- [ ] Slide deck complete
+- [ ] Sponsor technology explanation written
+- [ ] Pre-existing components declared
+- [ ] Team roster correct before the first submission
 - [ ] Submitted before 27 October, 23:45 UTC
 
 ---
@@ -631,7 +655,7 @@ Exposed credentials, personal data, a security concern or a safety issue: don't 
 | Agents that act and recover | Fixed chains |
 | A real problem and a real user | Novelty without usefulness |
 | Working execution | Slides without code |
-| Partner tech that earns its place | Decorative integrations |
+| Sponsor technology that earns its place | Decorative integrations |
 | Honest logs | Unverifiable claims |
 | Reproducibility | "Works on my machine" |
 

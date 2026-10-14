@@ -1,16 +1,16 @@
 # Channel Directory
 
-Folder: Community and Support · updated 2026-10-07
+Folder: Community and Support · updated 2026-10-13
 
 # Where to Get Help
 
 **OPEN AGENT HACKATHON 2026 | Build an agent that does real work**
 
-This directory explains where to post questions, blockers and urgent issues during the hackathon.
+This guide explains where to post questions, blockers and urgent issues during the hackathon.
 
 Everything during the event happens on **HackOS**. Discord is the community space for after the hackathon.
 
-Read this before posting. The right room gets you a faster answer and keeps the space useful for everyone.
+Read this before posting. Posting in the right place gets you a faster answer and keeps the space useful for everyone.
 
 ---
 
@@ -18,25 +18,37 @@ Read this before posting. The right room gets you a faster answer and keeps the 
 
 | If you need help with… | Go to |
 |---|---|
-| Track scope, what counts, use case feasibility, whether your approach fits the track | **Your track room** |
-| Zetaris, NVIDIA, Cursor or Meterless: setup, access, errors | **The partner's resource area**, then your track room |
-| Agent design, frameworks, Docker, Python, orchestration bugs, logs and traces | **Mentor office hours** |
-| Submission requirements, what to include, deadlines | **Official Rules** on the event page, then your track room |
+| Track scope, what counts, whether your approach fits the track | **Challenge pages**, then **#help desk** |
+| Zetaris, Meterless, Cursor or NVIDIA: setup, access, errors | **The sponsor's folder in Resources**, then **that sponsor's Help channel** |
+| Agent design, frameworks, Docker, Python, orchestration bugs, logs and traces | **#help desk** or **mentor office hours** |
+| Submission requirements, what to include, deadlines | **Submission Requirements** and **Official Rules** on HackOS, then **#help desk** |
 | Finding teammates, forming a team | **Team-finding** |
 | Platform access, schedule, admin | **Announcements**, or message a moderator |
-| Your model provider: auth, rate limits, billing, model names | **Your provider's own support** |
+| Rules questions or private issues | **hackathons@genai.works** |
+| A non-sponsor model provider: auth, rate limits, billing, model names | **That provider's own support** |
 
-That last row catches people out. Model choice is open at this hackathon, so a `401` from your provider is between you and them. Mentors can help if a minimal call works but your framework doesn't.
+That last row catches people out. If you use a model provider outside the sponsors, a `401` from it is between you and that provider. Mentors can help if a minimal call works but your framework doesn't.
 
 ---
 
 ## 2. What HackOS Has
 
-1. **Announcements** — official updates, read-only
-2. **Track rooms** — one per track: Fragmented, Autonomous Intelligence, Persistent Memory Agents, Real-World Industry Agents
-3. **Partner resource areas** — Zetaris, NVIDIA, Cursor, Meterless
-4. **Mentor office hours** — scheduled sessions
-5. **Team-finding** — forming and joining teams
+1. **Announcements:** official updates, read-only
+2. **Challenge pages:** one per track, with the statement and requirements
+3. **#help desk:** general technical and track questions
+4. **Sponsor Help channels:** Help Zetaris, Help Meterless, Help Cursor, Help NVIDIA
+5. **Sponsor folders in Resources:** setup guides, documentation and workshop recordings
+6. **Mentor office hours:** scheduled sessions
+7. **Team-finding:** forming and joining teams
+
+The tracks are:
+
+| Track | |
+|---|---|
+| Solving Fragmented Intelligence | Main track |
+| The Agent That Can Explain Why | Main track |
+| Reasoning Architecture | Main track |
+| Wildcard [Tinkerer] | Bonus track: extend an existing project with Zetaris and Meterless; scored on new work only |
 
 Please don't start parallel support threads outside these unless a moderator asks you to.
 
@@ -46,9 +58,9 @@ Please don't start parallel support threads outside these unless a moderator ask
 
 ### 3.1 Before you post
 
-1. Check the FAQ and the troubleshooting guide
-2. Check the relevant partner resource area if it's a partner issue
-3. Search your track room; someone has probably hit it already
+1. Check the FAQ and the Troubleshooting Guide
+2. Check the sponsor's folder in Resources if it's a sponsor issue
+3. Search #help desk and the sponsor Help channel; someone has probably hit it already
 4. Gather the details someone would need to reproduce it
 
 ### 3.2 Never post secrets
@@ -59,7 +71,7 @@ Terminal screenshots leak keys more often than anything else. Check before you u
 
 **If you expose a key:**
 
-1. **Rotate it with your provider immediately.** This is the step that matters; deleting the message doesn't un-leak it.
+1. **Rotate it immediately.** For a Zetaris, Meterless or NVIDIA key, create a new one in that service. For any other provider, rotate it with that provider. Deleting the message doesn't un-leak it.
 2. Delete or edit the post.
 3. Tell a moderator.
 
@@ -67,7 +79,7 @@ Terminal screenshots leak keys more often than anything else. Check before you u
 
 Prefix where it helps:
 
-- `[Partner]` · `[Docker]` · `[Submission]` · `[Track]` · `[Teams]` · `[Deadline]`
+- `[Zetaris]` · `[Meterless]` · `[Cursor]` · `[NVIDIA]` · `[Docker]` · `[Submission]` · `[Track]` · `[Teams]` · `[Deadline]`
 
 ````text
 [Docker] Build fails on python:3.11-slim, missing system dependency
@@ -75,42 +87,39 @@ Prefix where it helps:
 
 ### 3.4 Include enough context
 
-**Technical posts:** what you were doing, what happened, the exact error, a minimal snippet (not your whole repo), your environment, whether it fails locally or in Docker, and what you already tried.
-
-**Track posts:** your track, your intended agents and roles, your data source, and the decision you actually need help with.
-
-**Submission posts:** which requirement is unclear, what you've read already, and whether it blocks you.
+| Post type | Include |
+|---|---|
+| **Technical** | What you were doing, what happened, the exact error, a minimal snippet (not your whole repo), your environment, whether it fails locally or in Docker, and what you already tried |
+| **Track** | Your track, your intended agents and roles, your data source, and the decision you need help with |
+| **Submission** | Which requirement is unclear, what you've already read, and whether it blocks you |
 
 ### 3.5 Keep threads tidy
 
 Reply in threads. Don't cross-post the same question. If it turns out to belong elsewhere, link the original and move. When it's solved, say so:
 
-> **Resolved — the container was binding to 127.0.0.1 instead of 0.0.0.0.**
+> **Resolved: the container was binding to 127.0.0.1 instead of 0.0.0.0.**
 
-That last habit is worth more than it sounds. Half the questions in a 144-hour window are ones someone already answered.
+Many questions in a 144-hour window have already been answered. Marking yours resolved saves the next person time.
 
 ---
 
-## 4. Track Rooms
+## 4. #help desk
 
 ### Purpose
 
-One room per track. Use yours for anything about the track itself and for general build discussion with people solving the same shape of problem.
-
-Use it for:
+Use it for general technical questions and anything about the tracks.
 
 - Choosing and scoping your use case
 - Whether your architecture fits the track
 - Dataset suitability
-- What judges are looking for in this track
 - Whether your scope is too broad for six days
-- General build discussion with your track's community
+- Build problems that aren't specific to one sponsor
 
-### Posting format
+### Track question format
 
 ````markdown
 **Track:**
-**Team size:** individual / team of X
+**Team size:** solo / team of X
 **Problem and user:**
 **Proposed agents:**
 1. name — role
@@ -118,6 +127,7 @@ Use it for:
 3. name — role
 
 **Data sources:**
+**How Zetaris and Meterless are used:**
 **Planned output:**
 **Main question:**
 **What I need:** scope / architecture / data / feasibility
@@ -125,11 +135,11 @@ Use it for:
 
 ### Do and don't
 
-**Do:** name your track, explain the decision you're trying to make, keep it focused, share an architecture sketch if it helps.
+**Do:** name your track, explain the decision you're trying to make, keep it focused, and share an architecture sketch if it helps.
 
-**Don't:** ask someone to design your whole solution, ask whether your idea will win, paste a long document without a question, or bring provider auth errors here.
+**Don't:** ask someone to design your whole solution, ask whether your idea will win, paste a long document without a question, or bring sponsor access problems here.
 
-### A reminder on what scores
+### What judges look for
 
 Judges are looking for agents that do real work.
 
@@ -143,18 +153,18 @@ Strong: planner ↔ executor ↔ evaluator loops, agents critiquing each other, 
 
 ---
 
-## 5. Partner Resource Areas
+## 5. Sponsor Folders and Help Channels
 
 ### Purpose
 
-Each partner has its own area on HackOS with getting started, documentation, a tutorial, the workshop recording, troubleshooting, FAQs and technical support.
+Each sponsor has a folder in Resources on HackOS with setup guides, documentation and workshop recordings, and a Help channel staffed by the sponsor team.
 
-| Layer | Partner |
-|---|---|
-| Data | Zetaris |
-| Models | NVIDIA |
-| Cognition | Meterless |
-| Coding | Cursor |
+| Sponsor | Role | Requirement |
+|---|---|---|
+| Zetaris | Data | Required in every submission |
+| Meterless | Cognition | Required in every submission |
+| Cursor | Development environment | Required development environment |
+| NVIDIA | Models | Used wherever it contributes |
 
 ### Use them for
 
@@ -162,20 +172,18 @@ Access and credentials, setup, connection errors, service behaviour, and anythin
 
 ### The triage question
 
-Before posting, ask: **does the partner's own quickstart work for me?**
+Before posting, ask: **does the sponsor's own quickstart work for me?**
 
-- **Yes, but my code doesn't** → your code. Bring it to your track room or mentor office hours with the error.
-- **No** → access or the service. Post in the partner's resource area.
-
-That one question routes most partner issues correctly and saves a round trip.
+- **Yes, but my code doesn't:** the problem is in your code. Bring it to #help desk or mentor office hours with the error.
+- **No:** the problem is access or the service. Post in that sponsor's Help channel.
 
 ### Posting format
 
 ````markdown
-**Partner:** Zetaris / NVIDIA / Cursor / Meterless
+**Sponsor:** Zetaris / Meterless / Cursor / NVIDIA
 **What I was doing:**
 **Environment:** local / Docker
-**Does the partner quickstart work for me?** yes / no
+**Does the sponsor quickstart work for me?** yes / no
 **Exact error:**
 **What I tried:**
 **Blocking?** yes / no
@@ -183,7 +191,7 @@ That one question routes most partner issues correctly and saves a round trip.
 
 ### Remember
 
-Sponsor Tech is worth **10 points**. Wrap every partner call behind an adapter with a timeout and a fallback, so a service outage during judging degrades your project instead of killing it.
+Sponsor Tech is worth **10 points**. Wrap every sponsor call behind an adapter with a timeout and a fallback, so a service outage during judging degrades your project instead of breaking it.
 
 ---
 
@@ -191,9 +199,7 @@ Sponsor Tech is worth **10 points**. Wrap every partner call behind an adapter w
 
 ### Purpose
 
-For build problems: agent design, framework behaviour, debugging, architecture.
-
-Use it for:
+For build problems: agent design, framework behaviour, debugging and architecture.
 
 - Multi-agent architecture and orchestration
 - FastAPI, Flask, Docker, Python, dependencies
@@ -204,7 +210,7 @@ Use it for:
 - Sample mode
 - "Works locally, fails in Docker"
 
-### Posting format
+### Bring this
 
 ````markdown
 **Issue type:** Docker / Python / API / framework / logs / architecture
@@ -234,41 +240,55 @@ paste here
 
 ### What mentors do
 
-They help you understand the tracks, navigate the tools and get unstuck. They will not build your project, and they can't debug your provider account for you. Anything they tell one team, they'd tell any team that asked.
+They help you understand the tracks, navigate HackOS and the sponsor technologies, and get unstuck. They will not build your project, and they can't debug your provider account. Anything they tell one team, they'd tell any team that asked.
 
 ---
 
 ## 7. Submission Questions
 
-The **Official Rules** on the event page are the authority on what to submit. Read section 6 before asking.
+The **Submission Requirements** and **Official Rules** on HackOS are the authority on what to submit. Read them before asking.
 
-If the rules genuinely don't cover your case, ask in your track room and quote the section you already read.
+If they don't cover your case, ask in #help desk and say which section you already read. For anything private, email hackathons@genai.works.
 
 ### Deadlines
 
 | Milestone | Date (UTC) |
 |---|---|
 | Build window opens | 22 October, 00:00 |
-| Registration closes | **22 October, 23:59** |
-| Judging opens | 27 October, 00:00 |
+| Registration closes | **22 October, 23:45** |
 | **Submissions close** | **27 October, 23:45** |
+| Judging opens | 28 October, immediately after submissions close |
 | Results | 6 November, 16:00 |
 
 Both deadlines are hard. Submit early and update, rather than submitting once at 23:44.
 
 ### Ask early
 
-Don't leave these to the final hours: a broken Docker build, a project that only runs on your laptop, a missing demo link, or repository access problems. They need hours, not minutes, and they're what costs teams their scores.
+Don't leave these to the final hours:
+
+- A broken Docker build
+- A project that only runs on your laptop
+- A missing demo video or slide deck
+- A repository that is still private (it must be public)
+- A README missing setup, usage or dependencies
+
+They need hours, not minutes, and they're what costs teams their scores.
 
 ---
 
 ## 8. Team-Finding
 
-Use it to find teammates and form teams. Teams are 1 to 5 builders, and you can only be on one.
+Use it to find teammates and form teams.
 
-Form or join your team **before the build window opens**.
+| Rule | |
+|---|---|
+| Team size | 1 to 5 builders |
+| Teams per participant | One |
+| Building solo | Select "happy to build solo" in the registration form |
+| Team lock | Your team locks when the first submission is created |
+| Prize split | Equal shares by default; any other split must be agreed in writing before you submit |
 
-One thing to settle on day one: **how a prize would be split.** The default is equal shares among team members. If your team wants something else, agree it in writing before you submit, not after you win.
+Settle the prize split on day one, not after you win.
 
 ---
 
@@ -276,11 +296,11 @@ One thing to settle on day one: **how a prize would be split.** The default is e
 
 Official updates, read-only: deadline reminders, resource releases, workshop dates, judging updates, results notices, and any change to the rules or schedule.
 
-**Do:** read every one, treat them as authoritative, check daily during the build window.
+**Do:** read every one, treat them as authoritative, and check daily during the build window.
 
 **Don't:** reply with questions there, or treat a screenshot reposted elsewhere as official.
 
-Questions about an announcement go to your track room or to a moderator.
+Questions about an announcement go to #help desk or to a moderator.
 
 ---
 
@@ -288,16 +308,17 @@ Questions about an announcement go to your track room or to a moderator.
 
 | Issue | First stop | Escalates to |
 |---|---|---|
-| Track scope and expectations | Your track room | Organizers, if it affects every team |
-| Partner setup, access, service errors | Partner resource area | That partner's support |
-| Agent design, frameworks, debugging | Mentor office hours | — |
-| Model provider auth, rate limits, billing | Your provider's support | — |
-| Submission requirements | Official Rules | Organizers, if genuinely ambiguous |
-| Platform access, schedule, admin | A moderator | Organizers |
-| Exposed credentials, sensitive data, safety | **Private message to a moderator** | Organizers, privately |
+| Track scope and expectations | Challenge pages, then #help desk | Organizers, if it affects every team |
+| Sponsor setup, access, service errors | Sponsor folder in Resources | That sponsor's Help channel |
+| Agent design, frameworks, debugging | #help desk or mentor office hours | — |
+| Non-sponsor provider auth, rate limits, billing | That provider's support | — |
+| Submission requirements | Submission Requirements and Official Rules | Organizers, if genuinely ambiguous |
+| Platform access, schedule, admin | A moderator | HackOS escalations |
+| Rules questions | hackathons@genai.works | Organizers |
+| Exposed credentials, sensitive data, safety | **Private message to a moderator** or hackathons@genai.works | Organizers, privately |
 | Official rule or schedule change | Announcements | — |
 
-**Anything sensitive goes private first.** Exposed credentials, personal data, a security concern or a safety issue: ask for a private route without posting the details, and rotate anything exposed while you wait.
+**Anything sensitive goes private first.** If it involves exposed credentials, personal data, a security concern or a safety issue, ask for a private route without posting the details, and rotate anything exposed while you wait.
 
 ---
 
@@ -308,7 +329,7 @@ Use `[URGENT]` only when it's time-critical and blocks participation or submissi
 **Urgent:**
 
 - `[URGENT][Submission]` Can't submit because the form or platform is failing
-- `[URGENT][Partner]` A partner service is down and it's blocking the final run
+- `[URGENT][Zetaris]` or `[URGENT][Meterless]` A sponsor service is down and it's blocking the final run
 - `[URGENT][Access]` Registered participant can't get into HackOS
 
 **Not urgent:**
@@ -318,7 +339,7 @@ Use `[URGENT]` only when it's time-critical and blocks participation or submissi
 - Requests for ideas
 - Questions already answered in the FAQ or Announcements
 
-Overusing it makes it useless for the people who genuinely need it at 23:00 on 27 October.
+If everyone uses `[URGENT]`, it stops working for the people who need it at 23:00 on 27 October.
 
 ---
 
@@ -327,22 +348,22 @@ Overusing it makes it useless for the people who genuinely need it at 23:00 on 2
 | Priority | Example | Handling |
 |---|---|---|
 | **Critical** | Platform access failure, submission blocked | Fastest available, escalated |
-| **High** | Build failure near the deadline, partner outage blocking a demo | Prioritised |
+| **High** | Build failure near the deadline, sponsor outage blocking a demo | Prioritised |
 | **Medium** | Architecture clarification, track scope, a framework issue with a workaround | Normal |
 | **Low** | Optimisation ideas, polish, general opinions | Best effort |
 
-This is a global event across every time zone, running for 144 hours. Moderators and mentors aren't awake at all hours. Response times stretch during the final 24 hours, so raise anything structural early.
+This is a global event across every time zone, running for 144 hours. Moderators and mentors aren't available at all hours. Response times stretch during the final 24 hours, so raise anything structural early.
 
 ---
 
 ## 13. Good Examples
 
-**Partner**
+**Sponsor**
 
 ````markdown
-[Partner][Zetaris] 401 Unauthorized from inside Docker, works locally
+[Zetaris] 401 Unauthorized from inside Docker, works locally
 
-**Partner:** Zetaris
+**Sponsor:** Zetaris
 **What I was doing:** Querying our Zetaris instance from the ingest pipeline
 **Environment:** Docker
 **Does the quickstart work for me?** Yes, locally
@@ -356,8 +377,8 @@ This is a global event across every time zone, running for 144 hours. Moderators
 ````markdown
 [Docker] FastAPI runs locally but the container exits immediately
 
-**Track:** Fragmented
-**Framework:** Custom FastAPI + [provider] SDK
+**Track:** Solving Fragmented Intelligence
+**Framework:** Custom FastAPI + Meterless
 **Environment:** Docker
 **Command:** docker run -p 8000:8000 oah-submission
 **Expected:** API on localhost:8000
@@ -370,40 +391,42 @@ This is a global event across every time zone, running for 144 hours. Moderators
 **Track**
 
 ````markdown
-[Track] Is our reconciliation loop enough for Fragmented?
+[Track] Is our reconciliation loop enough for Solving Fragmented Intelligence?
 
-**Track:** Fragmented
+**Track:** Solving Fragmented Intelligence
 **Team size:** 3
 **Problem:** Supplier records disagree across three systems
 **Agents:** Source Mapper, Reconciler, Conflict Critic, Reporter
-**Data:** One CSV export, one public API, one ticket extract
+**Data:** Three internal sources served through Zetaris
 **Question:** The critic sends unsupported resolutions back for a re-check.
-Is that enough, or do judges expect branching on confidence too?
+Is that enough, or should we also branch on confidence?
 ````
 
 ---
 
 ## 14. Checklist Before Posting
 
-1. Is it about a partner technology? → **Partner resource area**, then your track room
-2. Is it about your model provider's auth, limits or billing? → **Your provider's support**
-3. Is it about scope, or what counts for your track? → **Your track room**
-4. Is it about code, Docker, frameworks or architecture? → **Mentor office hours**
-5. Is it about what to submit? → **Official Rules**, then your track room
-6. Is it about teammates? → **Team-finding**
-7. Is it sensitive? → **Private message to a moderator**
-8. Is it an official update? → **Read Announcements**
+| Question | Go to |
+|---|---|
+| Is it about a sponsor technology? | **Sponsor folder in Resources**, then **that sponsor's Help channel** |
+| Is it about a non-sponsor provider's auth, limits or billing? | **That provider's support** |
+| Is it about scope, or what counts for your track? | **Challenge pages**, then **#help desk** |
+| Is it about code, Docker, frameworks or architecture? | **#help desk** or **mentor office hours** |
+| Is it about what to submit? | **Submission Requirements** and **Official Rules**, then **#help desk** |
+| Is it about teammates? | **Team-finding** |
+| Is it sensitive? | **Private message to a moderator** or **hackathons@genai.works** |
+| Is it an official update? | **Read Announcements** |
 
 ---
 
 ## 15. Final Reminders
 
-- **Right room, faster answer.**
+- **Post in the right place for a faster answer.**
 - **Never post secrets.** If you do, rotate the key first, then tell a moderator.
 - **Search first.** Someone has probably hit it already.
 - **Be specific.** The exact error and what you already tried save the most time.
 - **Announcements are the source of truth** for deadlines and rule changes.
-- **Ask early.** Don't validate your core requirements in the final hour.
+- **Ask early.** Don't check your core requirements in the final hour.
 - **Post your fix when you solve it.** You'll save someone else an hour.
 
-The rooms exist to unblock you. Use them actively, respectfully, and with enough detail for someone to actually help.
+These channels exist to unblock you. Use them actively, respectfully, and with enough detail for someone to help.

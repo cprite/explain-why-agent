@@ -1,6 +1,6 @@
 # Escalation Path
 
-Folder: Community and Support · updated 2026-10-07
+Folder: Community and Support · updated 2026-10-13
 
 # Escalation Path
 
@@ -10,6 +10,8 @@ Where to route urgent issues before and during the hackathon. For **participants
 
 Use this when something is **time-sensitive, blocking, sensitive, or beyond normal support**.
 
+**Private escalation route:** **hackathons@genai.works**
+
 ---
 
 ## 1. Quick Routing
@@ -17,14 +19,14 @@ Use this when something is **time-sensitive, blocking, sensitive, or beyond norm
 | Issue type | Route to | Where | Examples |
 |---|---|---|---|
 | **Agent build issues** | Mentors | Mentor office hours on HackOS | Architecture, debugging, frameworks, Docker, orchestration, logs |
-| **Track scope and feasibility** | Moderators and organizers | Your track room | What counts, scope, dataset suitability, whether an approach fits |
-| **Partner technology** | That partner | Partner resource area, then your track room | Zetaris, NVIDIA, Cursor or Meterless: access, setup, service errors |
-| **Your model provider** | Your provider | Their own support | Auth, rate limits, billing, model availability |
-| **Submission requirements** | Official Rules, then organizers | Event page, then your track room | What to submit, format, deadlines |
-| **Platform and admin** | Organizers | Announcements, or a moderator | HackOS access, registration, teams, schedule |
-| **Security, privacy, abuse, safety** | Organizers, **privately** | [TBC: private escalation route] | Leaked credentials, exposed data, harassment, threats, vulnerabilities |
-
-> **[TBC — the most important gap in this document.]** A private escalation route needs to exist before the build window opens: an email address or a named contact that works when someone can't or shouldn't post publicly. "Message a moderator" is circular for someone who has just leaked a key in a public room at 3am.
+| **General technical questions** | Technical team | #help desk channel on HackOS | Errors, setup, anything not covered elsewhere |
+| **Track scope and feasibility** | Organizers | Challenge pages, then #help desk | What counts, scope, dataset suitability, whether an approach fits |
+| **Sponsor technology** | That sponsor | Sponsor folder in Resources, then Help Zetaris, Help Meterless, Help Cursor or Help NVIDIA | Access, setup, credits, service errors |
+| **Your own model provider** | Your provider | Their own support | Auth, rate limits, billing on a non-sponsor provider |
+| **Submission requirements** | Official Rules, then organizers | Event page, then #help desk | What to submit, format, deadlines |
+| **Rules questions** | Organizers | hackathons@genai.works | Eligibility, pre-existing work, prizes |
+| **Platform and admin** | Organizers | Announcements, a moderator, or #help desk | HackOS access, registration, teams, schedule |
+| **Security, privacy, abuse, safety** | Organizers, **privately** | **hackathons@genai.works** | Leaked credentials, exposed data, harassment, threats, vulnerabilities |
 
 ---
 
@@ -33,9 +35,9 @@ Use this when something is **time-sensitive, blocking, sensitive, or beyond norm
 | Severity | Definition | Examples | Action |
 |---|---|---|---|
 | **P0 — Critical** | Security, safety, privacy, or an event-wide outage | A key leaked in a public repo, exposed personal data, harassment or a threat, HackOS down, submission broken near the deadline | Escalate immediately. Don't wait for a normal response. |
-| **P1 — Blocking** | A team cannot continue building or submitting | Docker build broken, partner service down, can't access HackOS, submission upload failing | Post in the right place with full details. Escalate if unresolved. |
+| **P1 — Blocking** | A team cannot continue building or submitting | Docker build broken, Zetaris unreachable, can't access HackOS, submission failing | Post in the right place with full details. Escalate if unresolved. |
 | **P2 — Important** | Progress affected, but there's a workaround | Framework incompatibility, intermittent errors, unclear scope, dependency conflict | Normal support. Include logs and reproduction steps. |
-| **P3 — Informational** | Non-blocking question | Resource links, clarifications, best practice | Ask in the relevant room. |
+| **P3 — Informational** | Non-blocking question | Resource links, clarifications, best practice | Ask in the relevant channel. |
 
 ---
 
@@ -43,52 +45,54 @@ Use this when something is **time-sensitive, blocking, sensitive, or beyond norm
 
 ### 3.1 Agent build issues → Mentors
 
-Architecture, multi-agent design, frameworks (LangGraph, CrewAI, AutoGen, the OpenAI Agent SDK, custom stacks), tool use, retrieval, memory, orchestration, Docker, runtime behaviour, trace and log design.
+Architecture, agent design, frameworks (LangGraph, CrewAI, AutoGen, the OpenAI Agent SDK, custom stacks), tool use, retrieval, memory, orchestration, Docker, runtime behaviour, trace and log design.
 
-**Where:** mentor office hours on HackOS.
+**Where:** mentor office hours on HackOS. General technical questions can also go to #help desk.
 
 **Examples:**
 
 - "My planner ↔ executor ↔ evaluator loop isn't producing usable traces."
 - "My container starts but the run endpoint returns a 500."
 - "Does this workflow count as the agent doing real work, or is it just chaining?"
-- "How should I structure memory across sessions for my track?"
+- "How should I structure memory across sessions for Reasoning Architecture?"
 
 Mentors help you get unstuck. They don't build your project, and what they tell one team they'd tell any team that asked.
 
-### 3.2 Track scope → Your track room
+### 3.2 Track scope → Challenge pages, then #help desk
 
 What counts for your track, whether your scope is feasible in six days, dataset suitability, what judges are looking for.
 
-**Escalates to organizers** when the ambiguity affects every team in a track. In that case the answer is confirmed and published publicly, not given to one team privately.
+**Escalates to organizers** when the ambiguity affects every team in a track. In that case the answer is confirmed and published in Announcements, not given to one team privately.
 
-### 3.3 Partner technology → The partner
+### 3.3 Sponsor technology → The sponsor
 
-Access and credentials, setup, connection errors, service behaviour for Zetaris, NVIDIA, Cursor or Meterless.
+Access and credentials, credits, setup, connection errors and service behaviour for Zetaris, Meterless, Cursor or NVIDIA.
 
-**Where:** the partner's resource area on HackOS first. Then your track room.
+**Where:** the sponsor's folder in Resources on HackOS first. Then that sponsor's Help channel: Help Zetaris, Help Meterless, Help Cursor or Help NVIDIA.
 
-**The triage question:** does the partner's own quickstart work for you?
+**The triage question:** does the sponsor's own quickstart or verification step work for you?
 
 - **Yes, but your code doesn't** → your code. Mentor office hours.
-- **No** → access or the service. The partner's resource area.
+- **No** → access or the service. The sponsor's Help channel.
 
-**Escalates to** that partner's support when a service is down or credentials aren't provisioning.
+**Escalates to** that sponsor's support team, through organizers if needed, when a service is down or credentials or credits aren't provisioning.
 
-### 3.4 Model provider → Your provider
+### 3.4 Model provider
 
-Model choice is open here, so auth failures, rate limits, billing and model availability are between you and the provider you chose.
+If your product runs on Meterless or NVIDIA, key, credit and rate-limit problems go to that sponsor's Help channel.
+
+If you chose another provider, auth failures, rate limits, billing and model availability are between you and that provider.
 
 **Before escalating anywhere:** does a minimal SDK call work outside your agent framework?
 
 - **Yes** → framework configuration. Mentor office hours.
-- **No** → your provider's support will be faster than we can be.
+- **No** → the provider: the sponsor's Help channel for Meterless or NVIDIA, or your own provider's support.
 
-Nobody at the hackathon can reset your API key, raise your rate limit or fix your billing.
+Nobody at the hackathon can reset a non-sponsor API key, raise its rate limit or fix its billing.
 
 ### 3.5 Submission → Official Rules, then organizers
 
-The Official Rules on the event page are the authority. If they genuinely don't cover your case, ask in your track room and quote the section you read.
+The Official Rules on the event page are the authority. If they genuinely don't cover your case, ask in #help desk and quote the section you read, or email hackathons@genai.works.
 
 **Escalates to organizers** for platform failures and anything that affects deadline compliance. Extensions are decided by organizers only, through an official announcement.
 
@@ -96,11 +100,15 @@ The Official Rules on the event page are the authority. If they genuinely don't 
 
 HackOS access, registration, team formation and changes, schedule clarification, results call logistics, prize questions.
 
-**Where:** announcements, or a message to a moderator.
+**Where:** Announcements, a moderator, or #help desk.
+
+Remember that team composition locks when a team's first submission is created. Roster problems after that point go to hackathons@genai.works.
 
 ### 3.7 Security, privacy and safety → Organizers, privately
 
-**Do not post details in a public room.**
+**Do not post details in a public channel.**
+
+**Where:** **hackathons@genai.works**, or a direct message to a moderator.
 
 Use this path for:
 
@@ -112,7 +120,7 @@ Use this path for:
 - Any Code of Conduct incident needing confidential handling
 - Anything where public discussion would make it worse
 
-**[TBC: the private route.]** Until it's published, post a minimal message asking for private contact with no details, and act on the immediate steps in section 6 while you wait.
+If you need to flag something publicly first, post a minimal message asking for private contact, with no details, and act on the immediate steps in section 7 while you wait.
 
 ---
 
@@ -121,33 +129,32 @@ Use this path for:
 ````text
 Is anyone at risk, or is this security, privacy or safety?
 │
-├─ Yes → Private escalation. Do not post publicly.
+├─ Yes → hackathons@genai.works. Do not post publicly.
 │
 └─ No
    │
    ├─ Is it your model provider (auth, limits, billing)?
    │  ├─ Does a minimal SDK call work outside your framework?
-   │  │  ├─ No  → Your provider's support
+   │  │  ├─ No  → Meterless or NVIDIA: that sponsor's Help channel
+   │  │  │        Any other provider: your provider's support
    │  │  └─ Yes → Framework config → mentor office hours
-   │  └─
    │
-   ├─ Is it a partner technology?
-   │  ├─ Does the partner quickstart work for you?
-   │  │  ├─ No  → Partner resource area
+   ├─ Is it Zetaris, Meterless, Cursor or NVIDIA?
+   │  ├─ Does the sponsor quickstart or verification step work for you?
+   │  │  ├─ No  → Sponsor folder in Resources, then its Help channel
    │  │  └─ Yes → Your code → mentor office hours
-   │  └─
    │
    ├─ Is it agent code, architecture, Docker, logs?
-   │  └─ Yes → Mentor office hours
+   │  └─ Yes → Mentor office hours, or #help desk
    │
    ├─ Is it track scope or "does this count"?
-   │  └─ Yes → Your track room
+   │  └─ Yes → Challenge pages, then #help desk
    │
    ├─ Is it what to submit?
-   │  └─ Yes → Official Rules, then your track room
+   │  └─ Yes → Official Rules, then #help desk
    │
    └─ Is it access, teams, schedule, prizes?
-      └─ Yes → Announcements, or a moderator
+      └─ Yes → Announcements, a moderator, or hackathons@genai.works
 ````
 
 ---
@@ -164,7 +171,7 @@ Team name, track, severity, a one-line summary, what you expected, what happened
 **Severity:** P1 — blocking
 **Team:**
 **Track:**
-**Category:** build / partner / provider / submission / platform
+**Category:** build / sponsor / provider / submission / platform
 **Summary:** <one sentence>
 
 **Expected:**
@@ -183,15 +190,15 @@ Team name, track, severity, a one-line summary, what you expected, what happened
 **Already tried:**
 ````
 
-### Partner issues
+### Sponsor issues
 
 ````markdown
 **Severity:** P1
 **Team:**
-**Partner:** Zetaris / NVIDIA / Cursor / Meterless
+**Sponsor:** Zetaris / Meterless / Cursor / NVIDIA
 **What I was doing:**
 **Environment:** local / Docker
-**Does the partner quickstart work for me?** yes / no
+**Does the sponsor quickstart or verification step work for me?** yes / no
 **Timestamp (UTC):**
 **Error:**
 **Impact:** blocking the demo / blocking the build
@@ -200,7 +207,7 @@ Team name, track, severity, a one-line summary, what you expected, what happened
 
 ### Security and safety
 
-Privately, include: your name and team if it's safe to say, the severity, what happened, who or what is affected, when and where, evidence if you have it, whether it's ongoing, and whether something urgent is needed like key revocation or content removal.
+Privately, to hackathons@genai.works, include: your name and team if it's safe to say, the severity, what happened, who or what is affected, when and where, evidence if you have it, whether it's ongoing, and whether something urgent is needed like key revocation or content removal.
 
 **Do not:** tag the person publicly, post screenshots publicly, repost the leaked secret, further inspect exposed data, or try to prove a vulnerability by exploiting it.
 
@@ -210,10 +217,10 @@ Privately, include: your name and team if it's safe to say, the severity, what h
 
 | Severity | First action | Escalate if no response within | Then |
 |---|---|---:|---|
-| **P0** | Private escalation immediately | Immediately | Organizers, and the relevant partner or provider |
-| **P1** | Post in the right place with full details | A few hours during the build window; faster on 27 October | Ask a moderator to route it |
-| **P2** | Post in the right place | A day | Ask a moderator to route it |
-| **P3** | Ask in the relevant room | — | — |
+| **P0** | hackathons@genai.works, immediately | Immediately | Organizers, and the relevant sponsor or provider |
+| **P1** | Post in the right channel with full details | A few hours during the build window; faster on 27 October | Ask a moderator to route it |
+| **P2** | Post in the right channel | A day | Ask a moderator to route it |
+| **P3** | Ask in the relevant channel | — | — |
 
 This is a global event running 144 hours across every time zone. Moderators and mentors aren't awake at all hours, and response times stretch in the final 24. **Raise anything structural early.** A broken Docker build at 22:00 on 27 October is not a support problem anymore.
 
@@ -225,46 +232,46 @@ This is a global event running 144 hours across every time zone. Moderators and 
 
 **P0.**
 
-1. **Rotate the key with your provider now.** Not after the message is deleted. Now.
+1. **Rotate the key now.** Not after the message is deleted. Now.
 2. Don't post the key anywhere, including in the report.
-3. Remove it from the repository.
+3. Remove it from the repository history.
 4. Preserve evidence of where it appeared.
-5. Report it privately.
-6. Assume the old key is compromised even if the repo was private.
+5. Report it privately to hackathons@genai.works.
+6. Assume the old key is compromised. Your repository will be public, so treat any committed key as exposed.
 
-Rotation is yours to do and only your provider can do it. Nobody at the hackathon can revoke it for you.
+Rotation is yours to do. For a Zetaris, Meterless or NVIDIA key, create a new one in that service; for any other provider, only that provider can revoke it.
 
 ### 7.2 Rate-limited or out of credit mid-build
 
-Usually **P1** if it blocks you, but it's not an event escalation.
+Usually **P1** if it blocks you.
 
-1. Check your provider's dashboard: rate limit, quota or billing.
+1. Check your usage: Meterless credit, NVIDIA rate limits, or your own provider's dashboard.
 2. Lower concurrency, cap agent rounds, shorten prompts, cache repeated calls.
-3. Switch routine steps to a cheaper model.
+3. Switch routine steps to a smaller model.
 4. Run in `SAMPLE_MODE=true` while you work on plumbing.
-5. If it's a provider outage rather than your usage, their status page will say so.
+5. For Meterless or NVIDIA, ask in that sponsor's Help channel. For other providers, check their status page.
 
-This is the case for building a documented sample mode early. When a provider throttles you on day five, a project that still runs on cached data is a project you can still demo.
+This is the case for building a documented sample mode early. When you're throttled on day five, a project that still runs on cached data is a project you can still demo.
 
 ### 7.3 Submission failing near the deadline
 
 **P1**, or **P0** if event-wide.
 
-1. Post in your track room and tell a moderator.
-2. Include screenshots, timestamps and your artifact links.
+1. Post in #help desk and tell a moderator.
+2. Include screenshots, timestamps and your links.
 3. Don't wait until the final minutes if it looks persistent.
-4. Keep a timestamped backup of: repository URL, demo video link, architecture document link, final commit hash.
+4. Keep a timestamped backup of: repository URL, demo video, slide deck, sponsor technology explanation, final commit hash.
 
 Submissions close **27 October, 23:45 UTC**. It's a hard deadline. Submit early and update.
 
-### 7.4 Unsure whether it's your code, the partner, or your provider
+### 7.4 Unsure whether it's your code, a sponsor, or your provider
 
 Two questions settle almost everything:
 
-1. **Does a minimal provider call work outside your framework?** No → your provider. Yes → keep going.
-2. **Does the partner's quickstart work for you?** No → that partner. Yes → your code, so mentor office hours.
+1. **Does a minimal provider call work outside your framework?** No → the provider. Yes → keep going.
+2. **Does the sponsor's quickstart or verification step work for you?** No → that sponsor's Help channel. Yes → your code, so mentor office hours.
 
-If you're still unsure, post a short summary in your track room and ask for triage.
+If you're still unsure, post a short summary in #help desk and ask for triage.
 
 ### 7.5 Code of Conduct or harassment
 
@@ -272,14 +279,14 @@ If you're still unsure, post a short summary in your track room and ask for tria
 
 1. Don't engage publicly if it could make things worse.
 2. Preserve evidence.
-3. Report privately.
+3. Report privately to hackathons@genai.works, or by direct message to a moderator.
 4. Moderators may hide content or pause a thread while it's reviewed.
 
 ---
 
 ## 8. Public vs Private
 
-**Safe in public rooms:** redacted error messages, stack traces with secrets removed, framework and version, model name, general repo structure, non-secret config names, screenshots with secrets removed, public dataset links, general track questions.
+**Safe in public channels:** redacted error messages, stack traces with secrets removed, framework and version, model name, general repo structure, non-secret config names, screenshots with secrets removed, public dataset links, general track questions.
 
 **Never public:** API keys, `.env` files, credentials or tokens, personal data, confidential data, exploit details, harassment reports, screenshots containing any of the above.
 
@@ -287,7 +294,7 @@ If you're still unsure, post a short summary in your track room and ask for tria
 
 ## 9. Moderator Triage Checklist
 
-**1. Classify.** Security, privacy or safety → private, immediately. Partner → partner area. Provider → their support. Build → mentor office hours. Track scope → track room. Submission → Official Rules. Admin → organizers.
+**1. Classify.** Security, privacy or safety → private, immediately. Sponsor technology → sponsor folder and Help channel. Own provider → their support. Build → mentor office hours or #help desk. Track scope → challenge pages and #help desk. Submission → Official Rules. Admin → organizers.
 
 **2. Assign severity.** P0 / P1 / P2 / P3.
 
@@ -298,8 +305,8 @@ If you're still unsure, post a short summary in your track room and ask for tria
 ````markdown
 Thanks — this looks like a <category> issue.
 
-Routing to: <mentor office hours / partner resource area / your provider /
-organizers / private escalation>
+Routing to: <mentor office hours / #help desk / Help Zetaris / Help Meterless /
+Help Cursor / Help NVIDIA / your provider / organizers / private escalation>
 
 Please add:
 - <missing item>
@@ -317,13 +324,14 @@ Reminder: don't share API keys, .env files or sensitive data here.
 | Owner | Responsible for |
 |---|---|
 | **Organizers** | Event decisions, deadlines, eligibility, prizes, announcements, platform, conduct, anything affecting many teams |
+| **Technical team** | The #help desk channel and general technical questions |
 | **Mentors** | Build guidance, architecture, debugging, getting teams unstuck |
-| **Moderators** | Room health, routing, conduct, escalation |
-| **Zetaris / NVIDIA / Cursor / Meterless** | Their own platform access, credentials, service availability, technology support |
-| **Your model provider** | Your API key, rate limits, billing, model availability |
+| **Moderators** | Channel health, routing, conduct, escalation |
+| **Zetaris / Meterless / Cursor / NVIDIA** | Their own platform access, credentials, credits, service availability, technology support |
+| **Your own model provider** | Your API key, rate limits, billing, model availability |
 | **You** | Your code, your credentials, your data, your submission |
 
-That last row matters more here than at a hackathon with a mandated provider. Open model choice means your keys and your bill are yours, and rotating a leaked key is something only you can do.
+That last row matters. Open model choice means your keys are yours, and rotating a leaked key is something only you can do.
 
 ---
 
@@ -334,7 +342,7 @@ That last row matters more here than at a hackathon with a mandated provider. Op
 3. **Security and safety go private.** Never a public thread.
 4. **Evidence, not noise.** Logs, timestamps, reproduction steps, redacted screenshots.
 5. **Escalate blockers early.** Not in the final hour.
-6. **Ask for triage when unsure.** A short summary in your track room is enough.
+6. **Ask for triage when unsure.** A short summary in #help desk is enough.
 
 ---
 
@@ -344,6 +352,4 @@ If it involves **leaked credentials, sensitive data, harassment, threats or safe
 
 **Do not post details publicly.**
 
-Rotate anything exposed immediately, then report through the private route.
-
-**[TBC: publish the private route here before 22 October.]**
+Rotate anything exposed immediately, then report to **hackathons@genai.works**.

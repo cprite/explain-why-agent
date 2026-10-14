@@ -1,7 +1,7 @@
 # Orientation Session Deck
 
-Folder: Start here · updated 2026-10-09
+Folder: Start here · updated 2026-10-13
 
-(file, not downloaded) https://hackathon-server.genai.works/api/v1/cdn/proxy/hackathon/a3edcfafd21f4214bf3cadec137b1837.pdf
+(file, not downloaded) https://hackathon-server.genai.works/api/v1/cdn/proxy/hackathon/371fc22b7a584ceab414b9c35ee141ac.pdf
 
 
