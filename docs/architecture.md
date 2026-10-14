@@ -5,13 +5,20 @@ between 22 and 27 October (the organisers moved the event a week later on 7 Octo
 
 ## 1. What the product does
 
-A business user asks why a metric moved, for example "Why did review scores for watches fall in
-March 2018?". The system investigates across four separate data sources and returns:
+**Product shape (Nikolay's decision, 14 Oct): an "explain this anomaly" workspace.** The user opens
+a board of key business metrics on which the system has already flagged unusual movements, clicks
+"Explain" on one, watches the investigation run, and gets an answer with what to check next. The
+flow is notice → explain → act. A user can also type their own question instead of picking a flagged
+card.
+
+The investigation answers why a metric moved, for example "Why did review scores for watches fall
+in January 2018?". The system investigates across four separate data sources and returns:
 
 - ranked causes, each with the evidence behind it (source, query, numbers, baseline);
 - the explanations it tested and ruled out, and why;
 - a confidence level and the limits of the answer, including "this cannot be determined from the
-  data" when that is the honest result.
+  data" when that is the honest result;
+- what to check or do next for each cause.
 
 The user is an operations or commercial analyst at a marketplace. The decision supported is where to
 look and what to fix first when a number moves.
@@ -163,15 +170,37 @@ One injected generator function, OpenAI-compatible, used by every agent and both
   If a real runtime is announced (Power Day, or the Help Meterless channel), only that module
   changes.
 
+## 6a. Anomaly scanner
+
+Not an agent: a deterministic job that finds the movements worth explaining.
+
+- **Metrics and segments are configuration:** for example order count, revenue, average review
+  score, late-delivery rate, average freight, payment-type share; segmented by state, product
+  category, seller and payment type. Each is one SQL template run through Zetaris.
+- **Method:** each metric is computed per segment and period (week or month) and compared with its
+  own trailing baseline. A movement is flagged when it is large relative to that segment's normal
+  variation and the segment has enough volume to trust it. The test is robust (median and spread, not
+  mean and standard deviation) so one extreme period does not hide the next.
+- **Output:** up to about ten anomaly cards, ranked by size and volume: metric, segment, period,
+  baseline, observed value, and a pre-filled question for the Planner.
+- **Integrity:** the scanner knows nothing about the planted incidents. Its recall on them (how
+  many of the eight that show a real metric move it flags) is reported by the evaluation, alongside
+  any real anomalies it finds that we did not plant.
+
 ## 7. Interfaces
 
 - **`run.py`** — command line: one question in, result JSON out, exit code set.
 - **HTTP API (FastAPI):** `POST /run` with `{run_id, input: {query}, options: {sample_mode}}`,
   returns the result; `GET /runs/{id}` returns the stored result; `GET /runs/{id}/trace` returns the
   JSONL trace. Bound to `0.0.0.0`.
-- **Web page:** one page served by the same app. Type a question, watch the trace arrive (which
-  agent, what it asked, what the critic objected to), then read the ranked causes with expandable
-  evidence. No login, no build step.
+- **More endpoints:** `GET /anomalies` returns the current anomaly cards; `POST /run` also accepts
+  `{anomaly_id}` instead of a free-text query; `GET /runs/{id}/events` streams the trace as it happens.
+- **Web page — the workspace:** one page served by the same app, no login, no build step.
+  1. The board: metric tiles with small trend lines, flagged anomalies highlighted with their size.
+  2. "Explain" on a card (or a typed question) starts a run; the trace arrives live: which agent,
+     what it asked Zetaris, what the critic objected to, what changed as a result.
+  3. The answer: ranked causes with expandable evidence (query, numbers, baseline), the ruled-out
+     list, confidence, and what to check next.
 
 Result shape (abridged):
 
@@ -219,6 +248,9 @@ Nothing in these files is written by hand or post-processed.
 - the window overlaps the planted window;
 - the designated wrong explanation appears in `ruled_out`;
 - for the two undeterminable incidents, `determinable` is false and no cause is asserted.
+
+The anomaly scanner is scored separately: how many of the planted incidents with a real metric move
+it flags without being told, and how many real, unplanted anomalies it also surfaces.
 
 The headline number is "found N of 10", reported in the README with the run logs behind it. The
 answer key is used only by this script and is never visible to the agents.
