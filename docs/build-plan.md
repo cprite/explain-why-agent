@@ -78,7 +78,8 @@ Day total: 13 hours.
 | 17 | Token report: projected versus actual per round | Report present in the result and in `logs/` | 1 |
 | 18 | HTTP API: `POST /run`, `GET /runs/{id}`, `GET /runs/{id}/trace`, structured errors | `curl` with an example input returns a valid result | 2 |
 | 19 | Web page — the workspace: metric board with flagged anomaly cards, "Explain" or a typed question, live trace, answer with expandable evidence, ruled-out list and next checks | Browser check: the demo anomaly is on the board and explains end to end | 4 |
-| 19a | Anomaly scanner: metric and segment configuration, robust baseline test, ranked cards, `GET /anomalies`, recall in the evaluation | Scanner flags the watches review dip and the Rio freight rise without being told; recall reported by `run_eval.py` | 4 |
+| 19a | Anomaly scanner: metric and segment configuration, STL seasonality removal + robust z-score, ranked cards, `GET /anomalies`, recall in the evaluation | Scanner flags the watches review dip and the Rio freight rise without being told, and does not flag the normal weekly cycle; recall reported by `run_eval.py` | 4 |
+| 19b | Attribution (Adtributor-style): explanatory power and surprise per slice, top dimension on each card, exposed to the Investigator as a tool | On a synthetic cube the known slice ranks first; on the data, the Rio freight card names RJ | 2 |
 | 20 | Failure handling: query repair retry, model fallback, Zetaris fallback; sample mode with the per-call model response cache | Tests simulate each failure; from a fresh clone with an empty `.env` and the network off, the three example questions run end to end in sample mode | 3 |
 
 Day total: 13 hours.
@@ -105,14 +106,15 @@ afternoon is reserve, not working time.
 
 ## Totals and what gives if time runs short
 
-About 68 hours across five days after adding the anomaly workspace (14 Oct). Order of cuts, least
+About 70 hours across five days after adding the anomaly workspace (14 Oct) and the attribution step (19 Oct). Order of cuts, least
 damaging first:
 
 1. Web page reduced to the board and the result view without the live trace (saves about 2 hours).
-2. Anomaly scanner limited to three metrics and two segment types (saves about 2 hours).
-3. Token report reduced to a single figure in the README.
-4. Zetaris used for single-source queries only, with joins done locally.
-5. Evaluation run on six incidents instead of ten.
+2. Attribution (task 19b) dropped: cards show the flagged slice only (saves about 2 hours).
+3. Anomaly scanner limited to three metrics and two segment types (saves about 2 hours).
+4. Token report reduced to a single figure in the README.
+5. Zetaris used for single-source queries only, with joins done locally.
+6. Evaluation run on six incidents instead of ten.
 
 Not to be cut: the critic and its refutation trace, the "cannot be determined" branch, the evaluation
 score, a clean run from a fresh clone, and the two required sponsor integrations.

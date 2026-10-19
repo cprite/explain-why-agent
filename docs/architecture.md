@@ -182,10 +182,11 @@ Not an agent: a deterministic job that finds the movements worth explaining.
 - **Metrics and segments are configuration:** for example order count, revenue, average review
   score, late-delivery rate, average freight, payment-type share; segmented by state, product
   category, seller and payment type. Each is one SQL template run through Zetaris.
-- **Method:** each metric is computed per segment and period (week or month) and compared with its
-  own trailing baseline. A movement is flagged when it is large relative to that segment's normal
-  variation and the segment has enough volume to trust it. The test is robust (median and spread, not
-  mean and standard deviation) so one extreme period does not hide the next.
+- **Method:** each metric is computed per segment and period. The regular pattern (trend and weekly
+  cycle) is removed first, and only what is left over is tested, so a normal weekend dip or seasonal
+  peak is not flagged. A movement is flagged when that leftover is large relative to the segment's
+  normal variation and the segment has enough volume to trust it. Flagged moves are then attributed
+  to the slice that explains them. Both steps follow published practice (see the implementation plan).
 - **Output:** up to about ten anomaly cards, ranked by size and volume: metric, segment, period,
   baseline, observed value, and a pre-filled question for the Planner.
 - **Integrity:** the scanner knows nothing about the planted incidents. Its recall on them (how
@@ -201,19 +202,43 @@ Not an agent: a deterministic job that finds the movements worth explaining.
    minimum volume.
 2. **Series:** one Zetaris query per metric and segment type, grouped by segment and week (day for
    order counts): about 40 queries at 1–2 s each, run once at start-up and on demand, results cached.
-3. **Test:** each point against the median of its trailing 8 periods, scaled by the median absolute
-   deviation (robust z-score). Flag at |z| ≥ 3.5. Skip segment-periods below a volume floor (for
-   example 30 orders) so small sellers do not flood the board.
+3. **Test — seasonality first, then a robust outlier test** (changed 19 Oct after checking how
+   monitoring products do it):
+   - decompose each series with STL (`statsmodels`, robust fitting): trend + weekly cycle (period 7)
+     for daily series; trend only for weekly series;
+   - score the remainder with a robust z-score: (value − median) / (1.4826 × median absolute
+     deviation) over a trailing window (28 days or 8 weeks), so one extreme period does not hide the
+     next;
+   - flag at |z| ≥ 3.5; skip segment-periods below a volume floor (for example 30 orders) so small
+     sellers do not flood the board;
+   - series shorter than three cycles fall back to the plain trailing-median test.
+   Ready-made alternatives were checked and not used: StarTree ThirdEye (closest product, but needs
+   Apache Pinot and Kubernetes and would replace Zetaris as the data layer), Salesforce Merlion
+   (archived March 2026), ADTK (no release since 2020), Prophet (works, but heavy and slow across
+   hundreds of series).
+3a. **Attribution (Adtributor-style drill-down):** for each flagged whole-shop or parent-level move,
+   compute for every slice of every dimension (state, category, payment type, channel, seller) its
+   *explanatory power* (share of the total change it accounts for) and *surprise* (how far its
+   share of the metric moved from its expected share, Jensen-Shannon divergence). Per dimension,
+   keep the smallest set of slices that explains at least 67% of the change, ranked by surprise;
+   rank dimensions by total surprise. The top dimension and slices go on the card ("driven by Rio de
+   Janeiro: 72% of the change") and into the Planner's first hypotheses. Method: Bhagwan et al.,
+   *Adtributor: Revenue Debugging in Advertising Systems*, NSDI 2014. Fundamental metrics (counts,
+   sums) use it directly; ratio metrics (average review score, late rate) are attributed through
+   their numerator and denominator, as the paper describes for derived measures. The Investigator
+   can call the same function as a tool.
 4. **Rank and merge:** consecutive flagged periods become one episode; score = |z| × log(volume);
-   when a parent and its child flag the same move (whole shop and one state), keep the more
-   specific one and mention the other. Show the top ten.
+   when a parent and its child flag the same move (whole shop and one state), keep one card and let
+   the attribution name the child. Show the top ten.
 5. **Card:** metric, segment, period, baseline, observed, change, and a pre-filled question.
 6. **Honesty:** thresholds are fixed before recall is measured and never tuned per incident; the
    scanner never reads `answer_key.json`. The evaluation reports recall on the planted incidents and
    lists unplanted flags separately (real Olist events, such as the May 2018 truckers' strike, may
    appear; incident 09 is a deliberate no-cause case).
-7. **Tests:** unit tests on synthetic series (spike, step change, pure noise, low volume) and the
-   recall check in CI on sample mode, which runs the same code on DuckDB.
+7. **Tests:** unit tests on synthetic series (spike, step change, pure noise, low volume, a strong
+   weekly cycle that must not be flagged); attribution tests on a synthetic cube where one known
+   slice causes the change; and the recall check in CI on sample mode, which runs the same code on
+   DuckDB. The README names both methods and links the Adtributor paper.
 
 ## 7. Interfaces
 
