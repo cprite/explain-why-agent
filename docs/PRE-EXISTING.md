@@ -17,6 +17,7 @@ repository contained no source code, data or configuration before the window ope
 | `docs/research/meterless-runtime.md` | Research note on whether a Meterless model runtime exists | Written by the team, 14 Oct 2026 |
 | `docs/research/zetaris-test-2026-10-14.md` | Notes from testing Zetaris on throwaway data (no project code) | Written by the team, 14 Oct 2026 |
 | `docs/research/zetaris-setup.md` | Setup note on Zetaris built from its public getting-started repository | Written by the team, 13 Oct 2026 |
+| `docs/research/zetaris-resources-2026-10-19.md` | Notes on the Zetaris guides and builder article added to the HackOS Resources hub on 16 Oct | Written by the team, 19 Oct 2026 |
 | `docs/research/workshops/` | Notes on the organisers' Data Day workshop and its caption transcript | Notes by the team, 13 Oct 2026; transcript from the organisers' recording |
 | `docs/organiser-docs/` | Six participant documents (welcome guide, overview, calendar, FAQ, journey map, solutioning guide) | Provided by the organisers |
 | `docs/organiser-docs/2026-10-14/` | Five supporting documents from the organisers (submission form preview, demo video guide, strong and weak examples, vibe coding guide) | Provided by the organisers, 14 Oct 2026 |

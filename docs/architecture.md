@@ -70,7 +70,12 @@ DataLayer
   DDL spans the four. The agents query that layer through Zetaris's REST interface, including
   cross-source joins. This is where Zetaris sits in the
   build. Judges will not have our Zetaris instance, so the README says plainly that the default path
-  needs one and that sample mode is the path anyone can run.
+  needs one and that sample mode is the path anyone can run. Rules from the tested recipe and
+  Zetaris's SQL companion (`research/zetaris-test-2026-10-14.md`,
+  `research/zetaris-resources-2026-10-19.md`): every value comes back as a string, so the adapter
+  converts types; each statement is sent whole (a multi-table `COMPILE USL` breaks if split on `;`);
+  the setup script re-runs `ACTIVATE USL TABLE` after any model change; generated SQL prefers window
+  functions to self-joins.
 - **Local adapter (sample mode):** the same sample files loaded into DuckDB, one schema per source.
 
 Queries are read-only, row-limited and time-limited. Every query gets an id and is logged with its
