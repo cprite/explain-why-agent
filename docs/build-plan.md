@@ -11,6 +11,23 @@ Rules that apply to every task:
 - Every external call has a timeout; every loop has a cap.
 - A task is not done until its check passes from a clean clone.
 
+## How a sprint reaches `main` (Nikolay, 19 Oct)
+
+Each task below is one sprint: one issue, one pull request, merged only after Nikolay has tested it.
+
+1. Cursor builds it in the sandbox, with tests for the new behaviour and a sprint note in
+   `docs/sprints/NN-<slug>.md` (what was built, what was left out, how it was tested, known limits).
+2. CI runs the tests and the task's check below in sample mode; an independent review checks the
+   acceptance criteria.
+3. We check the pull request's "How to test" steps against the code and the CI log, then send
+   Nikolay a sprint report in #general: what it does, how we tested it, and up to five steps for him
+   to run on his own computer (under 10 minutes, no credentials).
+4. He replies "merge", or describes what is wrong and the sprint goes back for a fix.
+
+His testing adds waiting time between sprints. While a sprint waits, the next one's issue, the README
+and the demo material are prepared, so the wait costs as little as possible. Small tasks on the same
+day may be grouped into one sprint to keep the number of hand-offs down to two or three a day.
+
 ## Day 1 — Thursday 22 October: a thin slice that runs end to end
 
 Goal for the day: one question goes in, a real (if shallow) answer comes out, with a trace, using
