@@ -192,6 +192,29 @@ Not an agent: a deterministic job that finds the movements worth explaining.
   many of the eight that show a real metric move it flags) is reported by the evaluation, alongside
   any real anomalies it finds that we did not plant.
 
+**Implementation plan (19 Oct):**
+
+1. **Configuration** (`scanner.yaml`): about eight metrics, each a SQL template — daily orders, revenue,
+   average order value, average review score, late-delivery rate, average freight, payment-type
+   share, revenue by sellers' acquisition channel (joins the marketing source). Segment types:
+   whole shop, state, product category, payment type, acquisition channel, and sellers above a
+   minimum volume.
+2. **Series:** one Zetaris query per metric and segment type, grouped by segment and week (day for
+   order counts): about 40 queries at 1–2 s each, run once at start-up and on demand, results cached.
+3. **Test:** each point against the median of its trailing 8 periods, scaled by the median absolute
+   deviation (robust z-score). Flag at |z| ≥ 3.5. Skip segment-periods below a volume floor (for
+   example 30 orders) so small sellers do not flood the board.
+4. **Rank and merge:** consecutive flagged periods become one episode; score = |z| × log(volume);
+   when a parent and its child flag the same move (whole shop and one state), keep the more
+   specific one and mention the other. Show the top ten.
+5. **Card:** metric, segment, period, baseline, observed, change, and a pre-filled question.
+6. **Honesty:** thresholds are fixed before recall is measured and never tuned per incident; the
+   scanner never reads `answer_key.json`. The evaluation reports recall on the planted incidents and
+   lists unplanted flags separately (real Olist events, such as the May 2018 truckers' strike, may
+   appear; incident 09 is a deliberate no-cause case).
+7. **Tests:** unit tests on synthetic series (spike, step change, pure noise, low volume) and the
+   recall check in CI on sample mode, which runs the same code on DuckDB.
+
 ## 7. Interfaces
 
 - **`run.py`** — command line: one question in, result JSON out, exit code set.
