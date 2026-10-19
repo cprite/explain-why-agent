@@ -8,6 +8,19 @@ Coordination: Nikolay talks to Claude Code; Claude Code posts tasks to agents in
 
 - **Required in every submission:** Zetaris and Meterless integrated; Cursor used for development.
   NVIDIA is used wherever it contributes. Sponsor Tech is 10 of 100 points.
+- **Participant Setup Guide, 19 Oct (`organiser-docs/2026-10-19/participant-setup-guide.pdf`):**
+  "Zetaris and Meterless must be running on your machine to be eligible."
+  - *Data:* everyone runs Zetaris in Docker; if a laptop cannot, run it in your own AWS account.
+  - *Build:* build in Cursor and implement at least one Meterless Engine in a working feature.
+  - *Power:* the app must support **Meterless Nightshift as a primary AI provider** (OpenAI-compatible
+    Meterless Runtime, contract in `research/meterless-power-prompts-2026-10-19.md`); NVIDIA's key goes
+    in Nightshift's Providers tab, and Nemotron is used through Nightshift.
+  - *NVIDIA Nemotron award (DGX Spark):* at least one Nemotron model through Nightshift in a working
+    feature; judged on technical depth, usefulness and polish.
+  - *Demo must show:* the app, its Meterless provider connection, NVIDIA enabled in Nightshift with a
+    Nemotron lane, and one real request passing through Nightshift (keys hidden).
+  - *Three checks two days before kickoff:* Zetaris `verify.sh` + SQL; Cursor builds "hello" on its own
+    models; `smoke_test.py` (Zetaris REST + Nemotron through the chosen route).
 - **No early commits:** work committed before 22 Oct 00:00 UTC is not eligible, except clearly
   declared pre-existing components (prepared data counts and must be declared).
 - **One primary track** per submission; it can be changed until the deadline.

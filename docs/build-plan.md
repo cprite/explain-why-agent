@@ -38,7 +38,7 @@ local data and a live model.
 | 1 | Repository skeleton: layout from the architecture, `requirements.txt`, `.env.example`, `.gitignore`, CI running lint and tests | CI is green on an empty test suite | 1 |
 | 2 | Import the prepared data sample and answer key, with `data/sample/README.md` (source, licence, how to regenerate); update `docs/PRE-EXISTING.md` | Row counts match the detectability report | 1 |
 | 3 | Local data adapter on DuckDB: `list_sources`, `describe`, `query` with read-only guard, row limit, timeout, query log | Tests: a cross-source join returns rows; a write statement is rejected | 2 |
-| 4 | Model generator: OpenAI-compatible, NVIDIA endpoint by default, fallback provider, JSON-schema validation with one repair retry | Test with a stubbed transport; one live call returns valid JSON | 2 |
+| 4 | Model generator: Meterless Runtime (Nightshift) as the primary provider to the official contract (token, `meterless-app`/`meterless-scope` headers, `/v1/models` discovery and status), NVIDIA direct as fallback, JSON-schema validation with one repair retry | Test with a stubbed transport; one live call returns valid JSON | 2 |
 | 5 | Schemas for question, plan, hypothesis, observation, verdict, result | Schema tests pass; example result validates | 1 |
 | 6 | Minimal Planner, Investigator and Reporter wired in a simple loop, plus `run.py` and the trace writer | `python run.py "Why did order volume spike on 24 November 2017?"` returns a result with at least one cause and one evidence item, and a trace file | 4 |
 
@@ -123,7 +123,10 @@ score, a clean run from a fresh clone, and the two required sponsor integrations
 
 - Data sample, injected incidents, answer key and detectability report (in progress, 6 October).
 - Build pipeline with Cursor's agent tested on a throwaway repository.
-- One live call to an NVIDIA-hosted model from a scratch script.
+- One live call to an NVIDIA-hosted model from a scratch script (done 6 Oct).
+- Meterless Nightshift installed on Nikolay's Mac, NVIDIA added in its Providers tab, a Nemotron lane
+  answering, and the Runtime reachable from the Pi through an SSH reverse tunnel (setup guide, 19 Oct).
+- The organisers' three setup checks passed (Zetaris verify, Cursor hello, smoke test through Nightshift).
 - A running Zetaris instance and one proven way to register our sources in it (Postgres over JDBC, or
   files in S3-compatible storage as the fallback), tested on throwaway data. This is learning the tool,
   which the organisers encourage before kickoff; no project code comes out of it. See

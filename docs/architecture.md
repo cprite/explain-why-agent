@@ -163,17 +163,31 @@ session for memory to carry into.
 
 One injected generator function, OpenAI-compatible, used by every agent and both engines.
 
-- **Default:** an NVIDIA Nemotron model through NVIDIA's hosted API. This is where NVIDIA sits.
-- **Fallback:** a second OpenAI-compatible provider set by environment variable, used when the first
-  fails or rate-limits.
-- **Meterless runtime (checked 14 Oct, `research/meterless-runtime.md`):** the organisers' strong
-  examples route every model call "through Meterless", but no Meterless model runtime is available
-  to participants: there is no package on PyPI or npm, and the only Meterless product with an
-  OpenAI-compatible endpoint (Nightshift) is an unreleased preorder for M5 Macs and DGX Spark. The
-  engines' own design takes an injected generator, so our Meterless integration is the two engines
-  plus that shared generator, kept in `app/services/meterless.py` to match the organisers' layout.
-  If a real runtime is announced (Power Day, or the Help Meterless channel), only that module
-  changes.
+**Changed 19 Oct by the organisers' Participant Setup Guide** (`organiser-docs/2026-10-19/`): the
+Power rule says the app must support **Meterless Nightshift as a primary AI provider**, and NVIDIA
+counts (including the Nemotron award) only when Nemotron runs **through** Nightshift.
+
+- **Primary: Meterless Runtime (Nightshift).** Provider id `meterless`, OpenAI-compatible, default
+  base URL `http://127.0.0.1:8088/v1`, implemented to the official "Add Meterless as a provider"
+  contract (`research/meterless-power-prompts-2026-10-19.md`): `Authorization: Bearer <runtime
+  token>` on every call, `meterless-app: explain-why` on every request, `meterless-scope: user` on
+  chat, model ids are routing modes (`meterless/auto`, `meterless/deep`, …) read from
+  `GET /v1/models`; status online / unauthorized / offline decided by `/v1/models`, not `/healthz`;
+  180 s timeout. Settings: `METERLESS_BASE_URL`, `METERLESS_RUNTIME_TOKEN`, `METERLESS_MODEL`.
+- **Nemotron through Nightshift.** NVIDIA's key lives in Nightshift's Providers tab, never in our
+  app. Lanes: fast worker `nemotron-3.5-lightning-30b-a3b` (Investigator, Critic), deep worker
+  `nemotron-3.5-super-vl-120b-a12b` (Planner, Reporter), names as listed in Nightshift's picker.
+  We pin a Nemotron-backed route rather than relying on `meterless/auto`, and the trace records
+  the model Nightshift reports, so the Nemotron award evidence is unambiguous.
+- **Where Nightshift runs.** Nightshift ships for Windows, Mac and DGX only, not Linux ARM, so it
+  runs on Nikolay's Mac. The demo runs on the Mac (app, Nightshift, and Zetaris reached through its
+  tunnel or run locally). During the build, the Pi reaches Nightshift through an SSH reverse tunnel
+  from the Mac (`127.0.0.1:8088` on both ends, nothing exposed).
+- **Fallback:** NVIDIA's hosted API directly, behind the same interface, selectable in settings and
+  used only when Nightshift is unreachable; the README and demo use Nightshift.
+- **Sample mode and CI:** recorded responses (the per-call cache), so judges and CI need neither.
+- **Engines:** World Model and Markovian stay as implemented in our code (the Build rule asks for at
+  least one Meterless Engine in a working feature); both take the generator above.
 
 ## 6a. Anomaly scanner
 
@@ -361,7 +375,8 @@ synthetic changes to real public data. `metadata.json` repeats the partner techn
 |---|---|---|
 | Zetaris | Data layer: the four sources are queried and joined through it | Query log shows the adapter and source for each query |
 | Meterless | World Model for shared evidence, Markovian for the investigation loop | Engine code, engine logs, token report |
-| NVIDIA | Reasoning model for all agents | Model id in the trace and in `metadata.json` |
+| Meterless Nightshift | Primary model provider: every agent call goes through the Meterless Runtime | Provider settings and run receipts in the demo; trace shows the route |
+| NVIDIA | Nemotron lanes inside Nightshift power all agents | Nemotron model id per call in the trace and in `metadata.json`; Nightshift Providers tab in the video (keys hidden) |
 | Cursor | Development tool for the whole build | README section and commit history |
 
 ## 14. Open decisions
