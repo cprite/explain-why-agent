@@ -21,6 +21,7 @@ repository contained no source code, data or configuration before the window ope
 | `docs/product-tour.md` | Plain description of the planned screens and parts (design sketch, no code) | Written by the team, 19 Oct 2026 |
 | `docs/research/meterless-power-prompts-2026-10-19.md` | Meterless's published provider prompts, copied for reference | Copied from meterless.ai by the team, 19 Oct 2026 |
 | `docs/research/workshops/` | Notes on the organisers' Data Day workshop and its caption transcript | Notes by the team, 13 Oct 2026; transcript from the organisers' recording |
+| `docs/research/workshop-meterless-cursor/NOTES.md` | Notes on the organisers' "Build with Meterless and Cursor" workshop recording | Written by the team, 21 Oct 2026 |
 | `docs/organiser-docs/` | Six participant documents (welcome guide, overview, calendar, FAQ, journey map, solutioning guide) | Provided by the organisers |
 | `docs/organiser-docs/2026-10-14/` | Five supporting documents from the organisers (submission form preview, demo video guide, strong and weak examples, vibe coding guide) | Provided by the organisers, 14 Oct 2026 |
 | `docs/platform-resources/` | The Resources hub documents from HackOS, including the Meterless engine guides | Provided by the organisers and sponsors, copied 6 Oct 2026 |
