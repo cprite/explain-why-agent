@@ -177,19 +177,26 @@ class LocalDataLayer(DataLayer):
         self._counter_lock = threading.Lock()
         self._tables: dict[str, list[str]] = {}
 
-        self._tmp = tempfile.TemporaryDirectory(prefix="ewa-duckdb-")
+        work_dir = resolve_path(settings.duckdb_work_dir)
+        work_dir.mkdir(parents=True, exist_ok=True)
+        self._tmp = tempfile.TemporaryDirectory(prefix="ewa-duckdb-", dir=work_dir)
         db_path = Path(self._tmp.name) / "sample.duckdb"
+        self._limits = {
+            "memory_limit": settings.duckdb_memory_limit,
+            "threads": settings.duckdb_threads,
+            "temp_directory": str(Path(self._tmp.name) / "spill"),
+        }
         self._build(db_path, sources)
         self._con = duckdb.connect(
             str(db_path),
             read_only=True,
-            config={"enable_external_access": False},
+            config={"enable_external_access": False, **self._limits},
         )
         self._finalizer = weakref.finalize(self, _cleanup, self._con, self._tmp)
 
     def _build(self, db_path: Path, sources: tuple[str, ...]) -> None:
         """Load every CSV of every source into its schema, then close the writable connection."""
-        con = duckdb.connect(str(db_path))
+        con = duckdb.connect(str(db_path), config=self._limits)
         try:
             for source in sources:
                 folder = self.sample_dir / source

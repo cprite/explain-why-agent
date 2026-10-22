@@ -179,9 +179,35 @@ def test_row_limit_and_timeout_come_from_environment(
 def test_safe_defaults_without_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("MAX_QUERY_ROWS", raising=False)
     monkeypatch.delenv("QUERY_TIMEOUT_SECONDS", raising=False)
+    monkeypatch.delenv("DUCKDB_MEMORY_LIMIT", raising=False)
+    monkeypatch.delenv("DUCKDB_THREADS", raising=False)
     settings = Settings()
     assert settings.max_query_rows == 5000
     assert settings.query_timeout_seconds == 30
+    assert settings.duckdb_memory_limit == "2GB"
+    assert settings.duckdb_threads == 2
+
+
+def test_duckdb_resource_caps_are_applied(layer: LocalDataLayer) -> None:
+    con = layer._con
+    (threads,) = con.execute("SELECT current_setting('threads')").fetchone()
+    (memory,) = con.execute("SELECT current_setting('memory_limit')").fetchone()
+    (temp_dir,) = con.execute("SELECT current_setting('temp_directory')").fetchone()
+    assert int(threads) == 2
+    assert memory.endswith("GiB") and float(memory.split()[0]) <= 2.0
+    assert Path(temp_dir).is_relative_to(ROOT / ".cache" / "duckdb")
+
+
+def test_duckdb_caps_come_from_environment(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("DUCKDB_MEMORY_LIMIT", "256MB")
+    monkeypatch.setenv("DUCKDB_THREADS", "1")
+    monkeypatch.setenv("DUCKDB_WORK_DIR", str(tmp_path / "work"))
+    with LocalDataLayer(run_id="caps", log_dir=tmp_path, sources=("payments",)) as small:
+        (threads,) = small._con.execute("SELECT current_setting('threads')").fetchone()
+        (memory,) = small._con.execute("SELECT current_setting('memory_limit')").fetchone()
+        assert int(threads) == 1
+        assert memory.endswith("MiB")
+        assert Path(small._tmp.name).parent == tmp_path / "work"
 
 
 def test_timeout_interrupts_slow_query(layer: LocalDataLayer) -> None:

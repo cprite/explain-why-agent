@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     zetaris_api_key: str = ""
     max_query_rows: int = Field(default=5000, ge=1)
     query_timeout_seconds: int = Field(default=30, ge=1)
+    # DuckDB resource caps. Without them DuckDB takes 80 % of RAM and every core, so one runaway
+    # model-written query can push a small host into swap until it stops responding.
+    duckdb_memory_limit: str = "2GB"
+    duckdb_threads: int = Field(default=2, ge=1)
+    # Database file and spill directory. On disk, not in /tmp: /tmp is often RAM-backed (tmpfs),
+    # which would make spilling to "disk" use memory after all.
+    duckdb_work_dir: str = ".cache/duckdb"
     model_timeout_seconds: int = Field(default=60, ge=1)
     log_dir: str = "logs"
     sample_data_dir: str = "data/sample"
