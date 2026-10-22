@@ -25,3 +25,12 @@ jobs:
         run: python -m app.data.check
       - name: "Plan check B: generator stub suite and example-result validation"
         run: python -m app.llm.check
+      - name: "Plan check C: sample-mode run.py on the Day 1 question (cause, evidence, trace)"
+        env:
+          SAMPLE_MODE: "true"
+        run: |
+          set -o pipefail
+          python run.py "Why did order volume spike on 24 November 2017?" --run-id ci-day1 | tee /tmp/result-ci-day1.json
+          python scripts/check_result.py /tmp/result-ci-day1.json
+          echo "--- logs/trace-ci-day1.jsonl (first 3 lines) ---"
+          head -n 3 logs/trace-ci-day1.jsonl

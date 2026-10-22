@@ -1,4 +1,4 @@
-"""Tests for the placeholder run.py CLI."""
+"""Tests for run.py with the settings variables cleared (defaults: sample mode)."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ SETTINGS_ENV_KEYS = (
 )
 
 
-def test_run_py_prints_placeholder_json() -> None:
+def test_run_py_defaults_to_sample_mode_with_settings_cleared() -> None:
     env = {key: value for key, value in os.environ.items() if key not in SETTINGS_ENV_KEYS}
     result = subprocess.run(
         [sys.executable, str(ROOT / "run.py"), "test"],
@@ -36,9 +36,10 @@ def test_run_py_prints_placeholder_json() -> None:
         cwd=ROOT,
         env=env,
     )
-    assert result.returncode == 0, result.stderr
-    payload = json.loads(result.stdout.strip())
-    assert payload["status"] == "not_implemented"
+    # "test" has no recorded model replies, so sample mode answers with a structured cache-miss error.
+    assert result.returncode == 1, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "error"
     assert payload["question"] == "test"
-    assert "sample_mode" in payload
     assert payload["sample_mode"] is True
+    assert payload["error"]["code"] == "cache_miss"

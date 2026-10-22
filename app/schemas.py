@@ -217,6 +217,71 @@ class Result(_Model):
         return self
 
 
+# --- Agent reply schemas: what the model returns to each agent (JSON mode). ---------------------
+
+
+class SqlProposal(_Model):
+    """The Investigator's model reply: one read-only statement for a test."""
+
+    sql: str = Field(description="One DuckDB SELECT; tables qualified as <source>.<table>.")
+    sources: list[str] = Field(default_factory=list, description="Sources the statement reads.")
+    rationale: str = Field(default="", description="One sentence: why this answers the test.")
+
+
+class ObservationDraft(_Model):
+    """The Investigator's model reply after reading query rows."""
+
+    finding: str = Field(description="One sentence with the numbers from the rows.")
+    value: float | None = Field(default=None, description="The measured value in the window.")
+    baseline: float | None = Field(default=None, description="The same measure in the baseline window.")
+    effect: float | None = Field(default=None, description="value/baseline - 1, when both exist.")
+    supports: bool | None = Field(
+        default=None, description="True if the rows support the hypothesis, False if they refute it."
+    )
+
+
+class StatementDraft(_Model):
+    """A statement in a drafted cause, pointing at observation ids."""
+
+    text: str
+    kind: Literal["measured", "inferred"]
+    observation_ids: list[str] = Field(default_factory=list)
+
+
+class CauseDraft(_Model):
+    """A cause as drafted by the Reporter's model call."""
+
+    hypothesis_id: str
+    type: CauseType
+    summary: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    statements: list[StatementDraft] = Field(default_factory=list)
+    observation_ids: list[str] = Field(min_length=1, description="Observations that support the cause.")
+    next_checks: list[str] = Field(default_factory=list)
+
+
+class RuledOutDraft(_Model):
+    """A rejected hypothesis as drafted by the Reporter."""
+
+    hypothesis_id: str
+    type: CauseType
+    why: str
+    observation_ids: list[str] = Field(default_factory=list)
+
+
+class ReportDraft(_Model):
+    """The Reporter's model reply. `complete=false` asks the loop for more investigation."""
+
+    complete: bool = Field(description="False if the evidence is not enough to answer yet.")
+    determinable: bool
+    causes: list[CauseDraft] = Field(default_factory=list, description="Ranked, most likely first.")
+    ruled_out: list[RuledOutDraft] = Field(default_factory=list)
+    limitations: list[str] = Field(default_factory=list)
+    follow_up: list[Hypothesis] = Field(
+        default_factory=list, description="Hypotheses to test next when complete is false."
+    )
+
+
 ALL_MODELS: tuple[type[BaseModel], ...] = (
     Question,
     Plan,
