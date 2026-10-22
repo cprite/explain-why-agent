@@ -34,7 +34,7 @@ Ten evaluation incidents are planted in this sample: eight synthetic injections 
 
 Research plan: `docs/research/olist-dataset-and-incident-plan.md`.
 
-Rebuild steps (see `data-prep/README.md` for detail). The `data-prep/` scripts arrive with PR #4 (not on `main` yet):
+Rebuild steps (see `data-prep/README.md` for detail). The scripts are in `data-prep/` on `main`:
 
 1. `data-prep/build_sample.py` — sample and split the Kaggle downloads into these folders.
 2. `data-prep/inject_incidents.py` — plant the ten incidents and write the answer key.

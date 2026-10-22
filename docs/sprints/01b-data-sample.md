@@ -10,12 +10,13 @@
   (mismatches collected as `{path: (actual, expected)}` then asserted empty),
   answer key shape (10 incidents with `id` and `question`), and the Black Friday
   premise (1176 orders on 2017-11-24; 20–23 Nov daily average between 230 and 240).
-- This sprint note. The sample README notes that `data-prep/` lands with PR #4.
+- This sprint note. The sample README points at the regeneration scripts in
+  `data-prep/` on `main`.
 
 ## Deliberately left out
 
 - No changes to CSVs under `data/sample/`, to `eval/answer_key.json`, or to
-  `data-prep/` (scripts still land via open PR #4).
+  `data-prep/` (the regeneration scripts, already on `main`).
 - No DuckDB adapter, agents, or evaluation runner (later sprints).
 - No update to `docs/PRE-EXISTING.md` (already declares the sample and answer key;
   standing rule: only add this sprint note under `docs/`).
@@ -32,8 +33,8 @@
 
 ## Known limits
 
-- `data-prep/` may not be on `main` until PR #4 merges; the README still points at
-  those scripts as the regeneration path.
+- Regenerating the sample needs the Kaggle downloads; the test only checks the
+  committed sample, not that `data-prep/` reproduces it byte for byte.
 - Review text contains embedded newlines; row counts must use the CSV module, not
   raw line counts.
 - The agent must not read `eval/answer_key.json` during investigation; that
