@@ -1,0 +1,254 @@
+[
+  {
+    "id": "incident-01",
+    "question": "Why did order volume spike on 24 November 2017?",
+    "metric": "daily order count",
+    "segment": {
+      "type": "national",
+      "value": "all sellers"
+    },
+    "window_start": "2017-11-24",
+    "window_end": "2017-11-25",
+    "cause_types": [
+      "volume"
+    ],
+    "expected_mechanism": "A broad, marketplace-wide order-volume spike (383 distinct sellers sold vs ~130 on a normal nearby day) coinciding with an 8.6% average item-price drop, consistent with a platform-wide promotional event. The specific name 'Black Friday' is not provable from the data and is not required.",
+    "sources": [
+      "orders/order_items.csv (volume, price)"
+    ],
+    "wrong_explanation_to_rule_out": "A logging error duplicated order records -- ruled out because order_ids are unique and average price genuinely dropped, which a duplication bug would not cause.",
+    "determinable": true,
+    "difficulty": "easy",
+    "real_event": true,
+    "incident": 1,
+    "injected": false,
+    "rows_changed": 0
+  },
+  {
+    "id": "incident-02",
+    "question": "Why did delivery lateness spike for deliveries completed the week of 28 May 2018?",
+    "metric": "% orders late vs estimate, avg carrier-to-customer transit days (grouped by delivery week, not purchase week)",
+    "segment": {
+      "type": "national",
+      "value": "multiple states and sellers"
+    },
+    "window_start": "2018-05-28",
+    "window_end": "2018-06-04",
+    "cause_types": [
+      "logistics_delay"
+    ],
+    "expected_mechanism": "A broad, multi-state (9 states measured, all elevated vs ~5% baseline), multi-seller spike in delivery lateness and transit time, with a corroborating review-score dip the same week, consistent with an external logistics disruption affecting the whole network. The specific name 'truck drivers' strike' is not provable from the data and is not required.",
+    "sources": [
+      "orders/orders.csv (delivery timestamps)",
+      "reviews/order_reviews.csv (score dip)"
+    ],
+    "wrong_explanation_to_rule_out": "One seller or region stopped shipping -- ruled out because the lateness spike is broad across many sellers and at least 9 different states, not concentrated.",
+    "determinable": true,
+    "difficulty": "medium",
+    "real_event": true,
+    "incident": 2,
+    "injected": false,
+    "rows_changed": 0
+  },
+  {
+    "id": "incident-03",
+    "question": "Why did seller f8db351d8c4c4c22c6835c19a46f01b0's revenue drop to zero in mid-January 2018?",
+    "metric": "seller revenue (sum(payment_value) where order_status == 'delivered') / order_status",
+    "segment": {
+      "type": "seller",
+      "value": "f8db351d8c4c4c22c6835c19a46f01b0"
+    },
+    "window_start": "2018-01-08",
+    "window_end": "2018-01-21",
+    "cause_types": [
+      "single_seller"
+    ],
+    "expected_mechanism": "That seller's orders in the window were marked canceled/unavailable (a real, existing status spike, with no delivery date -- not an absence of rows), so delivered-order revenue for this seller in-window is exactly $0 even though the order_items rows still exist (sum(payment_value) where order_status == 'delivered' is the convention used here precisely because a naive sum over all rows would not show the drop). The few orders that still generated a review scored sharply negative with consistent complaint text -- consistent with a seller-side outage or suspension.",
+    "sources": [
+      "orders/orders.csv (order_status spike for this seller)",
+      "reviews/order_reviews.csv (score collapse)"
+    ],
+    "wrong_explanation_to_rule_out": "Marketplace-wide demand fell -- ruled out because every other seller's revenue in the same window is normal.",
+    "determinable": true,
+    "difficulty": "easy",
+    "incident": 3,
+    "injected": true,
+    "rows_changed": 36
+  },
+  {
+    "id": "incident-04",
+    "question": "Why did average freight cost for Rio de Janeiro orders rise in August 2018?",
+    "metric": "avg freight_value",
+    "segment": {
+      "type": "state",
+      "value": "RJ"
+    },
+    "window_start": "2018-08-01",
+    "window_end": "2018-08-31",
+    "cause_types": [
+      "freight_cost"
+    ],
+    "expected_mechanism": "freight_value for RJ-bound order items rose ~31% in 2018-08 vs the 2018-07 baseline, and payment totals for those orders scale with it, consistent with a regional carrier/logistics surcharge.",
+    "sources": [
+      "orders/order_items.csv (freight_value)",
+      "payments/order_payments.csv (totals move with it)"
+    ],
+    "wrong_explanation_to_rule_out": "Orders got heavier/bigger -- ruled out because product_weight_g for the same orders is unchanged.",
+    "determinable": true,
+    "difficulty": "easy",
+    "incident": 4,
+    "injected": true,
+    "rows_changed": 1580
+  },
+  {
+    "id": "incident-05",
+    "question": "Why did the share of boleto payments fall in Minas Gerais in March 2018?",
+    "metric": "% payments by payment_type",
+    "segment": {
+      "type": "state",
+      "value": "MG"
+    },
+    "window_start": "2018-03-05",
+    "window_end": "2018-03-25",
+    "cause_types": [
+      "mix_shift"
+    ],
+    "expected_mechanism": "~55% of boleto payments in-window were reclassified as credit_card, with installment counts drawn from MG's real credit_card distribution (not all defaulting to 1), shifting MG's payment mix while total order volume in MG stayed flat -- consistent with a payment-processing or checkout-default change, not a demand change.",
+    "sources": [
+      "payments/order_payments.csv (payment_type mix, installment distribution)",
+      "orders/orders.csv (confirm flat volume)"
+    ],
+    "wrong_explanation_to_rule_out": "Overall demand in MG changed -- ruled out by flat order volume in the same window.",
+    "determinable": true,
+    "difficulty": "medium",
+    "incident": 5,
+    "injected": true,
+    "rows_changed": 67
+  },
+  {
+    "id": "incident-06",
+    "question": "Why did review scores for watches/gifts (relogios_presentes) fall in 2018-01?",
+    "metric": "avg review_score",
+    "segment": {
+      "type": "category",
+      "value": "relogios_presentes"
+    },
+    "window_start": "2018-01-01",
+    "window_end": "2018-01-31",
+    "cause_types": [
+      "product_quality"
+    ],
+    "expected_mechanism": "Review scores for this category specifically were capped low in 2018-01, with comment text replaced to match (genuine low-score complaints or blank, in the real proportions), while delivery timing for the same category's orders in the same month is normal -- consistent with a product-quality issue, not a shipping delay.",
+    "sources": [
+      "reviews/order_reviews.csv (score drop, joined via order_items -> product_category)",
+      "orders/orders.csv (delivery timing for the same orders, checked and found normal)"
+    ],
+    "wrong_explanation_to_rule_out": "The delivery-delay story from incident 2 -- ruled out by checking this category's delivery timing in this window is unremarkable before accepting the product-quality explanation.",
+    "determinable": true,
+    "difficulty": "medium-hard",
+    "incident": 6,
+    "injected": true,
+    "rows_changed": 329
+  },
+  {
+    "id": "incident-07",
+    "question": "Why didn't the March 2018 paid-search seller cohort's revenue ramp up the way earlier cohorts did?",
+    "metric": "seller-cohort revenue by month (sum(payment_value) where order_status == 'delivered')",
+    "segment": {
+      "type": "marketing_cohort",
+      "value": "sellers closed via paid_search in 2018-03"
+    },
+    "window_start": "2018-04-01",
+    "window_end": "2018-05-31",
+    "cause_types": [
+      "marketing_funnel"
+    ],
+    "expected_mechanism": "~70% of this cohort's expected order volume (and the revenue with it) in the two months after closing was suppressed, while the marketing funnel data (leads, closed deals) is real and unperturbed -- consistent with a lead-quality or onboarding problem rather than a marketing-volume problem.",
+    "sources": [
+      "marketing/closed_deals.csv + marketing_qualified_leads.csv (the real lead/deal spike)",
+      "orders/order_items.csv (suppressed follow-through revenue via closed_deals.seller_id -> order_items.seller_id)"
+    ],
+    "wrong_explanation_to_rule_out": "Seasonal demand -- ruled out by checking organic-origin sellers' revenue in the same months is normal.",
+    "determinable": true,
+    "difficulty": "hard",
+    "incident": 7,
+    "injected": true,
+    "rows_changed": 488
+  },
+  {
+    "id": "incident-08",
+    "question": "Why did Rio de Janeiro's total revenue drop in late June 2018 (12-30 Jun, vs 1-11 Jun)?",
+    "metric": "total revenue (sum(payment_value) where order_status == 'delivered'), compared at the same daily rate since the window and baseline are different lengths",
+    "segment": {
+      "type": "state",
+      "value": "RJ"
+    },
+    "window_start": "2018-06-12",
+    "window_end": "2018-06-30",
+    "cause_types": [
+      "volume",
+      "price_discount"
+    ],
+    "expected_mechanism": "Two partial, independently-insufficient causes: 20% of delivered RJ orders in-window were canceled/unavailable (spread across many sellers, not concentrated like incident 3 -- a volume cut), and the orders that still completed had their price discounted 15% -- neither alone explains the full daily-revenue drop vs the 1-11 Jun baseline; the agent should rank both as partial causes rather than stopping at the first plausible one.",
+    "sources": [
+      "orders/orders.csv (order_status -- the cancellations)",
+      "orders/order_items.csv (price -- the discount)",
+      "payments/order_payments.csv (totals reconcile with both)"
+    ],
+    "wrong_explanation_to_rule_out": "A single seller's problem -- ruled out because the cancellations are spread across many sellers, not one.",
+    "determinable": true,
+    "difficulty": "hard",
+    "incident": 8,
+    "injected": true,
+    "rows_changed": 942
+  },
+  {
+    "id": "incident-09",
+    "question": "Why did seller 1430239a858e7682bbc43b20758af153's review scores drop in early December 2017?",
+    "metric": "avg review_score",
+    "segment": {
+      "type": "seller",
+      "value": "1430239a858e7682bbc43b20758af153"
+    },
+    "window_start": "2017-12-01",
+    "window_end": "2017-12-15",
+    "cause_types": [
+      "none"
+    ],
+    "expected_mechanism": "No cause planted anywhere -- no delivery delay, no product issue, no payment issue, no marketing event in any source. Correct answer: insufficient evidence across all four sources; sample size (n=3) is too small to distinguish a real cause from noise.",
+    "sources": [
+      "reviews/order_reviews.csv (the only source with a signal at all)"
+    ],
+    "wrong_explanation_to_rule_out": "Any confident single-cause story -- this incident specifically tests whether the agent will say 'cannot be determined' instead of inventing one.",
+    "determinable": false,
+    "difficulty": "medium",
+    "incident": 9,
+    "injected": true,
+    "rows_changed": 3
+  },
+  {
+    "id": "incident-10",
+    "question": "Why has average order value been declining since August 2017?",
+    "metric": "average order value: sum(payment_value) per order (true AOV, not average order_items.price -- those differ whenever items-per-order shifts; measured here on the actual metric the question names)",
+    "segment": {
+      "type": "national",
+      "value": "all segments"
+    },
+    "window_start": "2017-08-01",
+    "window_end": "2017-10-31",
+    "cause_types": [
+      "external_unknown"
+    ],
+    "expected_mechanism": "A broad-based decline in average order value (-8.2% Aug->Oct 2017, measured as payment total per order -- smaller than the underlying item-price drop of -11.8%, since only item price was perturbed and freight stayed flat, diluting the per-order figure) moving the same direction in every state checked (no segment goes against the trend), with category-level checks noisier but mostly consistent. Correct answer: every internal hypothesis we can check comes back flat or directionally consistent; the cause is most likely external (e.g. macroeconomic) and cannot be confirmed from these four sources.",
+    "sources": [
+      "payments/order_payments.csv (payment_value per order, the actual AOV)",
+      "orders/order_items.csv (price, checked per-state, per-category, per-seller as the underlying driver)"
+    ],
+    "wrong_explanation_to_rule_out": "Any single-segment explanation (one state, one category, one seller) -- this incident tests ruling out every internal hypothesis and then correctly stopping instead of fabricating an external cause with no evidence.",
+    "determinable": false,
+    "difficulty": "hard",
+    "incident": 10,
+    "injected": true,
+    "rows_changed": 19762
+  }
+]

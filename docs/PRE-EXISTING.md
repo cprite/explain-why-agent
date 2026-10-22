@@ -1,6 +1,6 @@
 # Pre-existing components
 
-Everything in `docs/` was written or collected before the build window opened on 22 October 2026,
+Everything in `docs/`, plus the data sample listed below, was written or collected before the build window opened on 22 October 2026,
 00:00 UTC, and is declared here as pre-existing. It is planning and reference material only: the
 repository contained no source code, data or configuration before the window opened.
 
@@ -25,6 +25,9 @@ repository contained no source code, data or configuration before the window ope
 | `docs/organiser-docs/` | Six participant documents (welcome guide, overview, calendar, FAQ, journey map, solutioning guide) | Provided by the organisers |
 | `docs/organiser-docs/2026-10-14/` | Five supporting documents from the organisers (submission form preview, demo video guide, strong and weak examples, vibe coding guide) | Provided by the organisers, 14 Oct 2026 |
 | `docs/platform-resources/` | The Resources hub documents from HackOS, including the Meterless engine guides | Provided by the organisers and sponsors, copied 6 Oct 2026 |
+| `data/sample/` | Sample of the public Olist e-commerce dataset (orders, payments, reviews, marketing) with the planted evaluation incidents, split by source system | Prepared by the team from the public Kaggle dataset, 7 Oct 2026; committed 22 Oct 2026 |
+| `eval/answer_key.json` | Answer key for the planted incidents, used only by the evaluation | Written by the team, 7 Oct 2026; committed 22 Oct 2026 |
 
-Data note: the Olist datasets referenced in the research plan are public Kaggle datasets under
-CC BY-NC-SA 4.0. No dataset files were committed before the build window.
+Data note: the Olist datasets are public Kaggle datasets under CC BY-NC-SA 4.0. The prepared sample
+and answer key above were built before the window and committed after it opened, unchanged; the
+incidents in it are synthetic and are disclosed as such.
