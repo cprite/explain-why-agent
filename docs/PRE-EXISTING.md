@@ -27,6 +27,7 @@ repository contained no source code, data or configuration before the window ope
 | `docs/platform-resources/` | The Resources hub documents from HackOS, including the Meterless engine guides | Provided by the organisers and sponsors, copied 6 Oct 2026 |
 | `data/sample/` | Sample of the public Olist e-commerce dataset (orders, payments, reviews, marketing) with the planted evaluation incidents, split by source system | Prepared by the team from the public Kaggle dataset, 7 Oct 2026; committed 22 Oct 2026 |
 | `eval/answer_key.json` | Answer key for the planted incidents, used only by the evaluation | Written by the team, 7 Oct 2026; committed 22 Oct 2026 |
+| `data-prep/` | Scripts that built the data sample and planted the incidents (`build_sample.py`, `inject_incidents.py`, `config.py`), the detectability check and its report | Written by the team, 6–7 Oct 2026; committed 22 Oct 2026 |
 
 Data note: the Olist datasets are public Kaggle datasets under CC BY-NC-SA 4.0. The prepared sample
 and answer key above were built before the window and committed after it opened, unchanged; the
