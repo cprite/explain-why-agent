@@ -23,3 +23,5 @@ jobs:
         run: pytest -q
       - name: "Plan check A: data adapter (cross-source join, rejected write)"
         run: python -m app.data.check
+      - name: "Plan check B: generator stub suite and example-result validation"
+        run: python -m app.llm.check

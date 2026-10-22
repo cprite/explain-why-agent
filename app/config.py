@@ -29,6 +29,25 @@ class Settings(BaseSettings):
     log_dir: str = "logs"
     sample_data_dir: str = "data/sample"
 
+    # Model generator (architecture §6). Primary provider: Meterless Runtime (Nightshift).
+    model_provider: str = "meterless"
+    meterless_runtime_token: str = ""
+    meterless_model: str = ""
+    meterless_model_planner: str = ""
+    meterless_model_investigator: str = ""
+    meterless_model_critic: str = ""
+    meterless_model_reporter: str = ""
+    nvidia_model: str = ""
+    model_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
+    max_output_tokens: int = Field(default=2048, ge=1)
+    max_retries: int = Field(default=3, ge=0, le=3)
+    record_cache: bool = False
+    llm_cache_dir: str = "data/sample/llm_cache"
+
+    # Investigation loop caps (architecture §7).
+    max_agent_rounds: int = Field(default=6, ge=1)
+    max_tool_calls: int = Field(default=20, ge=1)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 

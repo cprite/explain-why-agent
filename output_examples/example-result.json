@@ -1,0 +1,50 @@
+{
+  "run_id": "example-001",
+  "status": "success",
+  "question": "Why did order volume spike on 24 November 2017?",
+  "change": {
+    "metric": "daily order count",
+    "segment": "all",
+    "window": "2017-11-24 to 2017-11-25",
+    "baseline": 235.0,
+    "observed": 1176.0,
+    "significant": true
+  },
+  "determinable": true,
+  "causes": [
+    {
+      "rank": 1,
+      "type": "volume",
+      "summary": "A marketplace-wide surge in orders across many sellers, not a single seller or region.",
+      "confidence": 0.7,
+      "statements": [
+        {"text": "Orders on the day were 1176 against a baseline of 235 per day (+400%).", "kind": "measured", "query_ids": ["q001"]},
+        {"text": "The number of distinct sellers with orders roughly tripled against the baseline.", "kind": "measured", "query_ids": ["q002"]},
+        {"text": "A broad rise across sellers points to a platform-wide event rather than one account.", "kind": "inferred", "query_ids": ["q001", "q002"]}
+      ],
+      "evidence": [
+        {"observation_id": "obs-1", "source": "orders", "query_id": "q001", "finding": "1176 orders on the day vs 235 per day in the baseline window."},
+        {"observation_id": "obs-2", "source": "orders", "query_id": "q002", "finding": "Distinct sellers with orders rose about threefold against the baseline."}
+      ],
+      "next_checks": ["Check the marketing calendar for a promotion on that day."]
+    }
+  ],
+  "ruled_out": [
+    {"type": "data_artefact", "why": "Order ids on the day are unique, so the spike is not duplicated records.", "evidence": ["q003"]}
+  ],
+  "limitations": [
+    "Illustrative example of the result shape; numbers are from the sample data, wording is hand-written."
+  ],
+  "agents": [
+    {"name": "Planner", "role": "Turns the question into metric, window, baseline and hypotheses"},
+    {"name": "Investigator", "role": "Tests one hypothesis with SQL against the data layer"},
+    {"name": "Reporter", "role": "Writes the ranked, evidence-backed result"}
+  ],
+  "trace_id": "example-001",
+  "log_file": "logs/trace-example-001.jsonl",
+  "query_log": "logs/queries-example-001.jsonl",
+  "token_report": {"standard_estimate": 0, "markovian_actual": 0, "saving_percent": 0.0},
+  "execution_time_seconds": 4.2,
+  "sample_mode": true,
+  "error": null
+}
