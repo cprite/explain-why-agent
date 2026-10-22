@@ -1,0 +1,2 @@
+# data-prep/ holds the pre-existing scripts that built data/sample/ (declared in docs/PRE-EXISTING.md); kept unchanged, so not linted.
+extend-exclude = ["data-prep"]
