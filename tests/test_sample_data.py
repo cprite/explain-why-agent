@@ -35,10 +35,14 @@ def _data_row_count(path: Path) -> int:
 
 
 def test_sample_csv_row_counts() -> None:
+    mismatches: dict[str, tuple[int, int]] = {}
     for relative, expected in EXPECTED_ROW_COUNTS.items():
         path = SAMPLE / relative
         assert path.is_file(), f"missing {relative}"
-        assert _data_row_count(path) == expected, relative
+        actual = _data_row_count(path)
+        if actual != expected:
+            mismatches[relative] = (actual, expected)
+    assert mismatches == {}
 
 
 def test_answer_key_has_ten_incidents_with_id_and_question() -> None:
