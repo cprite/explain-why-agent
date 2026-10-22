@@ -7,7 +7,8 @@
   `data/sample/`, `eval/`, `input_examples/`, `output_examples/`, `logs/`, `web/`
   kept with `.gitkeep`.
 - `app/config.py`: settings from environment variables via pydantic-settings, with
-  the defaults listed in the sprint issue; missing keys do not raise at import.
+  the defaults listed in the sprint issue; missing keys do not raise at import;
+  empty env values are ignored (`env_ignore_empty=True`) so they fall back to defaults.
 - Pinned `requirements.txt` (Python 3.11), `.env.example`, `.gitignore`, MIT
   `LICENSE` (copyright Nikolay).
 - Placeholder `run.py` that prints JSON
@@ -15,7 +16,8 @@
   exits 0.
 - GitHub Actions workflow `.github/workflows/ci.yml`: Python 3.11, install deps,
   `ruff check .`, `pytest -q`, 10-minute job timeout, on push and pull_request.
-- Tests for config defaults/overrides and for `run.py` behaviour.
+- Tests for config defaults/overrides/empty-env fallback, import without env keys,
+  and `run.py` behaviour with settings vars cleared.
 
 ## Deliberately left out
 
@@ -27,11 +29,13 @@
 
 ## How it was tested
 
-- Local: create a venv, `pip install -r requirements.txt`, `ruff check .` (clean),
-  `pytest -q` (config + run tests pass),
+- Local: `python3.11 -m venv .venv && source .venv/bin/activate`,
+  `pip install -r requirements.txt`, `ruff check .` (prints `All checks passed!`),
+  `pytest -q` (prints `5 passed in …s`),
   `python run.py "Why did order volume spike?"` prints the placeholder JSON.
 - Plan check (build-plan task 1): CI green with lint and the skeleton test suite;
-  the CI log shows the ruff result and the pytest summary line.
+  the CI log shows `All checks passed!` from ruff and the pytest summary line
+  `5 passed in …s`.
 
 ## Known limits
 

@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
+import importlib
+import json
 import os
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 
+import app.config as config_module
 from app.config import Settings, get_settings
+
+ROOT = Path(__file__).resolve().parents[1]
 
 ENV_KEYS = (
     "SAMPLE_MODE",
@@ -56,8 +64,36 @@ def test_config_picks_up_overridden_variable(
     assert settings.sample_mode is False
 
 
-def test_import_does_not_require_env_keys(clear_settings_env: None) -> None:
+def test_empty_env_values_fall_back_to_defaults(
+    clear_settings_env: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("SAMPLE_MODE", "")
+    monkeypatch.setenv("MAX_QUERY_ROWS", "")
+    settings = get_settings()
+    assert settings.sample_mode is True
+    assert settings.max_query_rows == 5000
+
+    env = {**os.environ, "SAMPLE_MODE": "", "MAX_QUERY_ROWS": ""}
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "run.py"), "test"],
+        check=False,
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+        env=env,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout.strip())
+    assert payload["sample_mode"] is True
+
+
+def test_import_does_not_require_env_keys(
+    clear_settings_env: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
     for key in ENV_KEYS:
         assert key not in os.environ
-    settings = get_settings()
-    assert settings is not None
+        monkeypatch.delenv(key, raising=False)
+    reloaded = importlib.reload(config_module)
+    settings = reloaded.get_settings()
+    assert settings.sample_mode is True
+    assert settings.max_query_rows == 5000

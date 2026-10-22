@@ -10,9 +10,24 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+SETTINGS_ENV_KEYS = (
+    "SAMPLE_MODE",
+    "METERLESS_BASE_URL",
+    "METERLESS_API_KEY",
+    "NVIDIA_API_KEY",
+    "NVIDIA_BASE_URL",
+    "MODEL_NAME",
+    "ZETARIS_URL",
+    "ZETARIS_API_KEY",
+    "MAX_QUERY_ROWS",
+    "QUERY_TIMEOUT_SECONDS",
+    "MODEL_TIMEOUT_SECONDS",
+    "LOG_DIR",
+)
+
 
 def test_run_py_prints_placeholder_json() -> None:
-    env = {**os.environ, "SAMPLE_MODE": "true"}
+    env = {key: value for key, value in os.environ.items() if key not in SETTINGS_ENV_KEYS}
     result = subprocess.run(
         [sys.executable, str(ROOT / "run.py"), "test"],
         check=False,
