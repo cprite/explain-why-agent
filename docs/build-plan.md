@@ -124,8 +124,8 @@ score, a clean run from a fresh clone, and the two required sponsor integrations
 - Data sample, injected incidents, answer key and detectability report (in progress, 6 October).
 - Build pipeline with Cursor's agent tested on a throwaway repository.
 - One live call to an NVIDIA-hosted model from a scratch script (done 6 Oct).
-- Meterless Nightshift installed on Nikolay's Mac, NVIDIA added in its Providers tab, a Nemotron lane
-  answering, and the Runtime reachable from the Pi through an SSH reverse tunnel (setup guide, 19 Oct).
+- Meterless Nightshift runtime running on the Pi (arm64 Linux build, 22 Oct; Mac + reverse tunnel no
+  longer needed), NVIDIA added in its Providers, every route answered by Nemotron.
 - The organisers' three setup checks passed (Zetaris verify, Cursor hello, smoke test through Nightshift).
 - A running Zetaris instance and one proven way to register our sources in it (Postgres over JDBC, or
   files in S3-compatible storage as the fallback), tested on throwaway data. This is learning the tool,

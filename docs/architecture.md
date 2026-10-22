@@ -179,10 +179,14 @@ counts (including the Nemotron award) only when Nemotron runs **through** Nights
   `nemotron-3.5-super-vl-120b-a12b` (Planner, Reporter), names as listed in Nightshift's picker.
   We pin a Nemotron-backed route rather than relying on `meterless/auto`, and the trace records
   the model Nightshift reports, so the Nemotron award evidence is unambiguous.
-- **Where Nightshift runs.** Nightshift ships for Windows, Mac and DGX only, not Linux ARM, so it
-  runs on Nikolay's Mac. The demo runs on the Mac (app, Nightshift, and Zetaris reached through its
-  tunnel or run locally). During the build, the Pi reaches Nightshift through an SSH reverse tunnel
-  from the Mac (`127.0.0.1:8088` on both ends, nothing exposed).
+- **Where Nightshift runs.** On the build machine itself (updated 22 Oct): the official arm64 Linux
+  build of the Nightshift runtime (DGX edition, `meterless-runtime` 1.4.5) runs as a user service on
+  the Pi at `127.0.0.1:8088/v1`, with NVIDIA in its Providers and non-Nemotron models disabled, so every
+  `meterless/*` route is answered by a Nemotron model (verified: auto/fast/deep/text). No tunnel needed.
+  The Mac edition remains an option for the demo machine.
+- **Pinning in practice.** A vendor model id in `model` is treated as `meterless/auto`; the Nemotron-only
+  routing comes from Nightshift's settings, and each reply's `meterless.routed_model` plus receipt id
+  is the evidence we record.
 - **Fallback:** NVIDIA's hosted API directly, behind the same interface, selectable in settings and
   used only when Nightshift is unreachable; the README and demo use Nightshift.
 - **Sample mode and CI:** recorded responses (the per-call cache), so judges and CI need neither.
