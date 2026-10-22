@@ -21,3 +21,5 @@ jobs:
         run: ruff check .
       - name: Test
         run: pytest -q
+      - name: "Plan check A: data adapter (cross-source join, rejected write)"
+        run: python -m app.data.check

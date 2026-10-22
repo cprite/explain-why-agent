@@ -1,5 +1,7 @@
 """Application settings loaded from environment variables only."""
 
+from pathlib import Path
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -25,6 +27,16 @@ class Settings(BaseSettings):
     query_timeout_seconds: int = Field(default=30, ge=1)
     model_timeout_seconds: int = Field(default=60, ge=1)
     log_dir: str = "logs"
+    sample_data_dir: str = "data/sample"
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def resolve_path(value: str) -> Path:
+    """Resolve a configured path; relative paths are taken from the repository root."""
+    path = Path(value)
+    return path if path.is_absolute() else REPO_ROOT / path
 
 
 def get_settings() -> Settings:
