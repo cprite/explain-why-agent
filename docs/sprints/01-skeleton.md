@@ -31,11 +31,11 @@
 
 - Local: `python3.11 -m venv .venv && source .venv/bin/activate`,
   `pip install -r requirements.txt`, `ruff check .` (prints `All checks passed!`),
-  `pytest -q` (prints `5 passed in …s`),
+  `pytest -q` (prints `5 passed in 0.54s` on CI; local timing may differ),
   `python run.py "Why did order volume spike?"` prints the placeholder JSON.
 - Plan check (build-plan task 1): CI green with lint and the skeleton test suite;
   the CI log shows `All checks passed!` from ruff and the pytest summary line
-  `5 passed in …s`.
+  `5 passed in 0.54s`.
 
 ## Known limits
 
