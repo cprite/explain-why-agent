@@ -1,0 +1,201 @@
+# Anomaly scanner configuration (docs/architecture.md §6a, implementation plan step 1).
+#
+# Thresholds below were fixed before the scanner was first run on the sample and are not tuned
+# per incident. Every SQL fragment is plain SQL (CAST, CASE, COALESCE, DATE_TRUNC, COUNT DISTINCT)
+# so the same templates can run on Zetaris later; table names are the CSV file stems.
+
+detection:
+  z_threshold: 3.5          # flag when |robust z| >= this
+  volume_floor: 30          # skip segment-periods backed by fewer orders than this
+  windows:                  # trailing window for the robust z-score, in periods
+    day: 28
+    week: 8
+  cycle:                    # seasonal period removed by STL, per grain (weekly series have none)
+    day: 7
+  min_cycles: 3             # shorter daily series fall back to the plain trailing-median test
+  stl_seasonal: 53          # STL seasonal smoother span in cycles: a weekly pattern stable over ~a year
+  min_history:              # fewer valid trailing periods than this: the period is not scored
+    day: 14
+    week: 6
+  merge_gap: 1              # flagged periods at most this many periods apart form one episode
+  z_cap: 50                 # |z| is capped here for ranking (a flat baseline gives an infinite z)
+
+attribution:
+  explains_threshold: 0.67  # T_EP in the Adtributor paper
+  slice_threshold: 0.10     # T_EEP: a slice must explain at least this share to be kept
+  top_dimensions: 3
+
+ranking:
+  max_cards: 10
+  attribute_top: 40         # episodes (by score) that get an attribution before merging
+
+limits:
+  max_queries: 600
+  max_series: 6000
+  max_episodes_per_series: 50
+
+grains:
+  day: "CAST({col} AS DATE)"
+  week: "CAST(DATE_TRUNC('week', {col}) AS DATE)"
+
+# Fact queries. {fact.<name>} inside a fact is replaced by that fact's SQL.
+# Order-level attributes: customer state, and category / seller of the first item, payment type of
+# the first payment, acquisition channel of that seller (marketing funnel origin; 'none' when the
+# seller did not come through the funnel).
+facts:
+  orders: |
+    SELECT o.order_id,
+           o.order_status,
+           o.order_purchase_timestamp AS purchase_ts,
+           CAST(o.order_delivered_customer_date AS DATE) AS delivered_date,
+           CAST(o.order_estimated_delivery_date AS DATE) AS estimated_date,
+           c.customer_state AS state,
+           COALESCE(p.product_category_name, 'unknown') AS category,
+           COALESCE(pay1.payment_type, 'unknown') AS payment_type,
+           CASE WHEN ch.seller_id IS NULL THEN 'none' ELSE COALESCE(ch.origin, 'unknown') END AS channel,
+           COALESCE(i1.seller_id, 'unknown') AS seller,
+           pay.order_payment
+    FROM orders o
+    JOIN customers c ON c.customer_id = o.customer_id
+    LEFT JOIN order_items i1 ON i1.order_id = o.order_id AND i1.order_item_id = 1
+    LEFT JOIN products p ON p.product_id = i1.product_id
+    LEFT JOIN (SELECT order_id, payment_type FROM order_payments WHERE payment_sequential = 1) pay1
+           ON pay1.order_id = o.order_id
+    LEFT JOIN (SELECT order_id, SUM(payment_value) AS order_payment FROM order_payments GROUP BY order_id) pay
+           ON pay.order_id = o.order_id
+    LEFT JOIN (SELECT d.seller_id, m.origin FROM closed_deals d
+               JOIN marketing_qualified_leads m ON m.mql_id = d.mql_id) ch
+           ON ch.seller_id = i1.seller_id
+  items: |
+    SELECT i.order_id,
+           o.order_status,
+           o.order_purchase_timestamp AS purchase_ts,
+           c.customer_state AS state,
+           COALESCE(p.product_category_name, 'unknown') AS category,
+           COALESCE(pay1.payment_type, 'unknown') AS payment_type,
+           CASE WHEN ch.seller_id IS NULL THEN 'none' ELSE COALESCE(ch.origin, 'unknown') END AS channel,
+           i.seller_id AS seller,
+           i.price,
+           i.freight_value
+    FROM order_items i
+    JOIN orders o ON o.order_id = i.order_id
+    JOIN customers c ON c.customer_id = o.customer_id
+    LEFT JOIN products p ON p.product_id = i.product_id
+    LEFT JOIN (SELECT order_id, payment_type FROM order_payments WHERE payment_sequential = 1) pay1
+           ON pay1.order_id = i.order_id
+    LEFT JOIN (SELECT d.seller_id, m.origin FROM closed_deals d
+               JOIN marketing_qualified_leads m ON m.mql_id = d.mql_id) ch
+           ON ch.seller_id = i.seller_id
+  payments: |
+    SELECT y.order_id,
+           y.payment_type AS paid_with,
+           f.purchase_ts, f.state, f.category, f.channel, f.seller
+    FROM order_payments y
+    JOIN ({fact.orders}) f ON f.order_id = y.order_id
+  reviews: |
+    SELECT r.order_id,
+           r.review_score,
+           r.review_creation_date AS review_ts,
+           f.state, f.category, f.payment_type, f.channel, f.seller
+    FROM order_reviews r
+    JOIN ({fact.orders}) f ON f.order_id = r.order_id
+
+# Segment types. Each metric is scanned for every segment type in its `segments` list; the same
+# columns are the dimensions used by attribution.
+segments:
+  all:
+    label: whole shop
+  state:
+    label: state
+    column: state
+  category:
+    label: product category
+    column: category
+  payment_type:
+    label: payment type
+    column: payment_type
+  channel:
+    label: acquisition channel
+    column: channel
+  seller:
+    label: seller
+    column: seller
+    min_total_volume: 100   # only sellers with at least this many orders over the whole sample
+
+# Metrics. value = numerator / denominator (denominator omitted: value = numerator).
+# volume counts the orders behind a segment-period (used for the floor and the ranking).
+metrics:
+  daily_orders:
+    label: daily orders
+    fact: orders
+    time: purchase_ts
+    grain: day
+    numerator: COUNT(DISTINCT order_id)
+    volume: COUNT(DISTINCT order_id)
+    segments: [all, state, category, payment_type, channel, seller]
+  revenue:
+    label: weekly revenue (delivered orders)
+    fact: orders
+    time: purchase_ts
+    grain: week
+    filter: order_status = 'delivered'
+    numerator: SUM(order_payment)
+    volume: COUNT(DISTINCT order_id)
+    segments: [all, state, category, payment_type, channel, seller]
+  avg_order_value:
+    label: average order value
+    fact: orders
+    time: purchase_ts
+    grain: week
+    filter: order_payment IS NOT NULL
+    numerator: SUM(order_payment)
+    denominator: COUNT(*)
+    volume: COUNT(DISTINCT order_id)
+    segments: [all, state, category, payment_type, channel, seller]
+  avg_review_score:
+    label: average review score
+    fact: reviews
+    time: review_ts
+    grain: week
+    numerator: SUM(review_score)
+    denominator: COUNT(*)
+    volume: COUNT(DISTINCT order_id)
+    segments: [all, state, category, payment_type, channel, seller]
+  late_delivery_rate:
+    label: late-delivery rate
+    fact: orders
+    time: delivered_date
+    grain: week
+    filter: order_status = 'delivered' AND delivered_date IS NOT NULL AND estimated_date IS NOT NULL
+    numerator: SUM(CASE WHEN delivered_date > estimated_date THEN 1 ELSE 0 END)
+    denominator: COUNT(*)
+    volume: COUNT(DISTINCT order_id)
+    segments: [all, state, category, payment_type, channel, seller]
+  avg_freight:
+    label: average freight per item
+    fact: items
+    time: purchase_ts
+    grain: week
+    numerator: SUM(freight_value)
+    denominator: COUNT(*)
+    volume: COUNT(DISTINCT order_id)
+    segments: [all, state, category, payment_type, channel, seller]
+  payment_share:
+    label: "share of payments by {variant}"
+    fact: payments
+    time: purchase_ts
+    grain: week
+    variants: [credit_card, boleto, voucher, debit_card]
+    numerator: "SUM(CASE WHEN paid_with = '{variant}' THEN 1 ELSE 0 END)"
+    denominator: COUNT(*)
+    volume: COUNT(DISTINCT order_id)
+    segments: [all, state, category, channel, seller]
+  channel_revenue:
+    label: weekly revenue of funnel-acquired sellers
+    fact: items
+    time: purchase_ts
+    grain: week
+    filter: order_status = 'delivered' AND channel <> 'none'
+    numerator: SUM(price + freight_value)
+    volume: COUNT(DISTINCT order_id)
+    segments: [all, channel, state, category, seller]
