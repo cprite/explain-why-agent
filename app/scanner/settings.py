@@ -41,6 +41,7 @@ class AttributionConfig(BaseModel):
 class RankingConfig(BaseModel):
     max_cards: int = Field(ge=1)
     attribute_top: int = Field(ge=0)
+    per_metric_top: int = Field(default=3, ge=0)  # episodes per metric on the per-metric board
 
 
 class LimitsConfig(BaseModel):

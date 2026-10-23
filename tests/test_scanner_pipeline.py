@@ -148,3 +148,69 @@ def _day(offset: int):
     from tests.scanner_fixtures import START
 
     return START + timedelta(days=offset)
+
+
+def _board_config(per_metric_top: int, max_cards: int = 10):
+    raw = yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
+    raw["sample_design"] = "full"
+    raw["metrics"] = {k: {**raw["metrics"][k], "segments": ["all", "state", "category"]}
+                      for k in ("daily_orders", "avg_freight")}
+    raw["ranking"].update(per_metric_top=per_metric_top, max_cards=max_cards)
+    return parse_config(raw)
+
+
+def test_per_metric_board_ranks_each_metrics_episodes_within_the_metric(tmp_path: Path) -> None:
+    data = write_sample(tmp_path / "data", extra={(SPIKE_DAY, "RJ"): 150, (60, "MG"): 60, (30, "SP"): 90})
+    database = SampleDatabase(data_dir=data, cache_dir=tmp_path / "cache")
+    try:
+        result = Scanner(config=_board_config(per_metric_top=2, max_cards=1), run_sql=database.run_sql,
+                         timeout_s=120).scan()
+        without = Scanner(config=_board_config(per_metric_top=0, max_cards=1), run_sql=database.run_sql,
+                          timeout_s=120).scan()
+    finally:
+        database.close()
+    report = result.report
+    assert not report.timed_out
+    # One board per configured metric, in config order, including a metric with nothing flagged.
+    assert [b.metric for b in report.by_metric] == ["daily_orders", "avg_freight"]
+    orders, freight = report.by_metric
+    assert freight.episodes_found == 0 and freight.cards == []
+    assert orders.metric_label == "daily orders"
+
+    # The board is the metric's own ranking: the top episodes of that metric from the merged list,
+    # ranked 1..N within the metric, with their overall rank kept.
+    ranked = [(i, c) for i, c in enumerate(result.candidates, 1) if c.series.metric.key == "daily_orders"]
+    assert orders.episodes_found == len(ranked) >= 2
+    assert len(orders.cards) == 2
+    assert [c.rank for c in orders.cards] == [1, 2]
+    assert [c.overall_rank for c in orders.cards] == [i for i, _ in ranked[:2]]
+    assert orders.cards[0].score >= orders.cards[1].score
+    # Episodes past the overall top ten (here: top one) still reach the board, with an attribution.
+    assert orders.cards[1].overall_rank > len(report.cards)
+    assert orders.cards[1].top_attribution is not None
+
+    # The board does not change the overall list.
+    assert len(report.cards) == 1 and report.cards[0].overall_rank == 1
+    assert [c.id for c in report.cards] == [c.id for c in without.report.cards]
+    assert all(b.cards == [] for b in without.report.by_metric)
+    assert ScanReport.model_validate_json(report.model_dump_json()) == report
+
+
+def test_cli_prints_the_per_metric_board(tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+                                         capsys: pytest.CaptureFixture[str]) -> None:
+    from app.scanner import __main__ as cli
+
+    data = write_sample(tmp_path / "data", extra={(SPIKE_DAY, "RJ"): 150})
+    database = SampleDatabase(data_dir=data, cache_dir=tmp_path / "cache")
+    try:
+        result = Scanner(config=_board_config(per_metric_top=3), run_sql=database.run_sql, timeout_s=120).scan()
+    finally:
+        database.close()
+    monkeypatch.setattr(cli, "scan", lambda: result)
+    assert cli.main([]) == 0
+    out = capsys.readouterr().out
+    assert "Per-metric board (top 3 flagged episodes of each metric):" in out
+    board = out.split("Per-metric board", 1)[1]
+    assert "daily_orders (daily orders):" in board and "overall" in board
+    assert "avg_freight (average freight per item): 0 flagged episodes" in board
+    assert "(none flagged)" in board

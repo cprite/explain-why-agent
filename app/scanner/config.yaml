@@ -38,6 +38,7 @@ attribution:
 ranking:
   max_cards: 10
   attribute_top: 40         # episodes (by score) that get an attribution before merging
+  per_metric_top: 3         # per-metric board: top episodes of each metric, by the same score
 
 limits:
   max_queries: 600

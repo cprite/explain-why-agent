@@ -3,7 +3,8 @@
 Steps (docs/architecture.md §6a): one query per metric and segment type -> one series per segment ->
 detect.score_series -> episodes -> score = |z| x ln(volume) -> Adtributor attribution for the top
 episodes -> parent/child merge (a whole-shop card whose attribution names a flagged child absorbs
-that child's card) -> top ten cards.
+that child's card) -> top ten cards, plus a per-metric board (each metric's top episodes by the
+same score, so a metric whose moves are small next to other metrics' still shows its strongest).
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ from app.scanner.detect import Episode, SeriesScore, find_episodes, score_series
 from app.scanner.models import (
     AnomalyCard,
     DimensionAttribution,
+    MetricBoard,
     Period,
     ScanReport,
     Segment,
@@ -239,6 +241,8 @@ class Scanner:
                 timed_out = True
         kept = merge_parent_child(candidates)
         cards = [build_card(c, rank, self.config) for rank, c in enumerate(kept[: self.config.ranking.max_cards], 1)]
+        boards, board_timed_out = self.metric_boards(kept, attribute=not timed_out)
+        timed_out = timed_out or board_timed_out
         report = ScanReport(
             generated_at=datetime.now(UTC),
             data_source=f"sample: DuckDB over data/sample (read-only, {self.config.sample_design} design)",
@@ -256,8 +260,42 @@ class Scanner:
                 "mad_floor": detection.mad_floor,
             },
             cards=cards,
+            by_metric=boards,
         )
         return ScanResult(report, kept, all_series)
+
+    def metric_boards(self, kept: list[Candidate], attribute: bool = True) -> tuple[list[MetricBoard], bool]:
+        """Per configured metric, its top `per_metric_top` episodes of the merged ranking. The
+        overall list is already fixed: episodes attributed here are not merged again, so the board
+        never changes the top ten. Returns the boards and whether the time or query cap was hit."""
+        top = self.config.ranking.per_metric_top
+        overall = {id(c): rank for rank, c in enumerate(kept, 1)}
+        by_family: dict[str, list[Candidate]] = {}
+        for c in kept:
+            by_family.setdefault(metric_family(c.series.metric.key), []).append(c)
+        timed_out = False
+        boards = []
+        for metric in self.config.metrics:
+            family = by_family.get(metric.key, [])
+            chosen = family[:top]
+            for c in chosen:
+                if attribute and not timed_out and c.attribution is None:
+                    try:
+                        c.attribution = self.attribute_candidate(c)
+                    except ScanTimeout:
+                        timed_out = True
+            boards.append(
+                MetricBoard(
+                    metric=metric.key,
+                    metric_label=metric.for_design(self.config.sample_design).label.replace("{variant}", "type"),
+                    episodes_found=len(family),
+                    cards=[
+                        build_card(c, rank, self.config, overall_rank=overall[id(c)])
+                        for rank, c in enumerate(chosen, 1)
+                    ],
+                )
+            )
+        return boards, timed_out
 
     # ------------------------------------------------------------ attribution
     def attribute_candidate(self, candidate: Candidate) -> list[DimensionResult]:
@@ -328,6 +366,11 @@ class Scanner:
 
 def _query_timeout() -> float:
     return float(get_settings().query_timeout_seconds)
+
+
+def metric_family(key: str) -> str:
+    """Configured metric key of a scanned metric (payment_share:boleto -> payment_share)."""
+    return key.split(":")[0]
 
 
 def _rank_key(c: Candidate) -> tuple:
@@ -436,7 +479,7 @@ def attribution_text(config: ScannerConfig, attribution: list[DimensionResult] |
     return f"driven by {label} {parts} ({top.explained:.0%} of the change)"
 
 
-def build_card(candidate: Candidate, rank: int, config: ScannerConfig) -> AnomalyCard:
+def build_card(candidate: Candidate, rank: int, config: ScannerConfig, overall_rank: int | None = None) -> AnomalyCard:
     s = candidate.series
     ep = candidate.episode
     baseline, observed = _episode_values(candidate)
@@ -466,6 +509,7 @@ def build_card(candidate: Candidate, rank: int, config: ScannerConfig) -> Anomal
     return AnomalyCard(
         id=f"{s.metric.key}|{s.segment_type}|{s.segment_value}|{candidate.start.isoformat()}",
         rank=rank,
+        overall_rank=overall_rank or rank,
         metric=s.metric.key,
         metric_label=s.metric.label,
         segment=Segment(type=s.segment_type, value=s.segment_value, label=seg_label),

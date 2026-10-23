@@ -38,7 +38,8 @@ class DimensionAttribution(BaseModel):
 
 class AnomalyCard(BaseModel):
     id: str
-    rank: int = Field(ge=1)
+    rank: int = Field(ge=1)  # position in the list the card is in (overall top ten, or within its metric)
+    overall_rank: int | None = Field(default=None, ge=1)  # position among all flagged episodes
     metric: str  # metric key, e.g. avg_freight or payment_share:boleto
     metric_label: str
     segment: Segment
@@ -58,6 +59,16 @@ class AnomalyCard(BaseModel):
     question: str
 
 
+class MetricBoard(BaseModel):
+    """The top flagged episodes of one configured metric, ranked by score within that metric."""
+
+    metric: str  # configured metric key; variant metrics (payment_share:boleto, ...) are grouped
+    metric_label: str
+    episodes_found: int  # flagged episodes of this metric after the parent/child merge
+    cards: list[AnomalyCard]  # overall top ten
+    by_metric: list[MetricBoard] = Field(default_factory=list)  # per-metric view, config order
+
+
 class ScanReport(BaseModel):
     generated_at: datetime
     data_source: str
@@ -67,4 +78,5 @@ class ScanReport(BaseModel):
     series_scanned: int
     episodes_found: int
     thresholds: dict[str, float]
-    cards: list[AnomalyCard]
+    cards: list[AnomalyCard]  # overall top ten
+    by_metric: list[MetricBoard] = Field(default_factory=list)  # per-metric view, config order
