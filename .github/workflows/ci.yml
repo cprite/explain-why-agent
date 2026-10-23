@@ -34,3 +34,5 @@ jobs:
           python scripts/check_result.py /tmp/result-ci-day1.json
           echo "--- logs/trace-ci-day1.jsonl (first 3 lines) ---"
           head -n 3 logs/trace-ci-day1.jsonl
+      - name: "Plan check D: Day 1 queries through the Zetaris adapter (recorded REST responses) vs local DuckDB"
+        run: pytest -s -q tests/test_zetaris_plan_check.py

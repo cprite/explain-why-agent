@@ -25,6 +25,10 @@ ENV_KEYS = (
     "MODEL_NAME",
     "ZETARIS_URL",
     "ZETARIS_API_KEY",
+    "ZETARIS_ORG_ID",
+    "ZETARIS_USERNAME",
+    "ZETARIS_PASSWORD",
+    "DATA_LAYER",
     "MAX_QUERY_ROWS",
     "QUERY_TIMEOUT_SECONDS",
     "MODEL_TIMEOUT_SECONDS",
@@ -48,6 +52,8 @@ def test_config_defaults_with_empty_environment(clear_settings_env: None) -> Non
     assert settings.model_name == ""
     assert settings.zetaris_url == ""
     assert settings.zetaris_api_key == ""
+    assert settings.zetaris_org_id == ""
+    assert settings.data_layer == "zetaris"
     assert settings.max_query_rows == 5000
     assert settings.query_timeout_seconds == 30
     assert settings.model_timeout_seconds == 60

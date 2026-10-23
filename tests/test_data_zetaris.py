@@ -8,6 +8,7 @@ from __future__ import annotations
 import base64
 import inspect
 import json
+import re
 import subprocess
 import sys
 import uuid
@@ -500,3 +501,11 @@ def test_describe_reports_a_usl_problem(tmp_path: Path) -> None:
     with layer(tmp_path, lambda r: httpx.Response(400, json={"msg": "table is not activated"})) as data, \
             pytest.raises(RuntimeError, match="not activated"):
         data.describe("reviews")
+
+
+def test_env_example_documents_the_zetaris_settings_without_values() -> None:
+    text = (ROOT / ".env.example").read_text()
+    for key in ("ZETARIS_URL", "ZETARIS_API_KEY", "ZETARIS_ORG_ID", "ZETARIS_USERNAME", "ZETARIS_PASSWORD",
+                "OLIST_PG_PASSWORD"):
+        assert re.search(rf"^{key}=$", text, re.MULTILINE), key
+    assert re.search(r"^DATA_LAYER=zetaris$", text, re.MULTILINE)

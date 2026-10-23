@@ -283,7 +283,8 @@ def postgres_init_sql(source: str) -> str:
     """
     lines = [
         "-- Generated from app/data/usl.py by `python scripts/zetaris_setup.py --write-init-sql`.",
-        f"-- Loads data/sample/{source}/*.csv (mounted at /data) into the {datasource_name(source)} database.",
+        (f"-- Loads data/sample/{source}/*.csv (mounted at /data) into container olist-{source}, "
+         f"registered in Zetaris as {datasource_name(source)}."),
     ]
     for table in tables_of(source):
         cols = ",\n".join(f"    {c.name} {_pg_type(c.type)}" for c in table.columns)

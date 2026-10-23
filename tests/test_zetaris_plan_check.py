@@ -124,3 +124,20 @@ def test_parity_script_without_credentials_exits_2() -> None:
     assert result.returncode == 2, result.stdout + result.stderr
     assert "Zetaris credentials are not set" in result.stderr
     assert "Nothing was run" in result.stderr
+
+
+def _result(rows: list[dict], adapter: str = "zetaris") -> QueryResult:
+    columns = list(rows[0]) if rows else []
+    return QueryResult(query_id="q", source=None, sql="", adapter=adapter, columns=columns, rows=rows,
+                       row_count=len(rows), truncated=False, duration_ms=0.0)
+
+
+def test_compare_passes_ties_with_other_ids_and_fails_on_other_numbers() -> None:
+    local = _result([{"seller_id": "a", "n": 3}, {"seller_id": "b", "n": 2}], "local")
+    assert compare(local, _result([{"seller_id": "a", "n": 3}, {"seller_id": "b", "n": 2.0}])) == (True, "PASS")
+    assert compare(local, _result([{"seller_id": "b", "n": 2}, {"seller_id": "a", "n": 3}]))[1] == \
+        "PASS (same rows, different order)"
+    assert compare(local, _result([{"seller_id": "a", "n": 3}, {"seller_id": "z", "n": 2}]))[1] == \
+        "PASS (same numbers; tied rows carry different identifiers)"
+    assert compare(local, _result([{"seller_id": "a", "n": 3}, {"seller_id": "b", "n": 5}]))[0] is False
+    assert compare(local, _result([{"seller_id": "a", "orders": 3}]))[0] is False

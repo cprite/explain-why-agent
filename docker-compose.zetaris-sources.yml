@@ -1,0 +1,75 @@
+# The four source systems as separate Postgres databases on the Zetaris Docker network.
+#
+# Run on the Zetaris host, from the repository root, only for a fresh server:
+#   OLIST_PG_PASSWORD=... docker compose -f docker-compose.zetaris-sources.yml up -d --wait
+# (scripts/zetaris_setup.py --start-sources does this for a source that is not registered yet.)
+#
+# Each container loads data/sample/<source>/*.csv once, on its first start with an empty volume
+# (scripts/zetaris_sources/<source>.sql, generated from app/data/usl.py). No port is published: Zetaris
+# reaches the databases by container name on the `zetaris_default` network, nothing else can.
+# Existing containers and volumes with these names are reused; nothing here drops data.
+
+name: explain-why-sources
+
+x-source: &source
+  image: postgres:16
+  restart: unless-stopped
+  networks: [zetaris]
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U olist -d olist"]
+    interval: 5s
+    timeout: 5s
+    retries: 60
+
+x-env: &env
+  POSTGRES_DB: olist
+  POSTGRES_USER: olist
+  POSTGRES_PASSWORD: ${OLIST_PG_PASSWORD:?set OLIST_PG_PASSWORD}
+
+services:
+  olist-orders:
+    <<: *source
+    container_name: olist-orders
+    environment: *env
+    volumes:
+      - olist-orders-data:/var/lib/postgresql/data
+      - ./data/sample/orders:/data:ro
+      - ./scripts/zetaris_sources/orders.sql:/docker-entrypoint-initdb.d/01-load.sql:ro
+
+  olist-payments:
+    <<: *source
+    container_name: olist-payments
+    environment: *env
+    volumes:
+      - olist-payments-data:/var/lib/postgresql/data
+      - ./data/sample/payments:/data:ro
+      - ./scripts/zetaris_sources/payments.sql:/docker-entrypoint-initdb.d/01-load.sql:ro
+
+  olist-reviews:
+    <<: *source
+    container_name: olist-reviews
+    environment: *env
+    volumes:
+      - olist-reviews-data:/var/lib/postgresql/data
+      - ./data/sample/reviews:/data:ro
+      - ./scripts/zetaris_sources/reviews.sql:/docker-entrypoint-initdb.d/01-load.sql:ro
+
+  olist-marketing:
+    <<: *source
+    container_name: olist-marketing
+    environment: *env
+    volumes:
+      - olist-marketing-data:/var/lib/postgresql/data
+      - ./data/sample/marketing:/data:ro
+      - ./scripts/zetaris_sources/marketing.sql:/docker-entrypoint-initdb.d/01-load.sql:ro
+
+volumes:
+  olist-orders-data:
+  olist-payments-data:
+  olist-reviews-data:
+  olist-marketing-data:
+
+networks:
+  zetaris:
+    name: zetaris_default
+    external: true
