@@ -82,8 +82,9 @@ def test_empty_env_values_fall_back_to_defaults(
         cwd=ROOT,
         env=env,
     )
-    assert result.returncode == 0, result.stderr
-    payload = json.loads(result.stdout.strip())
+    # No recorded model replies for "test": a structured error, still in sample mode by default.
+    assert result.returncode == 1, result.stderr
+    payload = json.loads(result.stdout)
     assert payload["sample_mode"] is True
 
 

@@ -1,0 +1,134 @@
+{
+ "columns": [
+  "seller_id",
+  "window_orders",
+  "baseline_avg_daily_orders",
+  "spike_ratio"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "891071be6ba827b591264c90c2ae8a63",
+   "spike_ratio": 70.0,
+   "window_orders": 10
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "ef506c96320abeedfb894c34db06f478",
+   "spike_ratio": 42.0,
+   "window_orders": 6
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "8581055ce74af1daba164fdbd55a40de",
+   "spike_ratio": 42.0,
+   "window_orders": 6
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "1a3df491d1c4f1589fc2b934ada68bf2",
+   "spike_ratio": 42.0,
+   "window_orders": 6
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "1554a68530182680ad5c8b042c3ab563",
+   "spike_ratio": 35.0,
+   "window_orders": 5
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "05f51e13da97139648b8125c31e5f51b",
+   "spike_ratio": 35.0,
+   "window_orders": 5
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "1da3aeb70d7989d1e6d9b0e887f97c23",
+   "spike_ratio": 35.0,
+   "window_orders": 5
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "8e6cc767478edae941d9bd9eb778d77a",
+   "spike_ratio": 35.0,
+   "window_orders": 5
+  },
+  {
+   "baseline_avg_daily_orders": 0.2857,
+   "seller_id": "7d76b645482be4a332374e8223836592",
+   "spike_ratio": 31.5,
+   "window_orders": 9
+  },
+  {
+   "baseline_avg_daily_orders": 0.4286,
+   "seller_id": "391fc6631aebcf3004804e51b40bcf1e",
+   "spike_ratio": 28.0,
+   "window_orders": 12
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "900ba814c251a692506d7834c1218441",
+   "spike_ratio": 28.0,
+   "window_orders": 4
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "0db783cfcd3b73998abc6e10e59a102f",
+   "spike_ratio": 28.0,
+   "window_orders": 4
+  },
+  {
+   "baseline_avg_daily_orders": 0.2857,
+   "seller_id": "ccc4bbb5f32a6ab2b7066a4130f114e3",
+   "spike_ratio": 24.5,
+   "window_orders": 7
+  },
+  {
+   "baseline_avg_daily_orders": 1.1429,
+   "seller_id": "8160255418d5aaa7dbdc9f4c64ebda44",
+   "spike_ratio": 22.75,
+   "window_orders": 26
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "cfb1a033743668a192316f3c6d1d2671",
+   "spike_ratio": 21.0,
+   "window_orders": 3
+  },
+  {
+   "baseline_avg_daily_orders": 0.2857,
+   "seller_id": "36a968b544695394e4e9d7572688598f",
+   "spike_ratio": 21.0,
+   "window_orders": 6
+  },
+  {
+   "baseline_avg_daily_orders": 0.5714,
+   "seller_id": "54965bbe3e4f07ae045b90b0b8541f52",
+   "spike_ratio": 21.0,
+   "window_orders": 12
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "a3a38f4affed601eb87a97788c949667",
+   "spike_ratio": 21.0,
+   "window_orders": 3
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "f3b80352b986ab4d1057a4b724be19d0",
+   "spike_ratio": 21.0,
+   "window_orders": 3
+  },
+  {
+   "baseline_avg_daily_orders": 0.1429,
+   "seller_id": "2138ccb85b11a4ec1e37afbd1c8eda1f",
+   "spike_ratio": 21.0,
+   "window_orders": 3
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_orders AS (\n  SELECT DISTINCT o.order_id, oi.seller_id\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-24'\n    AND o.order_purchase_timestamp < DATE '2017-11-25'\n),\nbaseline_orders AS (\n  SELECT DISTINCT o.order_id, oi.seller_id\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-17'\n    AND o.order_purchase_timestamp < DATE '2017-11-24'\n),\nwindow_counts AS (\n  SELECT seller_id, COUNT(DISTINCT order_id) AS window_orders\n  FROM window_orders\n  GROUP BY seller_id\n),\nbaseline_counts AS (\n  SELECT seller_id, COUNT(DISTINCT order_id) AS baseline_orders\n  FROM baseline_orders\n  GROUP BY seller_id\n)\nSELECT\n  wc.seller_id,\n  wc.window_orders,\n  ROUND(COALESCE(bc.baseline_orders, 0) / 7.0, 4) AS baseline_avg_daily_orders,\n  ROUND(wc.window_orders * 1.0 / NULLIF(COALESCE(bc.baseline_orders, 0) / 7.0, 0), 4) AS spike_ratio\nFROM window_counts wc\nLEFT JOIN baseline_counts bc ON wc.seller_id = bc.seller_id\nORDER BY spike_ratio DESC NULLS LAST\nLIMIT 20;",
+ "truncated": false
+}
