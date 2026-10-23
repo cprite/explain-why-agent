@@ -2,7 +2,7 @@
 
 `OLIST_USL` is the single definition of the Zetaris Unified Semantic Layer (USL)
 `lightning.metastore.explain_why.olist_usl`: its eleven tables, typed columns, primary keys and the
-foreign keys between them (four of which cross source systems), the Zetaris data source each table
+foreign keys between them (three of which cross source systems), the Zetaris data source each table
 is activated from, and the data-quality rules. From it come:
 
 - the `COMPILE USL` and `ACTIVATE USL TABLE` statements sent by `scripts/zetaris_setup.py`;
