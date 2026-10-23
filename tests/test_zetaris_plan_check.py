@@ -126,18 +126,52 @@ def test_parity_script_without_credentials_exits_2() -> None:
     assert "Nothing was run" in result.stderr
 
 
-def _result(rows: list[dict], adapter: str = "zetaris") -> QueryResult:
+def _result(rows: list[dict], adapter: str = "zetaris", sql: str = "") -> QueryResult:
     columns = list(rows[0]) if rows else []
-    return QueryResult(query_id="q", source=None, sql="", adapter=adapter, columns=columns, rows=rows,
+    return QueryResult(query_id="q", source=None, sql=sql, adapter=adapter, columns=columns, rows=rows,
                        row_count=len(rows), truncated=False, duration_ms=0.0)
 
 
-def test_compare_passes_ties_with_other_ids_and_fails_on_other_numbers() -> None:
-    local = _result([{"seller_id": "a", "n": 3}, {"seller_id": "b", "n": 2}], "local")
+TOP2 = "SELECT seller_id, COUNT(*) AS n FROM orders.order_items GROUP BY 1 ORDER BY n DESC LIMIT 2"
+
+
+def test_compare_passes_same_rows_and_a_tie_cut_by_limit() -> None:
+    local = _result([{"seller_id": "a", "n": 3}, {"seller_id": "b", "n": 2}], "local", TOP2)
     assert compare(local, _result([{"seller_id": "a", "n": 3}, {"seller_id": "b", "n": 2.0}])) == (True, "PASS")
     assert compare(local, _result([{"seller_id": "b", "n": 2}, {"seller_id": "a", "n": 3}]))[1] == \
         "PASS (same rows, different order)"
+    # b and z both have 2 orders; LIMIT 2 keeps one of them, and the engines may pick differently.
     assert compare(local, _result([{"seller_id": "a", "n": 3}, {"seller_id": "z", "n": 2}]))[1] == \
-        "PASS (same numbers; tied rows carry different identifiers)"
+        "PASS (same numbers; the LIMIT cut a tie at different rows)"
     assert compare(local, _result([{"seller_id": "a", "n": 3}, {"seller_id": "b", "n": 5}]))[0] is False
     assert compare(local, _result([{"seller_id": "a", "orders": 3}]))[0] is False
+
+
+def test_compare_fails_other_identifiers_without_a_limit_cut() -> None:
+    rows = [{"seller_id": "a", "n": 3}, {"seller_id": "b", "n": 2}]
+    other = [{"seller_id": "a", "n": 3}, {"seller_id": "z", "n": 2}]
+    no_limit = TOP2.removesuffix(" LIMIT 2")
+    assert compare(_result(rows, "local", no_limit), _result(other)) == (False, "FAIL: values differ")
+    # LIMIT 5 was not reached, so nothing was cut.
+    assert compare(_result(rows, "local", TOP2.replace("LIMIT 2", "LIMIT 5")), _result(other))[0] is False
+    # The differing row is not the last tie group.
+    ahead = [{"seller_id": "z", "n": 3}, {"seller_id": "b", "n": 2}]
+    assert compare(_result(rows, "local", TOP2), _result(ahead))[0] is False
+
+
+def test_compare_fails_swapped_labels() -> None:
+    local = [{"cat": "beleza", "n": 100}, {"cat": "esporte", "n": 50}]
+    swapped = [{"cat": "beleza", "n": 50}, {"cat": "esporte", "n": 100}]
+    sql = "SELECT cat, COUNT(*) AS n FROM t GROUP BY cat ORDER BY cat"
+    for statement in (sql, sql + " LIMIT 2"):
+        assert compare(_result(local, "local", statement), _result(swapped)) == (False, "FAIL: values differ")
+
+
+def test_compare_fails_differently_formatted_date_labels() -> None:
+    local = [{"day": "2017-11-24", "n": 1176}]
+    shifted = [{"day": "2017-11-24 00:00:00", "n": 1176}]
+    sql = "SELECT day, COUNT(*) AS n FROM t GROUP BY day ORDER BY n DESC"
+    for statement in (sql, sql + " LIMIT 1"):
+        assert compare(_result(local, "local", statement), _result(shifted)) == (False, "FAIL: values differ")
+    other_day = [{"day": "2017-11-25", "n": 1176}]
+    assert compare(_result(local, "local", sql), _result(other_day))[0] is False

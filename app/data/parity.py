@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -140,6 +141,9 @@ def wire_body(result: QueryResult) -> dict[str, Any]:
 # --- comparison --------------------------------------------------------------------------------------
 
 
+_TRAILING_LIMIT = re.compile(r"\bLIMIT\s+(\d+)\s*;?\s*$", re.IGNORECASE)
+
+
 def _same(a: Any, b: Any) -> bool:
     if isinstance(a, bool) or isinstance(b, bool):
         return a == b
@@ -158,12 +162,59 @@ def _sort_key(row: dict[str, Any], columns: list[str]) -> tuple:
     return tuple((v is None, round(v, 6) if isinstance(v, float) else v) for v in (row.get(c) for c in columns))
 
 
-def compare(local: QueryOutcome, zetaris: QueryOutcome) -> tuple[bool, str]:
-    """(passed, verdict): the same columns and the same numbers.
+def _group(rows: list[dict[str, Any]], numeric: list[str], other: list[str]) -> dict[tuple, list[tuple]]:
+    """Rows grouped by their numbers: numeric tuple -> sorted list of the other columns' values."""
+    groups: dict[tuple, list[tuple]] = {}
+    for row in rows:
+        groups.setdefault(_sort_key(row, numeric), []).append(tuple(_sort_key(row, other)))
+    return {key: sorted(values) for key, values in groups.items()}
 
-    Rows are compared in order first. If only the order of rows differs, or only the identifiers on
-    rows that tie on every number (an `ORDER BY … LIMIT` that cuts through a tie keeps different
-    sellers on different engines), the numbers are still the same and the check passes, saying so.
+
+def _format_variant(a: Any, b: Any) -> bool:
+    """One value is the other with something appended (`2017-11-24` vs `2017-11-24 00:00:00`)."""
+    left, right = str(a), str(b)
+    return left != right and (left.startswith(right) or right.startswith(left))
+
+
+def _tie_at_cut(local: QueryResult, zetaris: QueryResult, numeric: list[str]) -> bool:
+    """True if the results differ only in which tied rows an `ORDER BY … LIMIT n` kept.
+
+    Legitimate only when the statement ends in `LIMIT n` and the limit was reached: then the last
+    tie group (the rows sharing the numbers of the last row) can be cut at a different member on
+    each engine. Every other group must carry the same identifiers, both sides must hold the same
+    numbers with the same group sizes, and an identifier that is a reformatting of the other side's
+    (a date printed as a timestamp) is a difference, not a tie.
+    """
+    match = _TRAILING_LIMIT.search(local.sql.strip())
+    if not numeric or not match or not local.rows or len(local.rows) != int(match.group(1)):
+        return False
+    if len(zetaris.rows) != len(local.rows):
+        return False
+    other = [c for c in local.columns if c not in numeric]
+    cut = _sort_key(local.rows[-1], numeric)
+    if _sort_key(zetaris.rows[-1], numeric) != cut:
+        return False
+    left, right = _group(local.rows, numeric, other), _group(zetaris.rows, numeric, other)
+    if left.keys() != right.keys() or any(len(left[k]) != len(right[k]) for k in left):
+        return False
+    for key in left:
+        if key == cut:
+            continue
+        if any(not _same(a, b) for lv, rv in zip(left[key], right[key], strict=True)
+               for (_, a), (_, b) in zip(lv, rv, strict=True)):
+            return False
+    lvals = [v for _, v in (cell for t in left[cut] for cell in t)]
+    rvals = [v for _, v in (cell for t in right[cut] for cell in t)]
+    return not any(_format_variant(a, b) for a in lvals for b in rvals if a is not None and b is not None)
+
+
+def compare(local: QueryOutcome, zetaris: QueryOutcome) -> tuple[bool, str]:
+    """(passed, verdict): the same columns and the same values.
+
+    Rows are compared in order first, then as sorted rows (only the order differs). The one other
+    pass is an `ORDER BY … LIMIT n` that cuts through a tie: the engines may keep different sellers
+    from the tie group at the cut, so only that last group may carry different identifiers (see
+    `_tie_at_cut`). Labels attached to different numbers, or dates formatted differently, fail.
     """
     if not isinstance(local, QueryResult) or not isinstance(zetaris, QueryResult):
         bad = local if not isinstance(local, QueryResult) else zetaris
@@ -176,10 +227,10 @@ def compare(local: QueryOutcome, zetaris: QueryOutcome) -> tuple[bool, str]:
     key = lambda row: _sort_key(row, columns)
     if _rows_equal(sorted(local.rows, key=key), sorted(zetaris.rows, key=key), columns):
         return True, "PASS (same rows, different order)"
-    numeric = [c for c in columns if any(isinstance(r.get(c), int | float) for r in local.rows)]
-    nkey = lambda row: _sort_key(row, numeric)
-    if numeric and _rows_equal(sorted(local.rows, key=nkey), sorted(zetaris.rows, key=nkey), numeric):
-        return True, "PASS (same numbers; tied rows carry different identifiers)"
+    numeric = [c for c in columns if any(isinstance(r.get(c), int | float) and not isinstance(r.get(c), bool)
+                                         for r in local.rows)]
+    if _tie_at_cut(local, zetaris, numeric):
+        return True, "PASS (same numbers; the LIMIT cut a tie at different rows)"
     return False, "FAIL: values differ"
 
 

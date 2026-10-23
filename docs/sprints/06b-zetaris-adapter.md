@@ -133,10 +133,13 @@ its first start with an empty volume.
   - Without credentials it prints a clear message and exits 2.
   - `--record` rewrites `tests/fixtures/zetaris/` from the live responses.
   - `--synthetic` writes fixtures from DuckDB with no Zetaris (see "Known limits").
-- The comparison passes rows that are identical, or that differ only in order. It also passes when
-  only the identifiers on rows that tie on every number differ: the Day 1 seller query cuts its
-  `LIMIT 20` through a tie, and engines may pick different sellers. Each pass says which case it
-  was.
+- The comparison passes rows that are identical, or that differ only in order. It has one more
+  pass, for an `ORDER BY … LIMIT n` that cuts through a tie: the Day 1 seller query cuts its
+  `LIMIT 20` through a tie, and engines may keep different sellers. That pass needs a statement
+  ending in `LIMIT n` with `n` rows returned, the same numbers with the same group sizes on both
+  sides, and identical labels in every group except the last tie group (the rows sharing the last
+  row's numbers). Labels attached to different numbers (swapped categories) and a date printed as
+  a timestamp (`2017-11-24` vs `2017-11-24 00:00:00`) fail. Each pass says which case it was.
 
 ## Deliberately left out
 
@@ -243,6 +246,10 @@ its first start with an empty volume.
     figure from 14 Oct.
   - With credentials, `python scripts/zetaris_parity.py --record` replaces the files with real
     responses (`recorded_with: "zetaris (live REST response)"`). The plan check then replays those.
+  - **Acceptance criterion 7 stays open until that live recording is committed.** The maintainer
+    runs `python scripts/zetaris_parity.py --record` over the tunnel, checks that every file reads
+    `recorded_with: "zetaris (live REST response)"` and holds no host or token
+    (`tests/test_zetaris_plan_check.py` checks the latter), and commits the files.
 - **Live parity result:** _to be added by the maintainer after running
   `python scripts/zetaris_parity.py` against the AWS instance._
 - **Setup statements that no one has run on our server yet.** The 14 Oct test covered `date`, `int`,
