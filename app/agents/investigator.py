@@ -89,12 +89,13 @@ def investigate(
         )
         action = "repair_sql" if attempt else "write_sql"
         if not reply.ok or reply.parsed is None:
-            error = (reply.error or {}).get("message", "no SQL returned")
             ctx.trace.write(
                 agent=AGENT, action=action, input_summary=target, output_summary=reply.error,
                 status="error", retry_count=attempt,
             )
-            return InvestigationOutcome(None, query_ids, f"{target}: model call failed: {error}")
+            # Fixed wording (details stay in the trace) so later prompts, and so the sample-mode
+            # cache keys, do not depend on which transient error happened in a live run.
+            return InvestigationOutcome(None, query_ids, f"{target}: model call failed")
         sql = SqlProposal.model_validate(reply.parsed).sql
         ctx.trace.write(
             agent=AGENT, action=action, input_summary=target, output_summary=sql, retry_count=attempt,
@@ -150,8 +151,7 @@ def investigate(
             agent=AGENT, action="observe", input_summary=target, output_summary=reply.error, status="error",
             retry_count=int(reply.repaired), query_id=outcome.query_id,
         )
-        error = (reply.error or {}).get("message", "no observation returned")
-        return InvestigationOutcome(None, query_ids, f"{target}: model call failed: {error}")
+        return InvestigationOutcome(None, query_ids, f"{target}: model call failed")
 
     draft = ObservationDraft.model_validate(reply.parsed)
     observation = Observation(

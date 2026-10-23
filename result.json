@@ -1,0 +1,123 @@
+{
+  "run_id": "demo",
+  "status": "success",
+  "question": "Why did order volume spike on 24 November 2017?",
+  "change": {
+    "metric": "daily order count (count of orders per day using order_purchase_timestamp)",
+    "segment": "all",
+    "window": "2017-11-24 to 2017-11-25",
+    "baseline": 136.571,
+    "observed": 1176.0,
+    "significant": true
+  },
+  "determinable": true,
+  "causes": [
+    {
+      "rank": 1,
+      "type": "mix_shift",
+      "summary": "Product mix shifted toward higher-frequency categories on 24 Nov 2017.",
+      "confidence": 0.75,
+      "statements": [
+        {
+          "text": "On 24 Nov 2017 the share of orders in the top 3 product categories was 0.2867 (28.67%), compared with a baseline of 0.2511 (25.11%) over 17-23 Nov 2017.",
+          "kind": "measured",
+          "query_ids": [
+            "q005"
+          ]
+        },
+        {
+          "text": "The relative increase was about 0.1418 (14.18%), supporting a mix shift toward higher-frequency categories.",
+          "kind": "inferred",
+          "query_ids": [
+            "q005"
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "observation_id": "obs-3",
+          "source": "orders",
+          "query_id": "q005",
+          "finding": "On 24 November 2017, the top 3 product categories accounted for 0.2867 (28.67%) of orders, versus a baseline of 0.2511 (25.11%) for 17–23 November 2017 — a rise of 0.0356 (3.56 percentage points), or about 14.18% relative to baseline."
+        }
+      ],
+      "next_checks": [
+        "Verify category-level order counts to confirm which categories drove the mix shift."
+      ]
+    },
+    {
+      "rank": 2,
+      "type": "single_seller",
+      "summary": "A single seller generated a disproportionate number of orders on 24 Nov 2017.",
+      "confidence": 0.6,
+      "statements": [
+        {
+          "text": "Seller 891071be6ba827b591264c90c2ae8a63 recorded 10 orders on 2017-11-24 against a baseline average of 0.1429 orders per day (17–23 November 2017), a 70.0x spike.",
+          "kind": "measured",
+          "query_ids": [
+            "q006"
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "observation_id": "obs-4",
+          "source": "orders",
+          "query_id": "q006",
+          "finding": "Seller 891071be6ba827b591264c90c2ae8a63 recorded 10 orders on 2017-11-24 against a baseline average of 0.1429 orders per day (17–23 November 2017), a 70.0x spike."
+        }
+      ],
+      "next_checks": [
+        "Assess whether this seller's orders account for a significant share of the total order count increase."
+      ]
+    }
+  ],
+  "ruled_out": [
+    {
+      "type": "data_artefact",
+      "why": "There were 0 duplicate order IDs on 24 Nov 2017 and 0 duplicates in the baseline, so duplicate records did not cause the spike.",
+      "evidence": [
+        "q002"
+      ]
+    },
+    {
+      "type": "price_discount",
+      "why": "The proportion of orders with a discount was 1.0 in both the 24 Nov window and the 17-23 Nov baseline, so a new promotional discount did not drive the spike.",
+      "evidence": [
+        "q003"
+      ]
+    }
+  ],
+  "limitations": [
+    "The data cannot confirm whether the mix shift fully explains the 1,176 vs 136.571 order-volume spike.",
+    "Category-level order counts were not broken out, so the specific categories driving the mix shift are unidentified.",
+    "The single seller's 10 orders represent a small fraction of the total order count increase, limiting its explanatory power for the overall spike.",
+    "Incomplete: the Reporter asked for more investigation, but MAX_AGENT_ROUNDS=6 was reached.",
+    "Sample mode: model replies come from the recorded per-call cache and data from the local DuckDB sample; agents, queries and the loop run for real."
+  ],
+  "agents": [
+    {
+      "name": "Planner",
+      "role": "Turns the question into metric, window, baseline and hypotheses; checks the change is real"
+    },
+    {
+      "name": "Investigator",
+      "role": "Tests one hypothesis at a time with SQL against the data layer"
+    },
+    {
+      "name": "Reporter",
+      "role": "Ranks the supported causes with their evidence and lists what was ruled out"
+    }
+  ],
+  "trace_id": "demo",
+  "log_file": "logs/trace-demo.jsonl",
+  "query_log": "logs/queries-demo.jsonl",
+  "token_report": {
+    "standard_estimate": 0,
+    "markovian_actual": 0,
+    "saving_percent": 0.0
+  },
+  "execution_time_seconds": 0.267,
+  "sample_mode": true,
+  "error": null
+}

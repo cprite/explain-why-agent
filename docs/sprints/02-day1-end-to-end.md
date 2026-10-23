@@ -66,7 +66,7 @@ with CI green: A (data adapter), B (generator and schemas), C (agents, loop, `ru
   - JSON mode: the schema goes into the system message; the reply is parsed (code fences tolerated)
     and validated; one repair call sends the validation error back; a second failure returns
     `error.code = "invalid_json"`. No exception escapes `generate`.
-  - `MODEL_TEMPERATURE` (0.2) and `MAX_OUTPUT_TOKENS` (2048) from the environment.
+  - `MODEL_TEMPERATURE` (0.2) and `MAX_OUTPUT_TOKENS` (4096) from the environment.
   - Sample mode: replies from `data/sample/llm_cache/<sha256>.json`, keyed by the normalised request
     (messages with whitespace collapsed, schema name, role; not the provider or model). A miss
     returns `error.code = "cache_miss"`, "this question needs a model key …". With
@@ -196,18 +196,29 @@ Sprint 1 are kept (the config test pins them) but marked unused.
 
 ## Known limits
 
-- **The Part C cache is a stub.** The 12 entries in `data/sample/llm_cache/` were produced by the
-  scripted stub (`"recorded_with": "stub"`), not by a model. The agents, queries and loop really run
-  in CI, but the wording and judgement in the answer are the stub's. Replace it after the build with
-  a real recording through Nightshift:
-  `SAMPLE_MODE=false RECORD_CACHE=true METERLESS_RUNTIME_TOKEN=… python run.py "Why did order volume spike on 24 November 2017?"`,
-  then delete the remaining stub entries (`grep -l '"recorded_with": "stub"' data/sample/llm_cache/*`).
-  The first Planner request is identical, so its entry is overwritten; later requests depend on the
-  model's earlier replies, get new keys, and the old stub entries for them are no longer used.
+- **The Part C cache is a real recording (replaced the stub on 23 Oct).** The 15 entries in
+  `data/sample/llm_cache/` come from a live run through Meterless Nightshift on the build machine
+  (`"recorded_with": "meterless"`, each with the routed Nemotron model and a Nightshift receipt id):
+  Planner and Reporter on `meterless/deep` → `nemotron-3.5-super-vl-120b-a12b`, Investigator on
+  `meterless/fast` → `nemotron-3.5-lightning-30b-a3b`. The slower Nemotron Ultra 550B and Nano Omni
+  reasoning models were switched off in Nightshift after they took 70–120 s per call and returned
+  HTTP 502s. Re-record with
+  `SAMPLE_MODE=false RECORD_CACHE=true METERLESS_RUNTIME_TOKEN=… python run.py "Why did order volume spike on 24 November 2017?"`.
+- **The Day 1 answer is weak, by design of this thin slice.** The real driver of 24 Nov 2017 is
+  Black Friday, a market-wide calendar event; with no Critic and no calendar hypothesis yet, the
+  model settles on a small product-mix shift and one seller. The Critic (task 13) and prompt tuning
+  from the evaluation (task 16) are where this is meant to improve.
+- **Fixes made while recording (23 Oct, session):** (1) a failed model call is now noted as
+  `"<target>: model call failed"` without the transient error text, so later prompts (and cache
+  keys) do not depend on whether a live run saw a 502; (2) when the round cap is hit while the
+  Reporter already has causes, the run returns them marked incomplete instead of an error;
+  (3) DuckDB defaults to one thread, because rows that tie in an `ORDER BY … LIMIT` came back in a
+  different order across runs and broke replay; (4) `MAX_OUTPUT_TOKENS` defaults to 4096, because
+  2048 cut the Planner's JSON off on Nemotron Lightning.
 - Any change to a prompt, a reply schema or the data changes the cache keys; sample mode then
   returns `cache_miss` until the cache is re-recorded.
-- The stub's baseline is the seven days before the date (136.6 orders per day, weekend included), so
-  its numbers differ from the detectability report's 20–23 November average.
+- The baseline is the seven days before the date (136.6 orders per day, weekend included), so the
+  numbers differ from the detectability report's 20–23 November average.
 - The guard is conservative: an identifier spelled exactly like a forbidden keyword (a column named
   `set`, `load`, …) is rejected; none exist in the sample.
 - Re-running `run.py` with the same `--run-id` appends to the existing trace and query log files

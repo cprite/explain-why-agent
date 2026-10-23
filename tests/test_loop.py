@@ -184,14 +184,18 @@ def test_sample_mode_uses_committed_cache(tmp_path: Path) -> None:
     trace = TraceWriter(tmp_path / "logs", "sample").read()
     model_calls = [line for line in trace if line["action"] == "model_call"]
     assert model_calls and all(line["provider"] == "cache" and line["status"] == "ok" for line in model_calls)
-    assert all(line["recorded_with"] == "stub" for line in model_calls)
+    assert all(line["recorded_with"] == "meterless" for line in model_calls)
 
 
-def test_committed_cache_entries_are_marked_stub() -> None:
+def test_committed_cache_entries_are_real_meterless_recordings() -> None:
+    """The committed sample cache is a live run through Meterless (Nightshift) on Nemotron."""
     entries = list((ROOT / "data" / "sample" / "llm_cache").glob("*.json"))
     assert entries
     for path in entries:
-        assert json.loads(path.read_text())["recorded_with"] == "stub", path.name
+        entry = json.loads(path.read_text())
+        assert entry["provider"] == "meterless", path.name
+        assert "nemotron" in (entry["model_routed"] or ""), path.name
+        assert entry["receipt_id"], path.name
 
 
 # --- no incident-specific wording ---------------------------------------------------------------

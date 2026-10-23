@@ -28,7 +28,9 @@ class Settings(BaseSettings):
     # DuckDB resource caps. Without them DuckDB takes 80 % of RAM and every core, so one runaway
     # model-written query can push a small host into swap until it stops responding.
     duckdb_memory_limit: str = "2GB"
-    duckdb_threads: int = Field(default=2, ge=1)
+    # One thread by default: with several, rows that tie in an ORDER BY can come back in a different
+    # order on each run, which changes the model's input and breaks sample-mode replay.
+    duckdb_threads: int = Field(default=1, ge=1)
     # Database file and spill directory. On disk, not in /tmp: /tmp is often RAM-backed (tmpfs),
     # which would make spilling to "disk" use memory after all.
     duckdb_work_dir: str = ".cache/duckdb"
@@ -46,7 +48,7 @@ class Settings(BaseSettings):
     meterless_model_reporter: str = ""
     nvidia_model: str = ""
     model_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
-    max_output_tokens: int = Field(default=2048, ge=1)
+    max_output_tokens: int = Field(default=4096, ge=1)
     max_retries: int = Field(default=3, ge=0, le=3)
     record_cache: bool = False
     llm_cache_dir: str = "data/sample/llm_cache"

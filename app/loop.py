@@ -164,6 +164,22 @@ def run_investigation(
                     limitations=outcome.limitations,
                 )
             if budget.rounds_left < 2:
+                if outcome.causes:
+                    # Out of rounds with a usable answer: report it, marked incomplete, rather than
+                    # discarding the evidence already gathered.
+                    return result(
+                        status="success",
+                        determinable=outcome.determinable,
+                        causes=outcome.causes,
+                        ruled_out=outcome.ruled_out,
+                        limitations=[
+                            *outcome.limitations,
+                            (
+                                "Incomplete: the Reporter asked for more investigation, but "
+                                f"MAX_AGENT_ROUNDS={budget.max_rounds} was reached."
+                            ),
+                        ],
+                    )
                 return failure(
                     "max_agent_rounds",
                     f"stopped at MAX_AGENT_ROUNDS={budget.max_rounds}: the Reporter still asked for more "

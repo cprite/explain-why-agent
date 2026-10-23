@@ -185,7 +185,7 @@ def test_safe_defaults_without_environment(monkeypatch: pytest.MonkeyPatch) -> N
     assert settings.max_query_rows == 5000
     assert settings.query_timeout_seconds == 30
     assert settings.duckdb_memory_limit == "2GB"
-    assert settings.duckdb_threads == 2
+    assert settings.duckdb_threads == 1
 
 
 def test_duckdb_resource_caps_are_applied(layer: LocalDataLayer) -> None:
@@ -193,7 +193,7 @@ def test_duckdb_resource_caps_are_applied(layer: LocalDataLayer) -> None:
     (threads,) = con.execute("SELECT current_setting('threads')").fetchone()
     (memory,) = con.execute("SELECT current_setting('memory_limit')").fetchone()
     (temp_dir,) = con.execute("SELECT current_setting('temp_directory')").fetchone()
-    assert int(threads) == 2
+    assert int(threads) == 1
     assert memory.endswith("GiB") and float(memory.split()[0]) <= 2.0
     assert Path(temp_dir).is_relative_to(ROOT / ".cache" / "duckdb")
 
