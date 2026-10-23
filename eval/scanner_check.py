@@ -1,16 +1,16 @@
 """Plan check for the anomaly scanner (build-plan tasks 19a/19b, issue #9 criterion 7).
 
 Runs the scanner on the sample exactly as `python -m app.scanner` does, then — and only here —
-reads eval/answer_key.json to report, for each planted incident, whether a card overlaps its
-segment and window. Prints recall over the determinable incidents, lists the cards that match no
-incident (unplanted flags), and asserts:
+reads eval/answer_key.json and REPORTS, for each planted incident, whether the scan flagged an
+episode on its metric, segment and window, and that episode's rank overall and within its metric;
+recall over the determinable incidents; and the previous top-ten numbers (card in the overall top
+ten, the old asserts (a) incident-06 and (b) incident-04) so nothing is hidden. Unplanted cards in
+the top ten are listed.
 
-  (a) incident-06 (average review score, relogios_presentes, January 2018) is flagged;
-  (b) incident-04 (average freight, RJ, August 2018) is flagged, as its own card or as a card whose
-      top attribution names RJ;
-  (c) no card is only the normal weekly cycle.
-
-Exit code 0 when all three hold, 1 otherwise. The scanner never sees this file's inputs.
+Pass rule (owner's decision of 23 Oct, taken after seeing the top-ten result; see
+docs/sprints/12-anomaly-scanner.md): at least one planted incident is flagged, and (c) no card is
+only the normal weekly cycle. Exit code 0 when both hold and the scan finished, 1 otherwise. The
+scanner never sees this file's inputs.
 """
 
 from __future__ import annotations
@@ -21,12 +21,14 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
 
+import numpy as np
+
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.scanner.models import AnomalyCard
-from app.scanner.scan import Candidate, ScanResult, build_card, scan
+from app.scanner.scan import Candidate, ScanResult, scan
 from app.scanner.settings import load_config
 
 ANSWER_KEY = ROOT / "eval" / "answer_key.json"
@@ -104,10 +106,22 @@ def full_hit(card: AnomalyCard, target: Target) -> bool:
     return segment_hit(card, target) and _metric_family(card.metric) in target.metrics
 
 
-def best_candidate(result: ScanResult, target: Target) -> tuple[int, Candidate] | None:
+@dataclass
+class Placement:
+    """Where a planted incident's best own episode sits in the scan."""
+
+    overall_rank: int  # among every flagged episode after the merge (merged children at their parent's)
+    metric_rank: int  # among the flagged episodes of the same configured metric
+    candidate: Candidate  # the matching episode (a merged child, or the ranked episode itself)
+
+
+def place(result: ScanResult, target: Target) -> Placement | None:
     """Best-ranked episode anywhere in the scan (beyond the top ten too) with the incident's
     metric, segment and window; merged children count at their parent's rank."""
+    per_metric: dict[str, int] = {}
     for rank, cand in enumerate(result.candidates, 1):
+        family = _metric_family(cand.series.metric.key)
+        per_metric[family] = per_metric.get(family, 0) + 1
         for c in [cand, *cand.merged]:
             s = c.series
             if (
@@ -117,8 +131,28 @@ def best_candidate(result: ScanResult, target: Target) -> tuple[int, Candidate] 
                 and c.start <= target.end
                 and c.end >= target.start
             ):
-                return rank, c
+                return Placement(rank, per_metric[family], c)
     return None
+
+
+def peak_z(result: ScanResult, target: Target) -> tuple[str, float] | None:
+    """Largest |robust z| the incident's own series reached inside its window (flagged or not)."""
+    best: tuple[str, float] | None = None
+    for (key, seg_type, seg_value), series in result.series.items():
+        if (_metric_family(key) not in target.metrics or (seg_type, seg_value)
+                != (target.segment_type, target.segment_value) or series.score is None):
+            continue
+        span = timedelta(days=6) if series.metric.grain == "week" else timedelta(0)
+        for period, z in zip(series.periods, series.score.z, strict=True):
+            if period <= target.end and period + span >= target.start and np.isfinite(z) \
+                    and (best is None or abs(z) > abs(best[1])):
+                best = (key, float(z))
+    return best
+
+
+def best_candidate(result: ScanResult, target: Target) -> tuple[int, Candidate] | None:
+    placement = place(result, target)
+    return (placement.overall_rank, placement.candidate) if placement else None
 
 
 def weekly_cycle_only(card: AnomalyCard, result: ScanResult) -> bool:
@@ -138,76 +172,115 @@ def weekly_cycle_only(card: AnomalyCard, result: ScanResult) -> bool:
     return True
 
 
+@dataclass
+class Outcome:
+    placements: dict[str, Placement | None]
+    recall: int  # determinable incidents with a flagged episode on their metric, segment and window
+    determinable: int
+    top_ten_recall_segment: int  # previous rule: a top-ten card on the segment and window
+    top_ten_recall_metric: int  # previous rule, metric matching too
+    old_a: bool  # previous rule (a): incident-06 has a top-ten card
+    old_b: bool  # previous rule (b): incident-04 has a top-ten card (own, or top attribution RJ)
+    cycle_cards: list[str]
+    timed_out: bool
+
+    @property
+    def passed(self) -> bool:
+        """Owner's rule of 23 Oct: at least one planted incident flagged, and no card is only the
+        weekly cycle (and the scan finished)."""
+        return self.recall >= 1 and not self.cycle_cards and not self.timed_out
+
+
+def evaluate(result: ScanResult, targets: list[Target]) -> Outcome:
+    cards = result.report.cards
+    determinable = [t for t in targets if t.determinable]
+    placements = {t.id: place(result, t) for t in targets}
+    by_id = {t.id: t for t in targets}
+    t06, t04 = by_id["incident-06"], by_id["incident-04"]
+    return Outcome(
+        placements=placements,
+        recall=sum(placements[t.id] is not None for t in determinable),
+        determinable=len(determinable),
+        top_ten_recall_segment=sum(any(segment_hit(c, t) for c in cards) for t in determinable),
+        top_ten_recall_metric=sum(any(full_hit(c, t) for c in cards) for t in determinable),
+        old_a=any(full_hit(c, t06) for c in cards),
+        old_b=any(
+            _metric_family(c.metric) == "avg_freight"
+            and segment_hit(c, t04)
+            and ((c.segment.type, c.segment.value) == ("state", "RJ") or _names(c, t04, top_only=True))
+            for c in cards
+        ),
+        cycle_cards=[c.id for c in cards if weekly_cycle_only(c, result)],
+        timed_out=result.report.timed_out,
+    )
+
+
+def _pass(ok: bool) -> str:
+    return "PASS" if ok else "FAIL"
+
+
 def main() -> int:
     result = scan()
     report = result.report
     cards = report.cards
     targets = load_targets()
-    print(f"Scanner: {report.series_scanned} series, {report.episodes_found} flagged episodes, "
-          f"{report.queries} queries, {report.elapsed_seconds:.1f}s, timed_out={report.timed_out}")
+    outcome = evaluate(result, targets)
+    total = len(result.candidates)
+    print(f"Scanner: {report.series_scanned} series, {report.episodes_found} flagged episodes "
+          f"({total} after the parent/child merge), {report.queries} queries, {report.elapsed_seconds:.1f}s, "
+          f"timed_out={report.timed_out}")
     print(f"Thresholds: {report.thresholds}")
-    print("\nCards:")
+    print("\nOverall top ten:")
     for c in cards:
         print(f"  {c.rank:>2}. {c.metric} | {c.segment.label} | {c.period.start}..{c.period.end} | "
               f"z {c.z_score:+.1f} | {c.top_attribution or '-'}")
 
-    print("\nPlanted incidents (card in the top ten overlapping segment and window):")
-    hits_segment = hits_full = 0
-    determinable = [t for t in targets if t.determinable]
+    board_top = load_config().ranking.per_metric_top
+    episodes_per_metric: dict[str, int] = {}
+    for cand in result.candidates:
+        family = _metric_family(cand.series.metric.key)
+        episodes_per_metric[family] = episodes_per_metric.get(family, 0) + 1
+    print("\nPlanted incidents (best own flagged episode on metric + segment + window; ranks by score):")
     for t in targets:
+        p = outcome.placements[t.id]
+        tag = "" if t.determinable else " (not determinable)"
         seg_cards = [c.rank for c in cards if segment_hit(c, t)]
         full_cards = [c.rank for c in cards if full_hit(c, t)]
-        if t.determinable:
-            hits_segment += bool(seg_cards)
-            hits_full += bool(full_cards)
-        best = best_candidate(result, t)
-        best_txt = (f"best own episode: rank {best[0]} of {len(result.candidates)}, z {best[1].episode.z:+.1f}, "
-                    f"{best[1].start}..{best[1].end}" if best else "no own episode flagged")
-        tag = "" if t.determinable else " (not determinable)"
-        print(f"  {t.id}{tag}: {t.segment_type}={t.segment_value} {t.start}..{t.end} -> "
-              f"segment+window cards {seg_cards or '-'}, with metric {full_cards or '-'}; {best_txt}")
-    print(f"\nRecall (segment+window): {hits_segment}/{len(determinable)}")
-    print(f"Recall (segment+window+metric): {hits_full}/{len(determinable)}")
+        if p:
+            family = _metric_family(p.candidate.series.metric.key)
+            where = (f"FLAGGED {p.candidate.series.metric.key}, z {p.candidate.episode.z:+.2f}, "
+                     f"{p.candidate.start}..{p.candidate.end}; overall rank {p.overall_rank} of {total}, "
+                     f"rank {p.metric_rank} of {episodes_per_metric[family]} within {family} "
+                     f"({'on' if p.metric_rank <= board_top else 'not on'} the per-metric board, top {board_top})")
+        else:
+            peak = peak_z(result, t)
+            where = (f"not flagged (peak {peak[0]} z {peak[1]:+.2f} in the window, threshold "
+                     f"{report.thresholds['z_threshold']})" if peak
+                     else "not flagged (series not scored in the window: below the volume floor or too little history)")
+        print(f"  {t.id}{tag}: {t.segment_type}={t.segment_value} {t.start}..{t.end} -> {where}; "
+              f"top-ten cards: segment+window {seg_cards or '-'}, with metric {full_cards or '-'}")
+
+    print(f"\nRecall (flagged episode on metric + segment + window): {outcome.recall}/{outcome.determinable}")
+    on_board = sum(p is not None and p.metric_rank <= board_top
+                   for t in targets if t.determinable for p in [outcome.placements[t.id]])
+    print(f"On the per-metric board (top {board_top} of their metric): {on_board}/{outcome.determinable}")
+    print("Previous rule, kept for comparison (a card in the overall top ten):")
+    print(f"  top-ten recall (segment+window): {outcome.top_ten_recall_segment}/{outcome.determinable}")
+    print(f"  top-ten recall (segment+window+metric): {outcome.top_ten_recall_metric}/{outcome.determinable}")
+    print(f"  (a) incident-06 in the top ten: {_pass(outcome.old_a)}")
+    print(f"  (b) incident-04 in the top ten (own card or top attribution RJ): {_pass(outcome.old_b)}")
 
     unplanted = [c for c in cards if not any(segment_hit(c, t) for t in targets)]
-    print(f"\nUnplanted flags ({len(unplanted)} of {len(cards)} cards):")
+    print(f"\nUnplanted flags in the top ten ({len(unplanted)} of {len(cards)} cards):")
     for c in unplanted:
         print(f"  {c.rank:>2}. {c.question}")
 
-    by_id = {t.id: t for t in targets}
-    failures = []
-    t06 = by_id["incident-06"]
-    if not any(full_hit(c, t06) for c in cards):
-        failures.append("(a) incident-06 watches review dip not flagged")
-    t04 = by_id["incident-04"]
-    if not any(
-        _metric_family(c.metric) == "avg_freight"
-        and segment_hit(c, t04)
-        and ((c.segment.type, c.segment.value) == ("state", "RJ") or _names(c, t04, top_only=True))
-        for c in cards
-    ):
-        failures.append("(b) incident-04 RJ freight rise not flagged (own card or top attribution RJ)")
-    cycle_cards = [c.id for c in cards if weekly_cycle_only(c, result)]
-    if cycle_cards:
-        failures.append(f"(c) cards that are only the weekly cycle: {cycle_cards}")
-    if report.timed_out:
-        failures.append("scan hit the time cap")
-
-    for label, target in (("incident-06", t06), ("incident-04", t04)):
-        best = best_candidate(result, target)
-        if best:
-            card = build_card(best[1], best[0], load_config())
-            print(f"{label} own episode: z {card.z_score:+.2f}, baseline {card.baseline:.3f}, "
-                  f"observed {card.observed:.3f}, {card.period.start}..{card.period.end}")
-        else:
-            print(f"{label}: no own episode (|z| < threshold or below the volume floor)")
-
-    print("\nChecks:")
-    print(f"  (a) incident-06 flagged: {'PASS' if not any(f.startswith('(a)') for f in failures) else 'FAIL'}")
-    print(f"  (b) incident-04 flagged: {'PASS' if not any(f.startswith('(b)') for f in failures) else 'FAIL'}")
-    print(f"  (c) no weekly-cycle-only card: {'PASS' if not cycle_cards else 'FAIL'}")
-    if failures:
-        print("\nFAILED: " + "; ".join(failures))
+    print("\nChecks (owner's rule of 23 Oct; the top-ten rule above is reported, not asserted):")
+    print(f"  at least one planted incident flagged: {_pass(outcome.recall >= 1)} ({outcome.recall})")
+    print(f"  (c) no weekly-cycle-only card: {_pass(not outcome.cycle_cards)} {outcome.cycle_cards or ''}".rstrip())
+    print(f"  scan finished within the time cap: {_pass(not outcome.timed_out)}")
+    if not outcome.passed:
+        print("\nFAILED")
         return 1
     print("\nAll plan checks passed.")
     return 0
