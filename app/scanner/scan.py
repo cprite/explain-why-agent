@@ -142,11 +142,23 @@ class Scanner:
         column = self.config.segment(segment_type).column
         segment_expr = column if column else sql_literal(WHOLE_SHOP)
         group_by = f"{period}, {column}" if column else period
+        fact = self.config.fact_sql(metric.fact).strip()
+        if metric.share_of_period:
+            # The segment's orders over all orders sampled in that period.
+            return (
+                f"SELECT s.period, s.segment, s.num, t.den, s.volume FROM ("
+                f"SELECT {period} AS period, {segment_expr} AS segment, {metric.numerator} AS num, "
+                f"{metric.volume} AS volume FROM ({fact}) f WHERE {self._where(metric)} GROUP BY {group_by}"
+                f") s JOIN ("
+                f"SELECT {period} AS period, {metric.volume} AS den FROM ({fact}) f "
+                f"WHERE {self._where(metric)} GROUP BY {period}"
+                f") t ON t.period = s.period"
+            )
         den = metric.denominator or "NULL"
         return (
             f"SELECT {period} AS period, {segment_expr} AS segment, {metric.numerator} AS num, "
             f"{den} AS den, {metric.volume} AS volume "
-            f"FROM ({self.config.fact_sql(metric.fact).strip()}) f "
+            f"FROM ({fact}) f "
             f"WHERE {self._where(metric)} GROUP BY {group_by}"
         )
 
@@ -229,7 +241,7 @@ class Scanner:
         cards = [build_card(c, rank, self.config) for rank, c in enumerate(kept[: self.config.ranking.max_cards], 1)]
         report = ScanReport(
             generated_at=datetime.now(UTC),
-            data_source="sample: DuckDB over data/sample (read-only)",
+            data_source=f"sample: DuckDB over data/sample (read-only, {self.config.sample_design} design)",
             elapsed_seconds=round(time.monotonic() - started, 2),
             timed_out=timed_out,
             queries=self.budget.queries,
@@ -241,6 +253,7 @@ class Scanner:
                 "window_days": detection.windows["day"],
                 "window_weeks": detection.windows["week"],
                 "explains_threshold": self.config.attribution.explains_threshold,
+                "mad_floor": detection.mad_floor,
             },
             cards=cards,
         )
@@ -259,13 +272,15 @@ class Scanner:
         episode_periods = ep.end - ep.start + 1
         period_expr = self._period_expr(metric)
         start, end = series.periods[base_lo], series.periods[ep.end]
-        extra = [f"{period_expr} >= DATE {sql_literal(start.isoformat())}",
-                 f"{period_expr} <= DATE {sql_literal(end.isoformat())}"]
+        in_range = [f"{period_expr} >= DATE {sql_literal(start.isoformat())}",
+                    f"{period_expr} <= DATE {sql_literal(end.isoformat())}"]
+        extra = list(in_range)
         own_column = self.config.segment(series.segment_type).column
         if own_column:
             extra.append(f"{own_column} = {sql_literal(series.segment_value)}")
         episode_start = series.periods[ep.start]
-        den = metric.denominator or "NULL"
+        den = "NULL" if metric.share_of_period else metric.denominator or "NULL"
+        fact = self.config.fact_sql(metric.fact).strip()
         cube: dict[str, dict[str, SliceValues]] = {}
         for dimension in metric.segments:
             column = self.config.segment(dimension).column
@@ -273,9 +288,18 @@ class Scanner:
                 continue
             rows = self.query(
                 f"SELECT {period_expr} AS period, {column} AS slice, {metric.numerator} AS num, {den} AS den "
-                f"FROM ({self.config.fact_sql(metric.fact).strip()}) f "
+                f"FROM ({fact}) f "
                 f"WHERE {self._where(metric, extra)} GROUP BY {period_expr}, {column}"
             )
+            if metric.share_of_period:
+                # A slice's denominator is all of that slice's orders in the period (every segment),
+                # so the slice denominators add up to the period total the share is taken of.
+                totals = self.query(
+                    f"SELECT {period_expr} AS period, {column} AS slice, NULL AS num, {metric.volume} AS den "
+                    f"FROM ({fact}) f "
+                    f"WHERE {self._where(metric, in_range)} GROUP BY {period_expr}, {column}"
+                )
+                rows = [*rows, *totals]
             sums: dict[str, list[float]] = {}
             for row in rows:
                 acc = sums.setdefault(str(row["slice"]), [0.0, 0.0, 0.0, 0.0])

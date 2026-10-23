@@ -4,9 +4,9 @@ Daily series are decomposed with robust STL (period 7) and the weekly cycle is r
 unbroken stretch of periods above the volume floor that spans at least three cycles; shorter
 stretches fall back to the raw values (the plain trailing-median test). Weekly series have no cycle
 to remove at this data length (an annual cycle would need three years). What is left is scored
-with a robust z-score against a strictly trailing window (28 days / 8 weeks):
+with a robust z-score against a strictly trailing window (28 days / 12 weeks):
 
-    z_t = (x_t - median(x_window)) / (1.4826 * MAD(x_window))
+    z_t = (x_t - median(x_window)) / max(1.4826 * MAD(x_window), mad_floor * |median(x_window)|)
 
 The trailing median plays the part of the local trend: a centred trend fit would absorb a sustained
 move, while the trailing window only looks backwards. Periods backed by fewer orders than the volume
@@ -111,6 +111,7 @@ def score_series(
         scale = MAD_SCALE * float(np.median(deviations))
         if scale <= 0:
             scale = MEAN_AD_SCALE * float(np.mean(deviations))
+        scale = max(scale, config.mad_floor * abs(median))
         diff = adjusted[t] - median
         if scale > 0:
             z[t] = diff / scale

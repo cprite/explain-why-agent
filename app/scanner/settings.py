@@ -15,6 +15,8 @@ CONFIG_PATH = Path(__file__).with_name("config.yaml")
 DEFAULT_TIMEOUT_S = 300.0
 
 Grain = Literal["day", "week"]
+SampleDesign = Literal["stratified", "full"]
+Normalise = Literal["period_share", "per_order"]
 
 
 class DetectionConfig(BaseModel):
@@ -27,6 +29,7 @@ class DetectionConfig(BaseModel):
     min_history: dict[str, int]
     merge_gap: int = Field(ge=0)
     z_cap: float = Field(gt=0)
+    mad_floor: float = Field(default=0.0, ge=0)  # spread floor, as a share of |trailing median|
 
 
 class AttributionConfig(BaseModel):
@@ -67,13 +70,31 @@ class Metric(BaseModel):
     segments: list[str]
     variants: list[str] = Field(default_factory=list)
     variant: str | None = None
+    # Sampling-robust form used when sample_design is "stratified": a count becomes the segment's
+    # share of the period's orders ("period_share"), a sum becomes a per-order mean ("per_order").
+    normalise: Normalise | None = None
+    normalised_label: str | None = None
+    share_of_period: bool = False  # set on the stratified copy of a period_share metric
 
     @property
     def is_ratio(self) -> bool:
         return self.denominator is not None
 
+    def for_design(self, design: SampleDesign) -> Metric:
+        """The metric as scanned under `design`: unchanged for a full extract; for a stratified
+        sample, counts and sums are turned into shares and per-order means."""
+        if design == "full" or self.normalise is None:
+            return self
+        update: dict = {"label": self.normalised_label or self.label, "denominator": self.volume}
+        if self.normalise == "period_share":
+            # The whole shop's share of its own orders is 1 by definition: nothing to scan.
+            update["share_of_period"] = True
+            update["segments"] = [s for s in self.segments if s != "all"]
+        return self.model_copy(update=update)
+
 
 class ScannerConfig(BaseModel):
+    sample_design: SampleDesign = "stratified"
     detection: DetectionConfig
     attribution: AttributionConfig
     ranking: RankingConfig
@@ -98,9 +119,11 @@ class ScannerConfig(BaseModel):
         )
 
     def expanded_metrics(self) -> list[Metric]:
-        """Metrics with one copy per variant (e.g. payment share per payment type)."""
+        """Metrics as scanned: one copy per variant (e.g. payment share per payment type), each in
+        the form the sample design calls for (see Metric.for_design)."""
         out: list[Metric] = []
         for metric in self.metrics:
+            metric = metric.for_design(self.sample_design)
             if not metric.variants:
                 out.append(metric)
                 continue
@@ -131,6 +154,8 @@ def parse_config(raw: dict) -> ScannerConfig:
             raise ValueError(f"metric {metric.key}: unknown fact {metric.fact!r}")
         if metric.grain not in config.detection.windows:
             raise ValueError(f"metric {metric.key}: no window for grain {metric.grain!r}")
+        if metric.normalise and metric.denominator:
+            raise ValueError(f"metric {metric.key}: normalise applies to counts and sums, not ratios")
     return config
 
 

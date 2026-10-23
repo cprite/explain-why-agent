@@ -4,12 +4,20 @@
 # per incident. Every SQL fragment is plain SQL (CAST, CASE, COALESCE, DATE_TRUNC, COUNT DISTINCT)
 # so the same templates can run on Zetaris later; table names are the CSV file stems.
 
+# How data/sample was drawn. "stratified": incident windows are kept at close to 100% and the
+# background at 2% (data-prep/build_sample.py, BACKGROUND_SAMPLE_RATE), so the number of sampled
+# orders per month swings from about 100 to 6800 and absolute counts and sums are not comparable
+# across periods; metrics with a `normalise` option are then scanned in their sampling-robust form
+# (period_share: the segment's share of the period's sampled orders; per_order: the sum divided by
+# the segment's sampled orders in that period). "full": a complete extract, raw counts and sums.
+sample_design: stratified
+
 detection:
   z_threshold: 3.5          # flag when |robust z| >= this
   volume_floor: 30          # skip segment-periods backed by fewer orders than this
   windows:                  # trailing window for the robust z-score, in periods
     day: 28
-    week: 8
+    week: 12
   cycle:                    # seasonal period removed by STL, per grain (weekly series have none)
     day: 7
   min_cycles: 3             # shorter daily series fall back to the plain trailing-median test
@@ -19,6 +27,8 @@ detection:
     week: 6
   merge_gap: 1              # flagged periods at most this many periods apart form one episode
   z_cap: 50                 # |z| is capped here for ranking (a flat baseline gives an infinite z)
+  mad_floor: 0.01           # robust spread is at least 1% of |trailing median|, so with z >= 3.5 a
+                            # move under 3.5% of the metric's level is never flagged
 
 attribution:
   explains_threshold: 0.67  # T_EP in the Adtributor paper
@@ -123,6 +133,7 @@ segments:
     min_total_volume: 100   # only sellers with at least this many orders over the whole sample
 
 # Metrics. value = numerator / denominator (denominator omitted: value = numerator).
+# normalise (counts and sums only): the sampling-robust form used when sample_design is stratified.
 # volume counts the orders behind a segment-period (used for the floor and the ranking).
 metrics:
   daily_orders:
@@ -132,6 +143,8 @@ metrics:
     grain: day
     numerator: COUNT(DISTINCT order_id)
     volume: COUNT(DISTINCT order_id)
+    normalise: period_share
+    normalised_label: share of the day's orders
     segments: [all, state, category, payment_type, channel, seller]
   revenue:
     label: weekly revenue (delivered orders)
@@ -141,6 +154,8 @@ metrics:
     filter: order_status = 'delivered'
     numerator: SUM(order_payment)
     volume: COUNT(DISTINCT order_id)
+    normalise: per_order
+    normalised_label: weekly revenue per delivered order
     segments: [all, state, category, payment_type, channel, seller]
   avg_order_value:
     label: average order value
@@ -198,4 +213,6 @@ metrics:
     filter: order_status = 'delivered' AND channel <> 'none'
     numerator: SUM(price + freight_value)
     volume: COUNT(DISTINCT order_id)
+    normalise: per_order
+    normalised_label: weekly revenue per order of funnel-acquired sellers
     segments: [all, channel, state, category, seller]

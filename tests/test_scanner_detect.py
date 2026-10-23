@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from app.scanner.detect import (
     METHOD_STL,
@@ -32,7 +33,8 @@ def _episodes(values: np.ndarray, volumes: np.ndarray | float = VOLUME, grain: s
 def test_thresholds_are_the_fixed_plan_values() -> None:
     assert DETECTION.z_threshold == 3.5
     assert DETECTION.volume_floor == 30
-    assert DETECTION.windows == {"day": 28, "week": 8}
+    assert DETECTION.windows == {"day": 28, "week": 12}
+    assert DETECTION.mad_floor == 0.01
     assert DETECTION.cycle == {"day": 7}
     assert DETECTION.min_cycles == 3
 
@@ -124,3 +126,16 @@ def test_episode_count_is_capped() -> None:
     values[40::10] += 200.0  # 16 separate spikes
     score = score_series(values, np.full(200, VOLUME), grain="day", config=DETECTION)
     assert len(find_episodes(score, DETECTION, max_episodes=3)) == 3
+
+
+def test_mad_floor_keeps_a_near_constant_series_from_exploding() -> None:
+    # Every trailing value is identical, so the MAD (and mean deviation) is zero: without the floor
+    # a 2% dip would get an infinite z. With the floor the spread is 1% of the level.
+    values = np.full(40, 5.0)
+    values[30] = 4.9
+    score, episodes = _episodes(values, grain="week")
+    assert episodes == []
+    assert score.z[30] == pytest.approx(-2.0)
+    values[30] = 4.0  # a 20% fall is still flagged
+    _, episodes = _episodes(values, grain="week")
+    assert len(episodes) == 1 and episodes[0].direction == -1
