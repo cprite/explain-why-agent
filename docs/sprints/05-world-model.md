@@ -83,8 +83,10 @@ happens with the Markovian orchestrator (separate PR, `app/engines/markovian/`, 
   `candidates`, `over_cap`, `budget_chars`, `used_chars`, `dropped` (`count`, `ids`, `ids_complete`).
 - Budget: `used_chars` is exactly `len(serialise(payload))` (sorted-key compact JSON, the field
   included) and never exceeds `budget_chars`. The builder keeps the longest priority prefix that
-  fits, plus the protected refuting item, which goes only if it alone does not fit. If even the
-  complete list of dropped ids does not fit, it lists as many as fit and sets `ids_complete: false`;
+  fits, plus the protected refuting item, which goes only if a payload holding just it (and no
+  dropped ids) does not fit. Items come before the dropped-id list: when the complete list does not
+  fit next to the kept items, it lists as many ids as fit (highest priority first, the count stays
+  exact) and sets `ids_complete: false` before dropping another item;
   a budget below the empty payload (about 200 characters) raises `ValueError`.
 - At most 100 candidates per build (`MAX_CANDIDATES`; the rest is counted in `over_cap`, the
   protected item is kept).
@@ -121,7 +123,8 @@ New settings in `app/config.py` and `.env.example`: `WORLD_DB_PATH`, `ALERT_REL_
   and edges; directions (fixed and function); a Planner `Hypothesis` written and tested; re-ingest
   writes nothing; row cap and truncation; the demo run twice in subprocesses; every ContextBuilder
   intent; budgets from below one item to the full payload (exact fit and one character less);
-  protected refuting item until it alone exceeds the budget; incomplete dropped-id lists and the
+  protected refuting item at every budget from "it alone, no ids listed" upwards (seeded and sample
+  store, including 800–1500 characters on the sample store); incomplete dropped-id lists and the
   minimum-budget error; candidate cap; non-empty `selection_reason`; byte-identical payloads from the
   same store, a reopened store and a store written in reverse order; intent validation; the context
   demo.
@@ -149,7 +152,7 @@ New settings in `app/config.py` and `.env.example`: `WORLD_DB_PATH`, `ALERT_REL_
     ingest ing_f7abf82e976e6fed: already finished, nothing written (no-op)
     COUNTS {"edges": {"derived_from": 42, "from_source": 2, "refutes": 4, "supports": 38, "tests": 1}, "entities": {"hypothesis": 1, "metric": 2, "observation": 42, "query": 1, "question": 1, "segment": 3, "source": 2}}
     ```
-  - Sample context: `intent=critique items=6 {"hypothesis": 1, "observation:refutes": 1, "observation:supports": 4} used_chars=3613 budget_chars=4000 dropped=37`.
+  - Sample context: `intent=critique items=8 {"hypothesis": 1, "observation:refutes": 1, "observation:supports": 6} used_chars=3995 budget_chars=4000 dropped=35`.
 
 ## Known limits
 
@@ -165,7 +168,8 @@ New settings in `app/config.py` and `.env.example`: `WORLD_DB_PATH`, `ALERT_REL_
   does that; the ingest only scores what the caller passes).
 - `plan` / `report` with a `question_id` only include observations tied to that question's
   hypotheses; change-check observations (no hypothesis) appear only without a `question_id`.
-- The dropped-id list costs about 23 characters per item; with many candidates and a small budget it
-  crowds out items (the demo critique drops 37 of 43 at 4000 characters).
+- The dropped-id list costs about 23 characters per item; at small budgets it is shortened
+  (`ids_complete: false`), so a caller sees the exact count but not every dropped id (the demo
+  critique keeps 8 of 43 items at 4000 characters and lists only part of the 35 dropped ids).
 - SQLite triggers are row-level, so they guard rows, not schema: `DROP TABLE` is not blocked (no
   code issues one).
