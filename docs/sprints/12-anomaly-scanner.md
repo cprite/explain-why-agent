@@ -1,7 +1,9 @@
 # Sprint 12 — Anomaly scanner and Adtributor attribution (build-plan tasks 19a + 19b)
 
-Status: built and tested. **The plan check still fails** after the disclosed revision of 23 Oct
-(see "Revision (23 Oct)" below). It was run unchanged, and nothing was tuned after either run.
+Status: built and tested. The plan check now passes, **but only because its pass rule was changed
+after the result was seen**, by the owner's decision of 23 Oct (option A, see "Owner decision (23
+Oct)" below). Under the original top-ten rule it still fails (a) and (b). No detector setting was
+changed for this; nothing was tuned after any run.
 
 ## What was built
 
@@ -19,10 +21,15 @@ Status: built and tested. **The plan check still fails** after the disclosed rev
   - `detect.py`: robust STL + trailing robust z-score, volume floor, episodes.
   - `attribution.py`: `attribute(cube, ratio=...)`, the Adtributor step as a plain function.
   - `scan.py`: series queries, scoring, ranking, attribution of the top 40 episodes,
-    parent/child merge, cards. Wall-clock cap `SCANNER_TIMEOUT_S` (default 300) and a query /
+    parent/child merge, cards, and a per-metric board (each configured metric's top
+    `ranking.per_metric_top` episodes, default 3, by the same score). Wall-clock cap `SCANNER_TIMEOUT_S` (default 300) and a query /
     series / episode cap on every loop.
-  - `models.py`: `AnomalyCard` and `ScanReport` (pydantic; separate from the result schemas of PR #8).
-  - `python -m app.scanner` prints the ranked cards as a table plus the pre-filled questions;
+  - `models.py`: `AnomalyCard`, `MetricBoard` and `ScanReport` (pydantic; separate from the result
+    schemas of PR #8). `ScanReport.cards` is the overall top ten; `ScanReport.by_metric` is the
+    per-metric board, one `MetricBoard` per configured metric in config order. A card's `rank` is its
+    place in the list it is in, `overall_rank` its place among all flagged episodes.
+  - `python -m app.scanner` prints the overall top ten as a table plus the pre-filled questions, then
+    the per-metric board (one table per metric, with an `overall` rank column);
     `--json [PATH]` writes the report (default `logs/anomalies-<timestamp>.json`). Exit code 2
     when a cap stopped the run.
 - `eval/scanner_check.py`: the plan check (the only new code that reads `eval/answer_key.json`).
@@ -84,8 +91,9 @@ an incident. Incidents 04 and 06 are weekly series and do not go through STL at 
 
 ## How it was tested
 
-`ruff check .` → `All checks passed!`; `pytest -q` → `51 passed` (local, arm64; 43 new tests
-plus the 8 existing ones; 11 of them were added in the 23 Oct revision).
+`ruff check .` → `All checks passed!`; `pytest -q` → `57 passed` (local, arm64; 49 new tests
+plus the 8 existing ones; 11 of them were added in the 23 Oct revision and 6 for the owner's
+decision of 23 Oct).
 
 - `tests/test_scanner_detect.py` (criterion 2): one-day spike flagged as one episode on that day;
   step change flagged once, as one episode starting at the step; pure noise (120 days) not
@@ -118,7 +126,16 @@ plus the 8 existing ones; 11 of them were added in the 23 Oct revision).
   drawn uniformly. `tests/test_scanner_detect.py`: a MAD-floor test (a near-constant series with
   a 2% dip gives z −2, not infinity; a 20% fall is still flagged).
 - `tests/test_scanner_check.py`: the plan check's answer-key mapping, card matching and
-  weekly-cycle test, on hand-made cards.
+  weekly-cycle test, on hand-made cards; an incident's overall rank and rank within its metric
+  (merged children at their parent's rank; another metric on the right segment does not count);
+  the new pass rule (passes with one planted incident flagged outside the top ten while the old
+  (a)/(b) still report FAIL; fails with none flagged, with a weekly-cycle-only card, or on a
+  timeout); the old top-ten numbers are still computed.
+- `tests/test_scanner_pipeline.py` (per-metric board): one board per configured metric in config
+  order, including an empty one; a board is that metric's top N of the merged ranking, ranked
+  1..N within the metric with its overall rank kept; an episode beyond the overall top ten still
+  reaches the board and gets an attribution; the overall list is the same with the board on or
+  off; the CLI prints the board.
 
 ## Plan check (criterion 7), first run on 22 Oct: fails
 
@@ -226,6 +243,49 @@ What moved, and why (diagnosis only; nothing was changed after it):
 
 As agreed, there was no further tuning. The result is reported as is.
 
+## Owner decision (23 Oct): per-metric board and a report-style plan check
+
+**The plan check's pass rule was changed after seeing its result, by the owner's decision.** After
+the revision above, the owner (Nikolay) saw incident-06 flagged at rank 37 of 206 and incident-04
+not flagged at |z| ≥ 3.5, and chose option A: keep every detector setting as it is (12-period
+weekly window, MAD floor, thresholds, normalisation; none was changed), add a per-metric view, and
+turn the check into a report with a minimal pass rule.
+
+**Why.** The planted incidents are real but small next to the genuine anomalies in the Olist data:
+8 of the overall top ten are unplanted (mostly the December 2017 late-delivery wave and the
+review-score fall that goes with it). Requiring a planted incident in the overall top ten measures
+how large it is compared with real events, not whether the scanner finds it.
+
+**What changed.**
+
+1. Per-metric board (`ScanReport.by_metric`, printed by `python -m app.scanner`): for each
+   configured metric, its top `per_metric_top` (default 3) flagged episodes, ranked by the existing
+   score within that metric. The overall top ten is unchanged (same ten cards as before; checked
+   against the earlier run). The web page in a later sprint will show it on each metric tile.
+2. `eval/scanner_check.py` now prints, per planted incident, whether an episode was flagged on its
+   metric, segment and window, that episode's overall rank and rank within its metric, whether it
+   is on the per-metric board, and, if it is not flagged, the peak |z| its own series reached in
+   the window. It prints recall (flagged episode with matching metric, segment and window, over
+   the 8 determinable incidents) and still prints the old top-ten numbers and the old asserts (a)
+   and (b). **Pass rule:** at least one planted incident flagged, (c) no weekly-cycle-only card,
+   and the scan finished within the cap.
+
+**Before / after** (same scan, same 206 episodes after merging; `python eval/scanner_check.py`):
+
+| | old rule (top ten) | new rule (report) |
+|---|---|---|
+| incident-06 (avg review score, relogios_presentes) | not in the top ten: (a) FAIL | flagged, z −8.43, 2018-01-15..02-04, **overall rank 37 of 206, rank 6 of 25 within avg_review_score** |
+| incident-04 (avg freight, RJ) | not in the top ten: (b) FAIL | **not flagged**: peak z +3.38 in August 2018, below 3.5 (it was flagged at +4.44 with the 8-week window of the first run) |
+| recall | 2/8 segment + window, 0/8 with metric | **1/8** flagged with metric (incident-06 only) |
+| on the per-metric board (top 3) | — | **0/8** (incident-06 is 6th in its metric) |
+| (c) no weekly-cycle-only card | PASS | PASS |
+| unplanted flags | 8 of 10 cards | 8 of 10 cards (listed by the check) |
+| exit code | 1 | **0** |
+
+Other incidents not flagged (peak z in the window): 01 whole-shop revenue per order +2.53, 02
+whole-shop late rate +0.74, 08 RJ revenue per order −1.36, 10 (not determinable) −2.47; 03, 05, 07
+and 09 have no scored period in their window (below the volume floor or too little history).
+
 ## Known limits
 
 - **MAD on short windows is heavy-tailed.** Without any STL, the robust z of pure Gaussian noise
@@ -241,7 +301,13 @@ As agreed, there was no further tuning. The result is reported as is.
   surprise, which can be a near-empty statement such as "acquisition channel none: 88%" (97% of
   orders come from sellers outside the marketing funnel).
 - A zero-variance baseline (e.g. a payment type never used in a segment) gives an infinite z,
-  capped at 50 for ranking; one such episode reaches the top ten (card 4).
+  capped at 50 for ranking; one such episode reaches the top ten (card 2).
 - Explanatory power can exceed 100% for one slice when others move the opposite way.
 - Order-level dimensions use the first item's category and seller and the first payment's type.
 - Weekly series are tested against their trailing level only (no annual cycle at this length).
+- The per-metric board at its default of 3 does not show incident-06 (6th of 25 in average review
+  score); five other review-score episodes rank above it. The default was not changed after
+  seeing this.
+- The pass rule is weak by design (the owner's choice): it guards against a scanner that flags
+  nothing planted or flags the weekly cycle, not against poor recall. Recall is reported, not
+  asserted.
