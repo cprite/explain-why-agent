@@ -24,10 +24,10 @@ tried with its outcome. Sample mode runs the cascade on a recorded round with a 
 from __future__ import annotations
 
 import argparse
-import concurrent.futures
 import json
 import re
 import sys
+import threading
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -227,18 +227,33 @@ def compression_messages(
     ]
 
 
-def call_with_timeout(fn: Callable[[], GenerationResult], timeout_seconds: float) -> GenerationResult:
-    """Run `fn` in a worker thread and give up after `timeout_seconds`.
+class CompressionTimeout(Exception):
+    """The compression call did not finish within its time limit."""
 
-    On timeout the worker is abandoned, not killed (Python cannot stop a thread); the generator's own
-    HTTP timeouts end it eventually. The caller moves on immediately.
+
+def call_with_timeout(fn: Callable[[], GenerationResult], timeout_seconds: float) -> GenerationResult:
+    """Run `fn` in a daemon thread and give up after `timeout_seconds` (`CompressionTimeout`).
+
+    On timeout the thread is abandoned, not killed (Python cannot stop a thread); the generator's own
+    HTTP timeouts end it later, and as a daemon it never holds up process exit. Exceptions raised by
+    `fn` are re-raised here.
     """
-    pool = concurrent.futures.ThreadPoolExecutor(max_workers=1, thread_name_prefix="carryover-compress")
-    try:
-        future = pool.submit(fn)
-        return future.result(timeout=timeout_seconds)
-    finally:
-        pool.shutdown(wait=False, cancel_futures=True)
+    outcome: dict[str, Any] = {}
+
+    def target() -> None:
+        try:
+            outcome["result"] = fn()
+        except BaseException as exc:  # noqa: BLE001 - handed back to the caller below
+            outcome["error"] = exc
+
+    worker = threading.Thread(target=target, name="carryover-compress", daemon=True)
+    worker.start()
+    worker.join(timeout_seconds)
+    if worker.is_alive():
+        raise CompressionTimeout(f"no answer within {timeout_seconds:g} s")
+    if "error" in outcome:
+        raise outcome["error"]
+    return outcome["result"]
 
 
 def model_compression(
@@ -265,7 +280,7 @@ def model_compression(
         result = call_with_timeout(
             lambda: generate(messages, schema=CarryoverDraft, role=COMPRESSION_ROLE, run_id=run_id), timeout
         )
-    except concurrent.futures.TimeoutError:
+    except CompressionTimeout:
         raise _StepFailed(f"the generator did not answer within {timeout:g} s") from None
     except Exception as exc:  # noqa: BLE001 - any generator failure moves the cascade on
         raise _StepFailed(f"the generator raised {type(exc).__name__}: {exc}") from None
