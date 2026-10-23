@@ -150,12 +150,18 @@ def wire_body(result: QueryResult) -> dict[str, Any]:
 
 _TRAILING_LIMIT = re.compile(r"\bLIMIT\s+(\d+)\s*;?\s*$", re.IGNORECASE)
 
+# Relative tolerance for numbers. Spark evaluates `x / 7.0` as a DECIMAL with scale 6 (1/7 -> 0.142857),
+# DuckDB as a DOUBLE, so a ratio rounded to 4 places can read 70.0001 on Zetaris and 70 locally
+# (relative difference 1.4e-6). 1e-5 absorbs that; a difference of 1e-4 or more still fails.
+NUMERIC_REL_TOL = 1e-5
+NUMERIC_ABS_TOL = 1e-9
+
 
 def _same(a: Any, b: Any) -> bool:
     if isinstance(a, bool) or isinstance(b, bool):
         return a == b
     if isinstance(a, int | float) and isinstance(b, int | float):
-        return math.isclose(float(a), float(b), rel_tol=1e-9, abs_tol=1e-9)
+        return math.isclose(float(a), float(b), rel_tol=NUMERIC_REL_TOL, abs_tol=NUMERIC_ABS_TOL)
     return a == b
 
 
@@ -169,12 +175,29 @@ def _sort_key(row: dict[str, Any], columns: list[str]) -> tuple:
     return tuple((v is None, round(v, 6) if isinstance(v, float) else v) for v in (row.get(c) for c in columns))
 
 
-def _group(rows: list[dict[str, Any]], numeric: list[str], other: list[str]) -> dict[tuple, list[tuple]]:
-    """Rows grouped by their numbers: numeric tuple -> sorted list of the other columns' values."""
-    groups: dict[tuple, list[tuple]] = {}
+def _same_numbers(left: tuple, right: tuple) -> bool:
+    return all(_same(a, b) for a, b in zip(left, right, strict=True))
+
+
+def _group(rows: list[dict[str, Any]], numeric: list[str], other: list[str],
+           keys: list[tuple] | None = None) -> list[tuple[tuple, list[tuple]]] | None:
+    """Rows grouped by their numbers within `NUMERIC_REL_TOL`: [(numbers, sorted other-column values)].
+
+    With `keys` (the other side's group numbers), every row must join one of those groups, in that
+    order; None if a row matches none of them (that side holds numbers the other does not).
+    """
+    groups: list[tuple[tuple, list[tuple]]] = [(key, []) for key in keys or []]
     for row in rows:
-        groups.setdefault(_sort_key(row, numeric), []).append(tuple(_sort_key(row, other)))
-    return {key: sorted(values) for key, values in groups.items()}
+        numbers = tuple(row.get(c) for c in numeric)
+        for key, members in groups:
+            if _same_numbers(key, numbers):
+                members.append(tuple(_sort_key(row, other)))
+                break
+        else:
+            if keys is not None:
+                return None
+            groups.append((numbers, [tuple(_sort_key(row, other))]))
+    return [(key, sorted(members)) for key, members in groups]
 
 
 def _format_variant(a: Any, b: Any) -> bool:
@@ -187,10 +210,10 @@ def _tie_at_cut(local: QueryResult, zetaris: QueryResult, numeric: list[str]) ->
     """True if the results differ only in which tied rows an `ORDER BY … LIMIT n` kept.
 
     Legitimate only when the statement ends in `LIMIT n` and the limit was reached: then the last
-    tie group (the rows sharing the numbers of the last row) can be cut at a different member on
-    each engine. Every other group must carry the same identifiers, both sides must hold the same
-    numbers with the same group sizes, and an identifier that is a reformatting of the other side's
-    (a date printed as a timestamp) is a difference, not a tie.
+    tie group (the rows sharing the numbers of the last row, within `NUMERIC_REL_TOL`) can be cut at
+    a different member on each engine. Every other group must carry the same identifiers, both sides
+    must hold the same numbers with the same group sizes, and an identifier that is a reformatting of
+    the other side's (a date printed as a timestamp) is a difference, not a tie.
     """
     match = _TRAILING_LIMIT.search(local.sql.strip())
     if not numeric or not match or not local.rows or len(local.rows) != int(match.group(1)):
@@ -198,20 +221,22 @@ def _tie_at_cut(local: QueryResult, zetaris: QueryResult, numeric: list[str]) ->
     if len(zetaris.rows) != len(local.rows):
         return False
     other = [c for c in local.columns if c not in numeric]
-    cut = _sort_key(local.rows[-1], numeric)
-    if _sort_key(zetaris.rows[-1], numeric) != cut:
+    left = _group(local.rows, numeric, other)
+    right = _group(zetaris.rows, numeric, other, keys=[key for key, _ in left])
+    if right is None or any(len(lm) != len(rm) for (_, lm), (_, rm) in zip(left, right, strict=True)):
         return False
-    left, right = _group(local.rows, numeric, other), _group(zetaris.rows, numeric, other)
-    if left.keys() != right.keys() or any(len(left[k]) != len(right[k]) for k in left):
+    cut = tuple(local.rows[-1].get(c) for c in numeric)
+    if not _same_numbers(cut, tuple(zetaris.rows[-1].get(c) for c in numeric)):
         return False
-    for key in left:
-        if key == cut:
+    cut_index = next(i for i, (key, _) in enumerate(left) if _same_numbers(key, cut))
+    for i, ((_, lm), (_, rm)) in enumerate(zip(left, right, strict=True)):
+        if i == cut_index:
             continue
-        if any(not _same(a, b) for lv, rv in zip(left[key], right[key], strict=True)
+        if any(not _same(a, b) for lv, rv in zip(lm, rm, strict=True)
                for (_, a), (_, b) in zip(lv, rv, strict=True)):
             return False
-    lvals = [v for _, v in (cell for t in left[cut] for cell in t)]
-    rvals = [v for _, v in (cell for t in right[cut] for cell in t)]
+    lvals = [v for _, v in (cell for t in left[cut_index][1] for cell in t)]
+    rvals = [v for _, v in (cell for t in right[cut_index][1] for cell in t)]
     return not any(_format_variant(a, b) for a in lvals for b in rvals if a is not None and b is not None)
 
 

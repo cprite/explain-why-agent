@@ -27,6 +27,7 @@ from app.data.parity import (
     BODY_KEYS,
     FIXTURE_DIR,
     LIVE,
+    NUMERIC_REL_TOL,
     SYNTHETIC,
     compare,
     load_fixtures,
@@ -180,6 +181,37 @@ def test_compare_fails_differently_formatted_date_labels() -> None:
         assert compare(_result(local, "local", statement), _result(shifted)) == (False, "FAIL: values differ")
     other_day = [{"day": "2017-11-25", "n": 1176}]
     assert compare(_result(local, "local", sql), _result(other_day))[0] is False
+
+
+SPIKE = ("SELECT seller_id, window_orders, baseline_avg_daily_orders, spike_ratio FROM t "
+         "ORDER BY spike_ratio DESC NULLS LAST LIMIT 3")
+
+
+def _spike(seller: str, window: int, baseline: float, ratio: float) -> dict:
+    return {"seller_id": seller, "window_orders": window, "baseline_avg_daily_orders": baseline,
+            "spike_ratio": ratio}
+
+
+def test_compare_tolerates_spark_decimal_division_with_a_tie_cut() -> None:
+    # Live run, 23 Oct, day1_seller_spike: Spark computes 1/7.0 as DECIMAL 0.142857, so
+    # ROUND(10 / 0.142857, 4) = 70.0001 where DuckDB's double gives 70; LIMIT cut the spike_ratio 21
+    # tie at a different seller.
+    local = _result([_spike("s1", 10, 0.1429, 70.0), _spike("s2", 3, 0.1429, 21.0),
+                     _spike("s3", 3, 0.1429, 21.0)], "local", SPIKE)
+    zetaris = _result([_spike("s1", 10, 0.1429, 70.0001), _spike("s2", 3, 0.1429, 21.0),
+                       _spike("s9", 3, 0.1429, 21.0)])
+    assert compare(local, zetaris) == (True, "PASS (same numbers; the LIMIT cut a tie at different rows)")
+    assert NUMERIC_REL_TOL == 1e-5
+
+
+def test_compare_fails_a_relative_difference_of_1e_3() -> None:
+    local = _result([_spike("s1", 10, 0.1429, 70.0), _spike("s2", 3, 0.1429, 21.0)], "local",
+                    SPIKE.replace("LIMIT 3", "LIMIT 2"))
+    off = _result([_spike("s1", 10, 0.1429, 70.07), _spike("s2", 3, 0.1429, 21.0)])
+    assert compare(local, off) == (False, "FAIL: values differ")
+    # The same difference inside the tie group at the cut also fails.
+    tie_off = _result([_spike("s1", 10, 0.1429, 70.0), _spike("s9", 3, 0.1429, 21.021)])
+    assert compare(local, tie_off) == (False, "FAIL: values differ")
 
 
 def test_fixture_provenance_is_known_and_not_mixed() -> None:

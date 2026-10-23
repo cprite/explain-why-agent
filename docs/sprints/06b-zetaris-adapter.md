@@ -140,6 +140,9 @@ its first start with an empty volume.
   sides, and identical labels in every group except the last tie group (the rows sharing the last
   row's numbers). Labels attached to different numbers (swapped categories) and a date printed as
   a timestamp (`2017-11-24` vs `2017-11-24 00:00:00`) fail. Each pass says which case it was.
+- Numbers are equal within a relative tolerance of `1e-5` (`NUMERIC_REL_TOL` in
+  `app/data/parity.py`), both in the row comparison and when rows are grouped into tie groups. A
+  relative difference of `1e-3` fails (test).
 
 ## Deliberately left out
 
@@ -259,6 +262,13 @@ its first start with an empty volume.
     fixtures mix live and synthetic files (a partial `--record` run).
 - **Live parity result:** _to be added by the maintainer after running
   `python scripts/zetaris_parity.py` against the AWS instance._
+- **Spark decimal division differs from DuckDB at the 4th decimal.** The live parity run on 23 Oct
+  (setup OK: USL ready, 11 tables, 9 foreign keys) passed 7 of 8 queries and failed
+  `day1_seller_spike`. Spark evaluates `COALESCE(bc.baseline_orders, 0) / 7.0` as a DECIMAL with
+  scale 6 (1/7.0 -> 0.142857), so `ROUND(10 / 0.142857, 4)` gives 70.0001 where DuckDB's double
+  gives 70. The rest of that diff was which tied sellers (spike ratio 21) the `LIMIT 20` kept. The
+  check now treats numbers as equal within relative `1e-5`, which covers this and nothing of
+  `1e-4` or more. The Day 1 SQL is unchanged.
 - **Setup statements that no one has run on our server yet.** The 14 Oct test covered `date`, `int`,
   `decimal` and `varchar` columns, a two-table USL with one foreign key, and activation with `CAST`
   and `COALESCE`. Not yet tried on 2.4.3: `timestamp`, `double` and `boolean` USL columns; USL
