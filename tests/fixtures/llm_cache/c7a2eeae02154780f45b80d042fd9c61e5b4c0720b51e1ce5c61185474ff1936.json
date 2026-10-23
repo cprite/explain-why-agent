@@ -1,0 +1,23 @@
+{
+  "key": "c7a2eeae02154780f45b80d042fd9c61e5b4c0720b51e1ce5c61185474ff1936",
+  "role": "investigator",
+  "schema": "Answer",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You answer arithmetic."
+    },
+    {
+      "role": "user",
+      "content": "2+3?"
+    }
+  ],
+  "reply": "{\"answer\": 5, \"word\": \"five\"}",
+  "provider": "fixture",
+  "model_requested": "meterless/fast",
+  "model_routed": "fixture-model",
+  "receipt_id": null,
+  "usage": null,
+  "recorded_with": "stub",
+  "recorded_at": "2026-10-22T00:00:00+00:00"
+}

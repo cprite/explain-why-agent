@@ -21,3 +21,38 @@ jobs:
         run: ruff check .
       - name: Test
         run: pytest -q
+      - name: "Plan check A: data adapter (cross-source join, rejected write)"
+        run: python -m app.data.check
+      - name: "Plan check B: generator stub suite and example-result validation"
+        run: python -m app.llm.check
+      - name: "Plan check C: sample-mode run.py on the Day 1 question (cause, evidence, trace)"
+        env:
+          SAMPLE_MODE: "true"
+        run: |
+          set -o pipefail
+          python run.py "Why did order volume spike on 24 November 2017?" --run-id ci-day1 | tee /tmp/result-ci-day1.json
+          python scripts/check_result.py /tmp/result-ci-day1.json
+          echo "--- logs/trace-ci-day1.jsonl (first 3 lines) ---"
+          head -n 3 logs/trace-ci-day1.jsonl
+      - name: "Plan check D (task 7): same observation written twice is one record, log shows a no-op"
+        run: pytest -q -s tests/test_world_store.py::test_plan_check_task7_same_observation_twice_is_one_record
+      - name: "Plan check E (task 8): interrupted ingest resumes from its checkpoint, no duplicates"
+        run: pytest -q -s tests/test_world_ingest.py::test_plan_check_task8_interrupted_ingest_resumes_without_duplicates
+      - name: "World Model sample ingest, run twice: entity and edge counts must be identical"
+        env:
+          SAMPLE_MODE: "true"
+          WORLD_DB_PATH: logs/world-ci.db
+        run: |
+          set -o pipefail
+          python -m app.engines.world_model.ingest --sample | tee /tmp/ingest-1.txt
+          python -m app.engines.world_model.ingest --sample | tee /tmp/ingest-2.txt
+          grep '^COUNTS ' /tmp/ingest-1.txt > /tmp/counts-1.txt
+          grep '^COUNTS ' /tmp/ingest-2.txt > /tmp/counts-2.txt
+          diff /tmp/counts-1.txt /tmp/counts-2.txt && echo "[PASS] counts identical on both runs"
+      - name: "Plan check F (task 9): critique payload within budget with supporting and refuting evidence"
+        run: pytest -q -s tests/test_world_context.py::test_plan_check_task9_critique_has_support_and_refutation_within_budget
+      - name: "World Model sample context: critique payload"
+        env:
+          SAMPLE_MODE: "true"
+          WORLD_DB_PATH: logs/world-ci.db
+        run: python -m app.engines.world_model.context --sample --intent critique

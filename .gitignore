@@ -21,6 +21,9 @@ env/
 # Local secrets
 .env
 
+# DuckDB working files (local adapter)
+.cache/
+
 # Runtime logs (keep the directory)
 logs/*
 !logs/.gitkeep
