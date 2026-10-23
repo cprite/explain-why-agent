@@ -303,7 +303,13 @@ class ContextBuilder:
         raise RuntimeError("used_chars did not settle")  # cannot happen: the length changes by digits only
 
     def _fit(self, intent: Intent, candidates: list[_Candidate], budget: int, over_cap: int) -> dict[str, Any]:
-        """Keep the longest priority prefix (plus the protected item) whose payload fits the budget."""
+        """Keep the longest priority prefix (plus the protected item) whose payload fits the budget.
+
+        Items come before the dropped-id list: when the complete list does not fit next to the kept
+        items, the list is shortened (highest priority ids first, ``ids_complete`` false, the count
+        stays exact) before another item is dropped. The protected refuting item goes only when a
+        payload holding just it and an empty id list exceeds the budget.
+        """
         total = len(candidates)
         protected = next((i for i, c in enumerate(candidates) if c.protected), None)
         # One pass per prefix length: bounded by MAX_CANDIDATES.
@@ -313,17 +319,35 @@ class ContextBuilder:
                 indices.add(protected)
             kept = [c for i, c in enumerate(candidates) if i in indices]
             dropped = [c.id for i, c in enumerate(candidates) if i not in indices]
-            payload, text = self._payload(intent, kept, dropped, True, budget, total, over_cap)
-            if len(text) <= budget:
+            payload = self._listing(intent, kept, dropped, budget, total, over_cap)
+            if payload is not None:
                 return payload
-        # Nothing fits with the protected item: it alone exceeds the budget, so it goes too. If even
-        # the full list of dropped ids does not fit, list as many as fit (highest priority first).
-        all_ids = [c.id for c in candidates]
-        for listed in range(total, -1, -1):
-            payload, text = self._payload(intent, [], all_ids[:listed], listed == total, budget, total, over_cap)
+        # The protected item alone exceeds the budget, so it goes too.
+        payload = self._listing(intent, [], [c.id for c in candidates], budget, total, over_cap)
+        if payload is not None:
+            return payload
+        minimum = len(self._payload(intent, [], [], False, budget, total, over_cap)[1])
+        raise ValueError(f"budget_chars={budget} is below the minimum payload of {minimum} chars")
+
+    def _listing(self, intent: Intent, kept: list[_Candidate], dropped: list[str], budget: int, total: int,
+                 over_cap: int) -> dict[str, Any] | None:
+        """The payload for `kept` with as many dropped ids as fit (all if possible), or None if none fits."""
+        payload, text = self._payload(intent, kept, dropped, True, budget, total, over_cap)
+        if len(text) <= budget:
+            return payload
+        payload, text = self._payload(intent, kept, [], not dropped, budget, total, over_cap)
+        if len(text) > budget:
+            return None
+        # Binary search on the listed prefix length: the text grows with every id (bounded by log2 of the list).
+        low, high = 0, len(dropped) - 1  # `low` ids fit; `len(dropped)` ids do not
+        while low < high:
+            middle = (low + high + 1) // 2
+            candidate, text = self._payload(intent, kept, dropped[:middle], False, budget, total, over_cap)
             if len(text) <= budget:
-                return payload
-        raise ValueError(f"budget_chars={budget} is below the minimum payload of {len(text)} chars")
+                low, payload = middle, candidate
+            else:
+                high = middle - 1
+        return payload
 
 
 # --- sample-mode demo --------------------------------------------------------------------------------

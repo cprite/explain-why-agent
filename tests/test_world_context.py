@@ -114,23 +114,57 @@ def test_critique_selects_all_evidence_strongest_first(seeded) -> None:
     assert len(protected) == 1 and protected[0]["summary"]["value"] == 90  # the stronger of the two falls
 
 
+def _alone_size(full: dict, item: dict) -> int:
+    """Length of the payload holding only `item` and an empty dropped-id list, at a budget of that same
+    length (budget_chars and used_chars are part of the text they measure: iterate to the fixed point)."""
+    payload = full | {"items": [item], "used_chars": 0, "budget_chars": 0,
+                      "dropped": {"count": full["candidates"] - 1, "ids": [], "ids_complete": False}}
+    while len(serialise(payload)) != payload["used_chars"]:
+        payload["used_chars"] = payload["budget_chars"] = len(serialise(payload))
+    return payload["used_chars"]
+
+
+def _assert_refuting_kept_from_alone_size(builder: ContextBuilder, intent: Intent) -> int:
+    full = builder.build(intent, 1_000_000)
+    refuting = next(i for i in full["items"] if "always kept" in i["selection_reason"])
+    alone = _alone_size(full, refuting)
+    # From the size of "refuting item alone, no ids listed" upwards, the refuting item is always kept:
+    # the dropped-id list is shortened before any item goes.
+    for budget in [*range(alone, full["used_chars"] + 50, 25), full["used_chars"]]:
+        payload = builder.build(intent, budget)
+        _check_budget(payload, budget)
+        assert refuting["id"] in {item["id"] for item in payload["items"]}, budget
+    below = builder.build(intent, alone - 1)
+    _check_budget(below, alone - 1)
+    assert below["items"] == [] and below["dropped"]["count"] == below["candidates"]
+    return alone
+
+
 def test_critique_keeps_refuting_item_until_it_alone_exceeds_budget(seeded) -> None:
     store, ids = seeded
     builder = ContextBuilder(store)
     intent = Intent(kind="critique", hypothesis_id=ids["h1"])
-    full = builder.build(intent, 100_000)
-    refuting = next(i for i in full["items"] if "always kept" in i["selection_reason"])
-    # The smallest budget that still holds the refuting item alone (plus the dropped-id list).
-    for budget in range(400, 5000, 25):
-        payload = builder.build(intent, budget)
-        if payload["items"]:
-            break
-    assert [item["id"] for item in payload["items"]] == [refuting["id"]]
-    assert ids["h1"] in payload["dropped"]["ids"]  # higher priority, but not protected
-    _check_budget(payload, budget)
-    below = builder.build(intent, budget - 25)
-    assert below["items"] == [] and refuting["id"] in below["dropped"]["ids"]
-    _check_budget(below, budget - 25)
+    alone = _assert_refuting_kept_from_alone_size(builder, intent)
+    payload = builder.build(intent, alone)
+    assert len(payload["items"]) == 1 and payload["dropped"]["ids_complete"] is False
+    assert payload["dropped"]["count"] == payload["candidates"] - 1
+
+
+def test_critique_on_sample_store_keeps_items_ahead_of_dropped_ids(tmp_path: Path) -> None:
+    """Regression: with 40+ candidates the complete dropped-id list alone outgrew ordinary budgets
+    and the builder returned no evidence. Items now come first; the id list is shortened instead."""
+    from app.engines.world_model.ingest import seed_sample
+
+    with WorldStore(tmp_path / "world.db") as store:
+        seeded = seed_sample(store, run_id="test")
+        builder = ContextBuilder(store)
+        intent = Intent(kind="critique", hypothesis_id=seeded["hypothesis_id"])
+        alone = _assert_refuting_kept_from_alone_size(builder, intent)
+        assert alone <= 800
+        for budget in (800, 1000, 1200, 1500):
+            payload = builder.build(intent, budget)
+            assert payload["items"] and "refutes" in _directions(payload), budget
+        assert len(builder.build(intent, 1500)["items"]) > len(builder.build(intent, 800)["items"])
 
 
 def test_budget_range_including_below_one_item(seeded) -> None:
