@@ -312,6 +312,19 @@ def test_rewrite_in_source_scope_handles_unqualified_tables() -> None:
     assert to_usl_sql("SELECT * FROM order_payments", "orders") == ("SELECT * FROM order_payments", [])
 
 
+def test_rewrite_in_source_scope_leaves_cte_names_that_shadow_tables() -> None:
+    sql, used = to_usl_sql("WITH orders AS (SELECT * FROM orders.orders WHERE order_status = 'delivered') "
+                           "SELECT COUNT(*) FROM orders", "orders")
+    assert sql == (f"WITH orders AS (SELECT * FROM {USL_PATH}.orders WHERE order_status = 'delivered') "
+                   "SELECT COUNT(*) FROM orders")
+    assert used == [f"{USL_PATH}.orders"]
+    sql, used = to_usl_sql("WITH RECURSIVE d AS (SELECT 1), Order_Items (order_id, n) AS (SELECT order_id, 1 FROM order_items) "
+                           "SELECT * FROM order_items JOIN orders o USING (order_id)", "orders")
+    assert sql == (f"WITH RECURSIVE d AS (SELECT 1), Order_Items (order_id, n) AS (SELECT order_id, 1 FROM order_items) "
+                   f"SELECT * FROM order_items JOIN {USL_PATH}.orders o USING (order_id)")
+    assert used == [f"{USL_PATH}.orders"]
+
+
 # --- types --------------------------------------------------------------------------------------------
 
 

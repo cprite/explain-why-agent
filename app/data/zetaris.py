@@ -250,6 +250,8 @@ def parse_rest_body(body: dict[str, Any]) -> RestResult:
 
 _QUALIFIED_RE = re.compile(r"(?<![\w.])([A-Za-z_]\w*)\.([A-Za-z_]\w*)\b")
 _UNQUALIFIED_RE = re.compile(r"\b(FROM|JOIN)(\s+)([A-Za-z_]\w*)\b(?!\s*[.(])", re.IGNORECASE)
+# `WITH [RECURSIVE] name [(cols)] AS (` and `, name [(cols)] AS (`: a CTE name that shadows a table.
+_CTE_RE = re.compile(r"(?:\bWITH(?:\s+RECURSIVE)?|,)\s*([A-Za-z_]\w*)\s*(?:\([^()]*\)\s*)?AS\s*\(", re.IGNORECASE)
 
 
 def _segments(sql: str) -> list[tuple[bool, str]]:
@@ -292,7 +294,7 @@ def to_usl_sql(sql: str, source: str | None = None) -> tuple[str, list[str]]:
 
     `<source>.<table>` is rewritten anywhere in code (not in literals or comments). With a source scope,
     an unqualified table of that source right after FROM or JOIN is rewritten too, as the local
-    adapter resolves it through its search path.
+    adapter resolves it through its search path, unless a CTE of the same name shadows it.
     """
     used: list[str] = []
 
@@ -307,14 +309,21 @@ def to_usl_sql(sql: str, source: str | None = None) -> tuple[str, list[str]]:
             return use(table)
         return match.group(0)
 
+    segments = _segments(sql)
     scoped = {t.name: t for t in tables_of(source)} if source else {}
+    if scoped:
+        for is_code, text in segments:
+            if is_code:
+                for name in _CTE_RE.findall(text):
+                    scoped.pop(name.lower(), None)
+                    scoped.pop(name, None)
 
     def unqualified(match: re.Match[str]) -> str:
         table = scoped.get(match.group(3))
         return f"{match.group(1)}{match.group(2)}{use(table)}" if table else match.group(0)
 
     parts = []
-    for is_code, text in _segments(sql):
+    for is_code, text in segments:
         if is_code:
             text = _QUALIFIED_RE.sub(qualified, text)
             if scoped:

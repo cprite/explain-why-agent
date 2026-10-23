@@ -74,7 +74,8 @@ its first start with an empty volume.
 - **SQL.** Agents keep writing `<source>.<table>`. The adapter rewrites these to the USL names
   (`orders.orders` → `lightning.metastore.explain_why.olist_usl.orders`); string literals, comments
   and quoted identifiers are left alone. With a source scope, an unqualified table right after
-  `FROM`/`JOIN` is rewritten too. The query keeps the SQL as the agent wrote it, and the log also
+  `FROM`/`JOIN` is rewritten too, unless a CTE of the same name (`WITH orders AS (…)`) shadows
+  it, as it does in DuckDB. The query keeps the SQL as the agent wrote it, and the log also
   records the SQL sent (`zetaris_sql`).
 - **REST client.** Sends `POST <ZETARIS_URL>/sql-editor/sqls/run` with `Authorization: Bearer
   <ZETARIS_API_KEY>`, `X-Org-ID`, and a fresh UUID in both `X-Request-ID` and `queryId`. Every call
@@ -281,8 +282,8 @@ its first start with an empty volume.
 - **Nulls in `varchar` columns.** If REST sends a null as the string `"null"`, a `varchar` column
   keeps it as text. Other types convert it to `None`. The live parity run will show which it is.
 - **Unqualified table names in a source scope** are rewritten only right after `FROM` or `JOIN`. A
-  comma-separated `FROM a, b` is not rewritten, and a CTE named like a table of that source is
-  replaced by the real table. Agents write `<source>.<table>` (the cross-source form), which is
+  comma-separated `FROM a, b` is not rewritten. CTE names (`WITH name AS (` and `, name AS (`)
+  are never rewritten, so a CTE named like a table keeps its meaning. Agents write `<source>.<table>` (the cross-source form), which is
   always rewritten.
 - **Worst-case time for a failed query.** Before falling back, a query can wait two Zetaris
   timeouts plus the retry delay.
