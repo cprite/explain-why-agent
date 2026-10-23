@@ -22,6 +22,8 @@ from app.config import get_settings
 from app.data.layer import QueryResult
 from app.data.local import LocalDataLayer
 from app.data.parity import (
+    LIVE,
+    SYNTHETIC,
     compare,
     load_queries,
     side_by_side,
@@ -46,7 +48,7 @@ def synthesise(local: LocalDataLayer) -> int:
             return 1
         zetaris_sql, _ = to_usl_sql(result.sql.strip().rstrip(";").rstrip(), query.source)
         path = write_fixture(query.name, zetaris_sql, local.max_rows + 1, wire_body(result),
-                             recorded_with="synthetic (local DuckDB rows in Zetaris REST wire format)")
+                             recorded_with=SYNTHETIC)
         print(f"wrote {path.name}: {result.row_count} rows")
     return 0
 
@@ -101,7 +103,7 @@ def main(argv: list[str] | None = None) -> int:
     ok = all(passed for _, passed, *_ in results)
     if args.record:
         for name, (sql, limit, body) in recorded.items():
-            write_fixture(name, sql, limit, body, recorded_with="zetaris (live REST response)")
+            write_fixture(name, sql, limit, body, recorded_with=LIVE)
         print(f"recorded {len(recorded)} fixtures in tests/fixtures/zetaris/")
     print("PASS" if ok else "FAIL")
     return 0 if ok else 1

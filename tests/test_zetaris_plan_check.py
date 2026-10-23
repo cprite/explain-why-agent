@@ -12,6 +12,7 @@ from a real server (`--record`).
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -25,11 +26,15 @@ from app.data.local import LocalDataLayer
 from app.data.parity import (
     BODY_KEYS,
     FIXTURE_DIR,
+    LIVE,
+    SYNTHETIC,
     compare,
     load_fixtures,
     load_queries,
     replay_transport,
     side_by_side,
+    synthetic_fixtures,
+    write_fixture,
 )
 from app.data.zetaris import ZetarisClient, ZetarisDataLayer, to_usl_sql
 
@@ -175,3 +180,43 @@ def test_compare_fails_differently_formatted_date_labels() -> None:
         assert compare(_result(local, "local", statement), _result(shifted)) == (False, "FAIL: values differ")
     other_day = [{"day": "2017-11-25", "n": 1176}]
     assert compare(_result(local, "local", sql), _result(other_day))[0] is False
+
+
+def test_fixture_provenance_is_known_and_not_mixed() -> None:
+    """Each fixture is either live or synthetic, and a partial `--record` run is not committed."""
+    labels = {f["recorded_with"] for f in FIXTURES.values()}
+    assert labels <= {LIVE, SYNTHETIC}, labels
+    assert len(labels) == 1, f"mixed provenance, re-run the recording: {synthetic_fixtures(FIXTURES)} synthetic"
+
+
+def test_fixtures_are_live_zetaris_responses() -> None:
+    """Acceptance criterion 7 needs real Zetaris responses; synthetic ones only prove the adapter.
+
+    Skipped (with the reason in the CI log) while the fixtures are synthetic; with
+    ZETARIS_REQUIRE_LIVE_FIXTURES=1 it fails instead, which is how to check before merging.
+    """
+    synthetic = synthetic_fixtures(FIXTURES)
+    if synthetic and os.environ.get("ZETARIS_REQUIRE_LIVE_FIXTURES") != "1":
+        pytest.skip(f"{len(synthetic)} of {len(FIXTURES)} Zetaris fixtures are SYNTHETIC: the plan check does not "
+                    "yet prove Zetaris gives the same numbers; record live with scripts/zetaris_parity.py --record")
+    assert not synthetic, f"synthetic fixtures: {synthetic}"
+
+
+def _status(directory: Path, *args: str) -> subprocess.CompletedProcess:
+    env = {k: v for k, v in os.environ.items() if k != "GITHUB_ACTIONS"}
+    return subprocess.run([sys.executable, "scripts/zetaris_fixture_status.py", "--dir", str(directory), *args],
+                          capture_output=True, text=True, timeout=60, env=env, check=False)
+
+
+@pytest.mark.parametrize("label", [SYNTHETIC, LIVE])
+def test_fixture_status_script_flags_synthetic_fixtures(tmp_path: Path, label: str) -> None:
+    body = {"headers": ["n"], "data": [["1"]], "total": 1}
+    write_fixture("a", "SELECT 1", 1001, body, recorded_with=LIVE, directory=tmp_path)
+    write_fixture("b", "SELECT 2", 1001, body, recorded_with=label, directory=tmp_path)
+    warn, strict = _status(tmp_path), _status(tmp_path, "--require-live")
+    assert warn.returncode == 0
+    if label == SYNTHETIC:
+        assert "WARNING: 1 of 2 Zetaris fixtures are synthetic" in warn.stdout
+        assert strict.returncode == 1 and "FAIL: 1 of 2" in strict.stdout
+    else:
+        assert "all 2 fixtures recorded from a live Zetaris" in warn.stdout and strict.returncode == 0

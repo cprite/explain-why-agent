@@ -250,6 +250,13 @@ its first start with an empty volume.
     runs `python scripts/zetaris_parity.py --record` over the tunnel, checks that every file reads
     `recorded_with: "zetaris (live REST response)"` and holds no host or token
     (`tests/test_zetaris_plan_check.py` checks the latter), and commits the files.
+  - This state cannot slip through quietly. CI step "Plan check D" runs
+    `python scripts/zetaris_fixture_status.py`, which lists each fixture's provenance and raises a
+    GitHub warning annotation while any is synthetic. `test_fixtures_are_live_zetaris_responses`
+    is skipped with that reason (shown by `pytest -rs`). Before merging, both of these must pass:
+    `python scripts/zetaris_fixture_status.py --require-live` (exit 1 while any fixture is synthetic) and
+    `ZETARIS_REQUIRE_LIVE_FIXTURES=1 pytest -s -q tests/test_zetaris_plan_check.py`. A test also fails if the
+    fixtures mix live and synthetic files (a partial `--record` run).
 - **Live parity result:** _to be added by the maintainer after running
   `python scripts/zetaris_parity.py` against the AWS instance._
 - **Setup statements that no one has run on our server yet.** The 14 Oct test covered `date`, `int`,

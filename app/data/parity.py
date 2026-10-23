@@ -27,6 +27,8 @@ from app.data.zetaris import RUN_SQL_PATH
 FIXTURE_DIR = REPO_ROOT / "tests" / "fixtures" / "zetaris"
 QUERIES_FILE = FIXTURE_DIR / "queries.json"
 BODY_KEYS = ("headers", "data", "total")
+LIVE = "zetaris (live REST response)"
+SYNTHETIC = "synthetic (local DuckDB rows in Zetaris REST wire format)"
 
 
 @dataclass(frozen=True)
@@ -80,6 +82,11 @@ def load_fixtures(directory: Path = FIXTURE_DIR) -> dict[str, dict[str, Any]]:
             record = json.loads(path.read_text(encoding="utf-8"))
             out[record["name"]] = record
     return out
+
+
+def synthetic_fixtures(fixtures: dict[str, dict[str, Any]]) -> list[str]:
+    """Names of fixtures not recorded from a live Zetaris (they prove the adapter, not Zetaris's numbers)."""
+    return sorted(name for name, record in fixtures.items() if record["recorded_with"] != LIVE)
 
 
 def replay_transport(fixtures: dict[str, dict[str, Any]], seen: list[httpx.Request] | None = None) -> httpx.MockTransport:
