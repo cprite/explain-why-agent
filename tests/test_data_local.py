@@ -267,3 +267,46 @@ def test_plan_check_script_prints_both_results() -> None:
     assert result.returncode == 0, result.stdout + result.stderr
     assert "[PASS] cross-source join" in result.stdout
     assert "[PASS] write statement rejected" in result.stdout
+
+
+# --- recorded query results for sample-mode replay -----------------------------------------------
+
+TIE_SQL = "SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 ORDER BY n"
+
+
+def _layer(tmp_path: Path, **overrides: object) -> LocalDataLayer:
+    settings = Settings(
+        log_dir=str(tmp_path / "logs"), query_cache_dir=str(tmp_path / "qcache"), **overrides
+    )
+    return LocalDataLayer(run_id="qcache", log_dir=tmp_path / "logs", sources=("orders",), settings=settings)
+
+
+def test_recording_run_writes_query_results(tmp_path: Path) -> None:
+    with _layer(tmp_path, sample_mode=False, record_cache=True) as data:
+        result = data.query(None, TIE_SQL)
+    assert isinstance(result, QueryResult) and result.replayed is False
+    files = list((tmp_path / "qcache").glob("*.json"))
+    assert len(files) == 1
+    assert '"rows"' in files[0].read_text()
+
+
+def test_sample_mode_serves_recorded_rows_after_running_the_query(tmp_path: Path) -> None:
+    with _layer(tmp_path, sample_mode=False, record_cache=True) as data:
+        data.query(None, TIE_SQL)
+    [path] = list((tmp_path / "qcache").glob("*.json"))
+    recorded = path.read_text().replace('"n": 1', '"n": 9')  # stand-in for another platform's tie order
+    path.write_text(recorded)
+    with _layer(tmp_path, sample_mode=True) as data:
+        result = data.query(None, TIE_SQL)
+        rejected = data.query(None, "DELETE FROM orders.orders")
+    assert isinstance(result, QueryResult) and result.replayed is True
+    assert [row["n"] for row in result.rows] == [9, 2, 3]
+    assert isinstance(rejected, QueryError) and rejected.code == "rejected"  # the guard still applies
+
+
+def test_without_a_recording_sample_mode_returns_real_rows(tmp_path: Path) -> None:
+    with _layer(tmp_path, sample_mode=True) as data:
+        result = data.query(None, TIE_SQL)
+    assert isinstance(result, QueryResult) and result.replayed is False
+    assert [row["n"] for row in result.rows] == [1, 2, 3]
+    assert not (tmp_path / "qcache").exists()

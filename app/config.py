@@ -52,6 +52,10 @@ class Settings(BaseSettings):
     max_retries: int = Field(default=3, ge=0, le=3)
     record_cache: bool = False
     llm_cache_dir: str = "data/sample/llm_cache"
+    # Recorded query results for sample mode: written with RECORD_CACHE in a live run, served in
+    # sample mode so the agents see identical rows on every machine (ties in ORDER BY ... LIMIT
+    # otherwise pick different rows on different platforms and the model cache no longer matches).
+    query_cache_dir: str = "data/sample/query_cache"
 
     # Investigation loop caps (architecture §7).
     max_agent_rounds: int = Field(default=6, ge=1)

@@ -14,11 +14,14 @@ Three layers keep it read-only:
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 import tempfile
 import threading
 import time
 import weakref
+from dataclasses import replace
 from datetime import date, datetime
 from datetime import time as dtime
 from decimal import Decimal
@@ -175,6 +178,9 @@ class LocalDataLayer(DataLayer):
         self.log = QueryLog(Path(log_dir) if log_dir else resolve_path(settings.log_dir), run_id)
         self._counter = 0
         self._counter_lock = threading.Lock()
+        self._sample_mode = settings.sample_mode
+        self._record = settings.record_cache and not settings.sample_mode
+        self._query_cache = resolve_path(settings.query_cache_dir)
         self._tables: dict[str, list[str]] = {}
 
         work_dir = resolve_path(settings.duckdb_work_dir)
@@ -276,8 +282,36 @@ class LocalDataLayer(DataLayer):
     ) -> QueryOutcome:
         """Run one read-only statement; see `DataLayer.query`. Every call is logged."""
         outcome = self._run(source, sql, limit, timeout)
+        if isinstance(outcome, QueryResult):
+            outcome = self._replay_or_record(outcome, limit)
         self.log.write(outcome)
         return outcome
+
+    def _cache_path(self, source: str | None, sql: str, limit: int | None) -> Path:
+        key = json.dumps({"source": source, "sql": " ".join(sql.split()), "limit": limit}, sort_keys=True)
+        return self._query_cache / f"{hashlib.sha256(key.encode()).hexdigest()}.json"
+
+    def _replay_or_record(self, result: QueryResult, limit: int | None) -> QueryResult:
+        """Record the rows in a live recording run; serve the recorded rows in sample mode.
+
+        The query always runs for real (guard, timeout and errors apply). Only the returned rows are
+        swapped, so the model sees exactly what it saw when its replies were recorded.
+        """
+        path = self._cache_path(result.source, result.sql, limit)
+        if self._record:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps({
+                "source": result.source, "sql": result.sql, "limit": limit,
+                "columns": result.columns, "rows": result.rows, "truncated": result.truncated,
+            }, indent=1, sort_keys=True) + "\n")
+            return result
+        if self._sample_mode and path.is_file():
+            recorded = json.loads(path.read_text())
+            return replace(
+                result, columns=recorded["columns"], rows=recorded["rows"],
+                row_count=len(recorded["rows"]), truncated=recorded["truncated"], replayed=True,
+            )
+        return result
 
     def _run(
         self, source: str | None, sql: str, limit: int | None, timeout: float | None

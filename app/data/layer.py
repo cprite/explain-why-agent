@@ -59,6 +59,8 @@ class QueryResult:
     truncated: bool
     duration_ms: float
     ok: bool = True
+    # True when sample mode served the rows recorded in the live run instead of this run's rows.
+    replayed: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         """Plain-dict form, safe to serialise to JSON."""

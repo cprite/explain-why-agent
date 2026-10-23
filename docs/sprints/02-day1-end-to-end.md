@@ -215,6 +215,14 @@ Sprint 1 are kept (the config test pins them) but marked unused.
   (3) DuckDB defaults to one thread, because rows that tie in an `ORDER BY … LIMIT` came back in a
   different order across runs and broke replay; (4) `MAX_OUTPUT_TOKENS` defaults to 4096, because
   2048 cut the Planner's JSON off on Nemotron Lightning.
+- **Recorded query results (23 Oct, after Nikolay's test on macOS failed).** One query asked for the
+  top 20 sellers while about 15 tie at 20th place; which of them DuckDB returns differs between
+  platforms (and thread counts), so on his Mac the model saw different rows and the cache missed.
+  Now a recording run (`RECORD_CACHE=true`, live) also saves each successful query's rows to
+  `data/sample/query_cache/<sha256>.json` (key: source, whitespace-normalised SQL, limit), and sample
+  mode serves those rows. The query still runs for real (guard, timeout and errors apply); only the
+  rows are swapped, and the query log marks it `"replayed": true`. Verified by replaying with 1–4
+  DuckDB threads, where the raw query returns a different set of sellers.
 - Any change to a prompt, a reply schema or the data changes the cache keys; sample mode then
   returns `cache_miss` until the cache is re-recorded.
 - The baseline is the seven days before the date (136.6 orders per day, weekend included), so the
