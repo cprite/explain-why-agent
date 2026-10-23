@@ -1,7 +1,7 @@
 # Sprint 12 — Anomaly scanner and Adtributor attribution (build-plan tasks 19a + 19b)
 
-Status: built and tested; **the plan check fails** with the fixed settings (see "Plan check" below).
-Per the honesty rule, nothing was tuned after the check ran; the decision is open (issue #9).
+Status: built and tested. **The plan check still fails** after the disclosed revision of 23 Oct
+(see "Revision (23 Oct)" below). It was run unchanged, and nothing was tuned after either run.
 
 ## What was built
 
@@ -39,11 +39,15 @@ inside `eval/run_eval.py`; Zetaris execution. No code from PR #8 is used or touc
 
 ## How it works
 
-Each metric is computed per segment and period (day for order counts, week otherwise). Daily
+Each metric is computed per segment and period (day for order counts, week otherwise). Because
+the repository sample is stratified (see the revision below), counts are scanned as the segment's
+share of the period's sampled orders and sums as per-order means; a full extract
+(`sample_design: full`) would use raw totals. Daily
 series are decomposed with **STL** (Seasonal-Trend decomposition using LOESS, `statsmodels`,
 robust fitting, period 7) and the weekly cycle is removed; weekly series have no cycle to remove at
 this data length. What is left is scored with a **robust z-score**,
-`(x − median) / (1.4826 × MAD)` over a strictly trailing window of 28 days or 8 weeks, and a period
+`(x − median) / max(1.4826 × MAD, 0.01 × |median|)` over a strictly trailing window of 28 days or
+12 weeks, and a period
 is flagged at |z| ≥ 3.5 when at least 30 orders back it. Consecutive flagged periods form an
 episode, ranked by |z| × ln(volume). The biggest episodes are then attributed with **Adtributor**
 (Bhagwan et al., *Adtributor: Revenue Debugging in Advertising Systems*, NSDI 2014,
@@ -80,8 +84,8 @@ an incident. Incidents 04 and 06 are weekly series and do not go through STL at 
 
 ## How it was tested
 
-`ruff check .` → `All checks passed!`; `pytest -q` → `40 passed in 38.10s` (local, arm64; 32
-new tests plus the 8 existing ones).
+`ruff check .` → `All checks passed!`; `pytest -q` → `51 passed` (local, arm64; 43 new tests
+plus the 8 existing ones; 11 of them were added in the 23 Oct revision).
 
 - `tests/test_scanner_detect.py` (criterion 2): one-day spike flagged as one episode on that day;
   step change flagged once, as one episode starting at the step; pure noise (120 days) not
@@ -103,10 +107,20 @@ new tests plus the 8 existing ones).
   interrupted and the connection stays usable; `SCANNER_TIMEOUT_S` parsing; no file under `app/`
   contains `answer_key` or an `eval/` path; `python -m app.scanner --json` on the committed sample
   exits 0 and writes ≤ 10 cards that validate against `ScanReport`.
+- `tests/test_scanner_design.py` (revision): `stratified` is the default; every count or sum
+  metric has a sampling-robust form; counts become period shares (denominator = the period
+  total, no whole-shop series) and sums become per-order means; `full` keeps raw totals and leaves
+  ratio metrics unchanged; unknown designs and a normalised ratio are rejected; the share SQL
+  divides by the period total; share attribution EPs sum to 1. In `tests/test_scanner_pipeline.py`,
+  a synthetic sample whose sampling rate triples on day 60 is flagged with raw counts but not as
+  shares, and one state's real spike still shows up as a share rise. The pipeline tests that
+  check raw-count merging run with `sample_design: full`, because their synthetic sample is
+  drawn uniformly. `tests/test_scanner_detect.py`: a MAD-floor test (a near-constant series with
+  a 2% dip gives z −2, not infinity; a 20% fall is still flagged).
 - `tests/test_scanner_check.py`: the plan check's answer-key mapping, card matching and
   weekly-cycle test, on hand-made cards.
 
-## Plan check (criterion 7) — fails
+## Plan check (criterion 7), first run on 22 Oct: fails
 
 `python eval/scanner_check.py` (25 s; identical output on repeated runs):
 
@@ -128,13 +142,101 @@ new tests plus the 8 existing ones).
 - Other incidents without an own episode at |z| ≥ 3.5: 02 (whole-shop late rate), 03 (seller
   below the floor in-window), 05, 07, 08.
 
+## Revision (23 Oct): sampling-aware metrics and a calmer detector
+
+**This change was decided after seeing the first plan-check result.** The owner chose option C
+from the result of the first run: fix the data side openly, then re-run the *unchanged* plan
+check. `eval/scanner_check.py` and its top-ten criterion were not edited. The new settings were
+chosen once from first principles and committed before the check was re-run. They were not
+compared against the check.
+
+**Why.** The repository sample is not drawn uniformly. `data-prep/build_sample.py` keeps
+incident windows at close to 100% and the background at 2% (`config.BACKGROUND_SAMPLE_RATE`).
+The raw Kaggle files are not in the repository, so per-order sampling weights cannot be
+reconstructed. Sampled orders per month (`orders.csv`, by purchase month):
+
+| 2017-01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12 |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 30 | 60 | 90 | 84 | 145 | 117 | 140 | 2958 | 2943 | 3123 | 3519 | 453 |
+
+| 2018-01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 505 | 917 | 901 | 2732 | 6805 | 2857 | 927 | 942 |
+
+A 20-fold jump from July to August 2017 is the sampling design, not the shop. So absolute
+counts and sums are not comparable across periods. They filled the first board: whole-shop
+revenue +567% in late April–May 2018 was card 1.
+
+**What changed.**
+
+1. `config.yaml` has a top-level `sample_design: stratified | full` (default `stratified` for
+   this repository). Each count or sum metric has a `normalise` option. Under `stratified`:
+   - `daily_orders` (`normalise: period_share`) becomes the segment's share of that day's sampled
+     orders. The whole-shop series is dropped, because its share is 1 by definition. Attribution
+     goes through numerator and denominator: a slice's denominator is all of that slice's orders
+     in the period, across every segment, so the slice denominators add up to the period total.
+   - `revenue` and `channel_revenue` (`normalise: per_order`) become per-order means: the sum
+     divided by the segment's sampled order count in that period.
+   - Under `full` (a complete extract) all three keep their raw totals. Ratio metrics are the
+     same under both designs.
+
+   The count and sum incidents **01, 03, 07 and 08 are now measured as shares and per-order
+   means**, not raw totals.
+2. Detector: the weekly trailing window is **12 weeks instead of 8**, and the robust MAD z is
+   kept. A MAD taken from 8 values is itself very noisy: on pure Gaussian noise |z| ≥ 3.5 is
+   crossed on 4.6% of points with 8 weeks and on 2.6% with 12 weeks (400 synthetic series).
+   The daily window stays at 28 days.
+3. A **MAD floor**: the robust spread is at least 1% of |trailing median|. The value was chosen
+   from what is worth explaining, not from the data: with z ≥ 3.5, a move under 3.5% of a
+   metric's level is never an anomaly. A near-constant series (for example a review score of
+   5.0 for weeks) then no longer gives an infinite z for a 2% dip. When the median is 0 (for
+   example a payment type never used in a segment) the floor is 0, so the old zero-spread
+   fallback and the z cap of 50 still apply.
+
+**Re-run of the unchanged check** (`python eval/scanner_check.py`, 24 s, exit 1): 212 series,
+219 flagged episodes (206 after merging), 231 queries.
+
+| | first run (22 Oct) | after revision (23 Oct) |
+|---|---|---|
+| incident-06 (avg review score, relogios_presentes) | z −6.42, rank 104 of 226 | z −8.43 (3.94 → 2.04, 2018-01-15..02-04), **rank 37 of 206** |
+| incident-04 (avg freight, RJ) | z +4.44, rank 110 of 226 | **no own episode**: peak z +3.38 (week of 2018-08-13), below 3.5 |
+| (a) / (b) / (c) | FAIL / FAIL / PASS | **FAIL / FAIL / PASS** |
+| recall, segment + window | 1/8 | 2/8 (01 is out; 02 and 06 are in via cards 7 and 10, both with another metric) |
+| recall, segment + window + metric | 1/8 (incident-01) | **0/8** |
+| unplanted flags | 8 of 10 cards | 8 of 10 cards |
+
+What moved, and why (diagnosis only; nothing was changed after it):
+
+- incident-06 rises because the longer window keeps more pre-dip weeks in the baseline. With 8
+  weeks the dip's own first week already weighed on the baseline of the second; with 12 weeks the
+  three dip weeks score −6.0, −8.4 and −4.8 (they were −6.4, −4.5 and −3.7).
+- incident-04 drops out because the 12-week baseline for RJ freight takes in a wider spread of
+  earlier weeks: the same weeks score +2.53, +3.18, +3.38 and +3.07 (they were +2.84, +3.53,
+  +4.44 and +1.88 with 8 weeks). The MAD floor changes neither incident; their z values are the
+  same with and without it.
+- incident-01 (Black Friday) was card 2 as whole-shop revenue. Under the stratified design no
+  whole-shop count exists, and whole-shop revenue per order does not reach |z| ≥ 3.5 that week.
+  On this sample a whole-shop volume spike cannot be told apart from a change in the sampling
+  rate.
+- Incidents 03, 07 and 08 still have no own episode as shares or per-order means.
+- The board is now led by late-delivery-rate rises in December 2017 (MG, SP, boleto,
+  cama_mesa_banho, whole shop) and the whole-shop review-score fall that goes with them. These
+  are ratio metrics, so the sampling rate does not drive them. They are not planted incidents.
+  The debit-card share in brinquedos (median 0, z capped at 50) is still card 2.
+
+As agreed, there was no further tuning. The result is reported as is.
+
 ## Known limits
 
 - **MAD on short windows is heavy-tailed.** Without any STL, the robust z of pure Gaussian noise
-  crosses 3.5 on 0.63% of points with a 28-point window and on 4.9% with an 8-point window (MAD
-  estimated from 8 values); a normal distribution would give 0.05%. With ~200 weekly series this
-  is the main source of flags, and it is a property of the fixed window and threshold.
-- Count and sum metrics on this sample measure the sampling design as much as the business.
+  crosses 3.5 on 0.63% of points with a 28-point window and on 2.6% with a 12-point window
+  (4.6% with 8); a normal distribution would give 0.05%. With ~200 weekly series this is still
+  the main source of flags.
+- On the stratified sample, whole-shop volume (order counts, total revenue) cannot be scanned:
+  without the raw files and their sampling weights it cannot be separated from the sampling rate.
+  A full extract with `sample_design: full` restores it.
+- The share and per-order forms change what a card says ("share of the day's orders", "revenue
+  per delivered order"), and they overlap with the average-order-value metric.
 - When a move is broad, attribution still returns the dimension whose set has the highest
   surprise, which can be a near-empty statement such as "acquisition channel none: 88%" (97% of
   orders come from sellers outside the marketing funnel).
