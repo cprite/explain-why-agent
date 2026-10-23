@@ -21,8 +21,17 @@ class Settings(BaseSettings):
     nvidia_api_key: str = ""
     nvidia_base_url: str = ""
     model_name: str = ""
+    # Data layer (architecture §3): zetaris (default; local when ZETARIS_URL is empty) or local.
+    # Sample mode always uses local.
+    data_layer: str = "zetaris"
     zetaris_url: str = ""
     zetaris_api_key: str = ""
+    zetaris_org_id: str = ""
+    # Login fallback when no API key is set or the key is refused: GET /auth/login with Basic auth.
+    zetaris_username: str = ""
+    zetaris_password: str = ""
+    # Pause before the one retry of a failed Zetaris call (connection error, timeout, 5xx).
+    zetaris_retry_delay_seconds: float = Field(default=1.0, ge=0.0, le=30.0)
     max_query_rows: int = Field(default=5000, ge=1)
     query_timeout_seconds: int = Field(default=30, ge=1)
     # DuckDB resource caps. Without them DuckDB takes 80 % of RAM and every core, so one runaway

@@ -55,11 +55,11 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     try:
-        from app.data.local import LocalDataLayer
+        from app.data.factory import make_data_layer
         from app.llm.generator import Generator
         from app.loop import run_investigation
 
-        with LocalDataLayer(run_id=run_id, settings=settings) as data:
+        with make_data_layer(run_id, settings=settings) as data:
             result = run_investigation(
                 args.question, run_id=run_id, generate=Generator(settings), data=data, settings=settings
             )

@@ -1,0 +1,22 @@
+{
+ "name": "day1_orders_vs_baseline",
+ "recorded_with": "synthetic (local DuckDB rows in Zetaris REST wire format)",
+ "recorded_at": "2026-10-23",
+ "request": {
+  "sql": "WITH w AS (\n  SELECT COUNT(*) AS cnt\n  FROM lightning.metastore.explain_why.olist_usl.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-24'\n    AND order_purchase_timestamp < DATE '2017-11-25'\n),\nb AS (\n  SELECT COUNT(*) * 1.0 / 7 AS cnt\n  FROM lightning.metastore.explain_why.olist_usl.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-17'\n    AND order_purchase_timestamp < DATE '2017-11-24'\n)\nSELECT w.cnt AS value, ROUND(b.cnt, 4) AS baseline\nFROM w, b",
+  "limit": 5001
+ },
+ "response": {
+  "headers": [
+   "value",
+   "baseline"
+  ],
+  "data": [
+   [
+    "1176",
+    "136.571400000000000000"
+   ]
+  ],
+  "total": 1
+ }
+}
