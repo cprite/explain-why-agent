@@ -28,6 +28,13 @@ His testing adds waiting time between sprints. While a sprint waits, the next on
 and the demo material are prepared, so the wait costs as little as possible. Small tasks on the same
 day may be grouped into one sprint to keep the number of hand-offs down to two or three a day.
 
+## Parallel waves (from 23 Oct, Nikolay: "keep it faster")
+
+After the 30-hour wait on Day 1–2, sprints run in waves of up to three at once, each launched as soon
+as its own dependencies are merged: (1) World Model, Zetaris adapter, Markovian blocks; (2) Markovian
+orchestrator, evaluation scorer, HTTP API; (3) Critic + branches, prompt tuning, web page; (4) failure
+handling, Docker + examples, README. Each sprint still reaches main only after Nikolay tests it.
+
 ## Day 1 — Thursday 22 October: a thin slice that runs end to end
 
 Goal for the day: one question goes in, a real (if shallow) answer comes out, with a trace, using
@@ -124,8 +131,8 @@ score, a clean run from a fresh clone, and the two required sponsor integrations
 - Data sample, injected incidents, answer key and detectability report (in progress, 6 October).
 - Build pipeline with Cursor's agent tested on a throwaway repository.
 - One live call to an NVIDIA-hosted model from a scratch script (done 6 Oct).
-- Meterless Nightshift runtime running on the Pi (arm64 Linux build, 22 Oct; Mac + reverse tunnel no
-  longer needed), NVIDIA added in its Providers, every route answered by Nemotron.
+- Meterless Nightshift installed on Nikolay's Mac, NVIDIA added in its Providers tab, a Nemotron lane
+  answering, and the Runtime reachable from the Pi through an SSH reverse tunnel (setup guide, 19 Oct).
 - The organisers' three setup checks passed (Zetaris verify, Cursor hello, smoke test through Nightshift).
 - A running Zetaris instance and one proven way to register our sources in it (Postgres over JDBC, or
   files in S3-compatible storage as the fallback), tested on throwaway data. This is learning the tool,
