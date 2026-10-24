@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 import subprocess
 import sys
+import threading
+import time
 from pathlib import Path
 
 import duckdb
@@ -310,3 +312,35 @@ def test_without_a_recording_sample_mode_returns_real_rows(tmp_path: Path) -> No
     assert isinstance(result, QueryResult) and result.replayed is False
     assert [row["n"] for row in result.rows] == [1, 2, 3]
     assert not (tmp_path / "qcache").exists()
+
+
+def test_close_interrupts_a_query_running_on_another_thread(tmp_path: Path) -> None:
+    """Closing the layer while another thread is inside a query neither raises nor hangs."""
+    data = LocalDataLayer(run_id="busy-close", log_dir=tmp_path, sources=("payments",))
+    outcome: list[object] = []
+    worker = threading.Thread(target=lambda: outcome.append(data.query(None, SLOW_SQL, timeout=60)))
+    worker.start()
+    deadline = time.monotonic() + 10
+    while not data._active and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert data._active, "the query never started"
+    data.close()  # raised ResourceInUseException ("connection is busy") before the fix
+    worker.join(10)
+    assert not worker.is_alive()
+    assert isinstance(outcome[0], QueryError) and outcome[0].code == "cancelled"
+
+
+def test_interrupt_stops_a_query_and_keeps_the_layer_usable(tmp_path: Path) -> None:
+    with LocalDataLayer(run_id="interrupt", log_dir=tmp_path, sources=("payments",)) as data:
+        outcome: list[object] = []
+        worker = threading.Thread(target=lambda: outcome.append(data.query(None, SLOW_SQL, timeout=60)))
+        worker.start()
+        deadline = time.monotonic() + 10
+        while not data._active and time.monotonic() < deadline:
+            time.sleep(0.01)
+        while worker.is_alive() and time.monotonic() < deadline:
+            data.interrupt()  # an interrupt sent before the statement starts is lost, so repeat it
+            worker.join(0.05)
+        assert isinstance(outcome[0], QueryError) and outcome[0].code == "cancelled"
+        assert not data._active
+        assert isinstance(data.query(None, "SELECT 1 AS one"), QueryResult)

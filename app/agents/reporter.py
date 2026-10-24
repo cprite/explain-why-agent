@@ -3,6 +3,10 @@
 The model drafts causes that point at observation ids; the code turns those ids into evidence items
 with the real query ids and sources. A cause whose ids do not resolve to an observation is dropped
 (principle 1: a cause without a query and a number behind it is not reported).
+
+The Markovian orchestrator passes `context`: the final chunk input (goal, the last carryover state
+and the World Model's report evidence), sent as `chunk` with a short note on the system prompt.
+Without it the request is exactly the simple loop's.
 """
 
 from __future__ import annotations
@@ -53,9 +57,17 @@ def _observation_payload(obs: Observation) -> dict[str, object]:
 
 
 def report(
-    ctx: AgentContext, plan: Plan, observations: list[Observation], notes: list[str]
+    ctx: AgentContext,
+    plan: Plan,
+    observations: list[Observation],
+    notes: list[str],
+    *,
+    context: str | None = None,
 ) -> ReportOutcome:
-    """Draft the answer from `observations`; `notes` are failures and caps met during the run."""
+    """Draft the answer from `observations`; `notes` are failures and caps met during the run.
+
+    `context` is the Markovian chunk input (see the module docstring); None for the simple loop.
+    """
     payload = {
         "question": plan.question,
         "plan": {
@@ -71,9 +83,11 @@ def report(
         "observations": [_observation_payload(o) for o in observations],
         "notes": notes,
     }
-    reply = ctx.generate(
-        build_messages(load_prompt("reporter"), payload), schema=ReportDraft, role=ROLE, run_id=ctx.run_id
-    )
+    prompt = load_prompt("reporter")
+    if context is not None:
+        payload["chunk"] = context
+        prompt = f"{prompt}\n\n{load_prompt('chunk_note')}"
+    reply = ctx.generate(build_messages(prompt, payload), schema=ReportDraft, role=ROLE, run_id=ctx.run_id)
     if not reply.ok or reply.parsed is None:
         error = reply.error or {"code": "reporter_failed", "message": "no report returned"}
         ctx.trace.write(
