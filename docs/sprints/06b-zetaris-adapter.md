@@ -111,7 +111,8 @@ its first start with an empty volume.
 ### Selection and configuration
 
 - `app/data/factory.py` `make_data_layer` chooses the adapter. `app/runner.py::execute_run` (main's
-  Sprint 13 run wiring, shared by `run.py` and `POST /run`) builds its data layer with it.
+  Sprint 13 run wiring, shared by `run.py` and `POST /run`) builds its data layer with it, for both
+  the Markovian orchestrator (Sprint 8, default) and the simple loop (`LOOP=simple`).
   - `SAMPLE_MODE=true` → local, always; nothing touches the network.
   - `DATA_LAYER=local` → local.
   - `DATA_LAYER=zetaris` (the default) → Zetaris. If `ZETARIS_URL` is empty it uses local and says
@@ -172,9 +173,10 @@ its first start with an empty volume.
   nothing in these tests can reach a server.
   - Interface: signatures match `LocalDataLayer`. Factory: every selection, and the configuration
     errors.
-  - Sample mode never touches the network: a subprocess runs `run.py` on the Day 1 question with
-    Zetaris configured at an unreachable address. Every query-log line says `adapter: local`.
-  - Run wiring: `execute_run` with `DATA_LAYER=zetaris` and sample mode off hands the loop a
+  - Sample mode never touches the network: a subprocess runs `run.py` with Zetaris configured at
+    an unreachable address, on the Day 1 question with `LOOP=simple` and on the plan check J
+    question with the Markovian loop. Every query-log line says `adapter: local`.
+  - Run wiring: `execute_run` with `DATA_LAYER=zetaris` and sample mode off hands either loop a
     `ZetarisDataLayer` (its query goes to a `MockTransport`), and with `DATA_LAYER=local` a
     `LocalDataLayer`, so neither `run.py` nor `POST /run` can drop the factory quietly.
   - Requests: bearer key, `X-Org-ID`, a unique UUID `X-Request-ID`, `queryId`, the rewritten SQL,
