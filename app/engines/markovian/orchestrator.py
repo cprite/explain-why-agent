@@ -19,8 +19,11 @@ the generator are injected; this module makes no HTTP call itself.
   compresses it for the next chunk, with `rounds_left` taken from `ChunkManager.rounds_left`.
 - Critique and revision: an `insufficient` verdict sends the hypothesis back to the Investigator
   once, in its own chunk, with the Critic's follow-up tests (results ingested into the World
-  Model); the second critique decides, and a second `insufficient` demotes it. Critic calls are
-  capped at `max_chunks` per run.
+  Model); the second critique decides, and a second `insufficient` demotes it. An `insufficient`
+  verdict with no follow-up tests (the Critic's fallback after a failed call or an invalid reply,
+  `Verdict.critic_error`) has nothing to revise: the hypothesis is demoted at once, with no revision
+  chunk, and the answer names the Critic failure rather than missing data. Critic calls (one per
+  critique, each up to `MAX_REPLY_ATTEMPTS` = 2 model calls) are capped at `max_chunks` per run.
 - Branches (each one an `Orchestrator` / `branch` trace line with why and the numbers used):
   `no_significant_change` (|observed - baseline| within `CHANGE_VARIATION_THRESHOLD` spreads, or no
   spread and the change check reads not real: the run ends after chunk 1, determinable with no
@@ -60,7 +63,7 @@ from pathlib import Path
 from typing import Any
 
 from app.agents.base import AgentContext, Budget
-from app.agents.critic import Critic
+from app.agents.critic import MAX_REPLY_ATTEMPTS, Critic
 from app.agents.investigator import InvestigationOutcome, investigate
 from app.agents.planner import make_plan
 from app.agents.reporter import ReportOutcome, report
@@ -640,7 +643,15 @@ class _Run:
         self.readings[hypothesis.id] = reading
         self._carry(goal, hypotheses, f"Round on {hypothesis.id} ({hypothesis.family}): {reading.text}")
         self._close_chunk(state)
-        if (verdict is not None and verdict.verdict == "insufficient" and not verdict.sample_too_small
+        if verdict is not None and _unrevisable(verdict):
+            # Nothing for the Investigator to run (the Critic failed, or asked for no test): _judged
+            # demoted the hypothesis; the run moves on instead of spending a chunk on it.
+            self.trace.write(agent=AGENT, action="skip_revision", hypothesis_id=hypothesis.id,
+                             output_summary=f"{hypothesis.id} demoted without a revision: "
+                             + (f"the Critic could not judge it ({verdict.critic_error})" if verdict.critic_error
+                                else "the Critic asked for no follow-up test"),
+                             critic_error=verdict.critic_error)
+        elif (verdict is not None and verdict.verdict == "insufficient" and not verdict.sample_too_small
                 and self.revisions.get(hypothesis.id, 0) < MAX_REVISIONS):
             if self.manager.can_start() and self.budget.tool_calls_used < self.budget.max_tool_calls:
                 self._revise(pipeline, builder, overview, plan, goal, hypotheses, hypothesis, entity_id, verdict,
@@ -720,10 +731,15 @@ class _Run:
         follow_up: tuple[Observation, ...] = (),
         answered: list[dict[str, Any]] | None = None,
     ) -> Verdict | None:
-        """One Critic call (capped at `max_chunks` per run); its trace line and World Model record."""
+        """One Critic call (capped at `max_chunks` per run); its trace line and World Model record.
+
+        The cap counts Critic calls (critiques), not model calls: the real Critic retries an invalid
+        reply once, so one critique is up to `MAX_REPLY_ATTEMPTS` (2) model calls and a run makes at
+        most `max_chunks` x 2 Critic model calls. Each trace line carries the call's `model_calls`.
+        """
         if self.critic_calls >= self.config.max_chunks:
             self.notes.append(f"{hypothesis.id} was not critiqued: {self.config.max_chunks} Critic calls "
-                              "(MARKOVIAN_MAX_CHUNKS) were made.")
+                              f"(MARKOVIAN_MAX_CHUNKS; each up to {MAX_REPLY_ATTEMPTS} model calls) were made.")
             self.trace.write(agent=AGENT, action="cap_reached", status="cap_reached", hypothesis_id=hypothesis.id,
                              output_summary=f"Critic calls: MARKOVIAN_MAX_CHUNKS={self.config.max_chunks}")
             return None
@@ -748,7 +764,8 @@ class _Run:
             follow_up_tests=verdict.follow_up_tests, follow_up_results=answered or [],
             observation_ids=verdict.observation_ids, query_ids=verdict.query_ids, sample_size=verdict.sample_size,
             sample_too_small=verdict.sample_too_small, critic_call=self.critic_calls,
-            max_critic_calls=self.config.max_chunks, world_model_id=verdict_id,
+            max_critic_calls=self.config.max_chunks, model_calls=verdict.retry_count + 1,
+            critic_error=verdict.critic_error, world_model_id=verdict_id,
         )
         return verdict
 
@@ -779,7 +796,8 @@ class _Run:
                 reading: _Reading) -> _Reading:
         """Record a verdict: status, sample flag, promotion of the next leader; the reading for the ranking."""
         status = verdict.verdict
-        if status == "insufficient" and (verdict.attempt > 1 or self.revisions.get(hypothesis.id, 0) >= MAX_REVISIONS):
+        if status == "insufficient" and (verdict.attempt > 1 or self.revisions.get(hypothesis.id, 0) >= MAX_REVISIONS
+                                         or _unrevisable(verdict)):
             status = "demoted"
         self.verdicts[hypothesis.id] = verdict
         self.status[hypothesis.id] = status
@@ -792,7 +810,12 @@ class _Run:
                             "total_score": verdict.total_score})
             self.leader = nxt
         supports = {"supported": True, "refuted": False}.get(verdict.verdict)
-        label = "Critic demoted after revision" if status == "demoted" else f"Critic {verdict.verdict}"
+        if verdict.critic_error:
+            label = f"Critic could not judge ({verdict.critic_error}), demoted"
+        elif status == "demoted":
+            label = "Critic demoted after revision"
+        else:
+            label = f"Critic {verdict.verdict}"
         return _Reading(supports, reading.effect, f"{label}: {verdict.reason}")
 
     # --- branches and the answer ---------------------------------------------------------------
@@ -852,11 +875,17 @@ class _Run:
             for h in hypotheses:
                 status = self.status.get(h.id)
                 verdict = self.verdicts.get(h.id)
-                if status in ("demoted", "insufficient") and verdict is not None:
+                if status in ("demoted", "insufficient") and verdict is not None and verdict.critic_error:
+                    limitations.append(f"Critic failure: the Critic could not judge {h.id} ({h.family}) "
+                                       f"({verdict.critic_error}); it is unconfirmed because the critique "
+                                       "failed, not because data is missing.")
+                elif status in ("demoted", "insufficient") and verdict is not None:
                     tests = "; ".join(t.rstrip(". ") for t in verdict.follow_up_tests) or "more records for this segment"
                     limitations.append(f"Unconfirmed: {h.id} ({h.family}) {verdict.reason} "
                                        f"Data that would decide it: {tests}.")
             supported = [hid for hid, st in self.status.items() if st == "supported"]
+            failed = [f"{hid} ({v.critic_error})" for hid, v in self.verdicts.items()
+                      if v.critic_error and self.status.get(hid) != "supported"]
             if self.sample_flag is not None:
                 flag = self.sample_flag
                 why = (f"the Critic flagged the sample as too small ({flag.sample_size} records in the window, "
@@ -864,12 +893,18 @@ class _Run:
                 limitations.append(f"Sample too small: {flag.sample_size} records behind the change in the window "
                                    f"(CRITIC_MIN_SAMPLE_SIZE={self.settings.critic_min_sample_size}); more records "
                                    "for this segment, or a longer window, would decide it.")
+            elif not supported and failed:
+                why = f"the Critic could not judge {', '.join(failed)}"
+                if len(failed) < len(self.verdicts):
+                    why += "; the other tested explanations were refuted or left unconfirmed"
             elif not supported and stop_reason in ("max_chunks", "max_tool_calls"):
                 why = f"{stop_reason} was reached without a supported explanation"
             elif not supported:
                 why = "every tested explanation was refuted or left unconfirmed by the Critic"
-            elif not causes:
-                why = "no cause in the report is one the Critic supported"
+            elif not causes or not outcome.determinable:
+                # The Critic supported an explanation, but the Reporter gave no cause for it (or called
+                # the answer undeterminable): say so, so the branch line and the summary agree.
+                why = f"the Reporter did not report the supported explanation ({', '.join(supported)})"
             if why:
                 causes, determinable = [], False
             else:
@@ -1096,6 +1131,14 @@ class _Run:
         with contextlib.suppress(OSError):
             self.trace.write_result(built.model_dump(mode="json"))
         return built
+
+
+def _unrevisable(verdict: Verdict) -> bool:
+    """An insufficient verdict with no follow-up test to run (the Critic's fallback after a failure).
+
+    A small-sample flag is left out: it ends the run through its own branch.
+    """
+    return verdict.verdict == "insufficient" and not verdict.follow_up_tests and not verdict.sample_too_small
 
 
 def run_markovian(
