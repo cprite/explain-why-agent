@@ -56,3 +56,11 @@ jobs:
           SAMPLE_MODE: "true"
           WORLD_DB_PATH: logs/world-ci.db
         run: python -m app.engines.world_model.context --sample --intent critique
+      - name: "Plan check G (task 11): Markovian carryover cascade (step used and used/budget chars per case)"
+        run: |
+          set -o pipefail
+          pytest -q -s -p no:cacheprovider tests/test_markovian_carryover.py | tee /tmp/markovian-plan-check.log
+          echo "--- plan check summary ---"
+          grep "PLAN-CHECK" /tmp/markovian-plan-check.log
+      - name: "Plan check H (task 11): Markovian carryover sample mode (recorded round, stub generator)"
+        run: python -m app.engines.markovian.carryover --sample
