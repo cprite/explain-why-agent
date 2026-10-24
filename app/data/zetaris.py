@@ -475,6 +475,8 @@ class ZetarisDataLayer(DataLayer):
         )
         self._local: LocalDataLayer | None = None
         self._described: dict[str, SourceInfo] = {}
+        # (query id, or "describe <source>"; reason) for every call answered by the local fallback.
+        self.fallbacks: list[tuple[str, str]] = []
         self._counter = 0
         self._counter_lock = threading.Lock()
 
@@ -523,9 +525,10 @@ class ZetarisDataLayer(DataLayer):
         )
         try:
             rest = self._run_with_retry(sql, len(tables) + 1, self.timeout_seconds)
-        except ZetarisUnavailable:
+        except ZetarisUnavailable as exc:
             if not self.fallback:
                 raise
+            self.fallbacks.append((f"describe {source}", f"Zetaris unavailable after one retry: {exc}"))
             return self._local_layer().describe(source)
         except ZetarisRequestError as exc:
             raise RuntimeError(f"Zetaris could not describe source {source!r}: {exc}") from None
@@ -562,9 +565,11 @@ class ZetarisDataLayer(DataLayer):
             self.log.write(outcome, extra)
             return outcome
 
-        def error(code: str, message: str, adapter: str = self.adapter_name) -> QueryOutcome:
+        def error(code: str, message: str, adapter: str = self.adapter_name,
+                  fallback_reason: str | None = None) -> QueryOutcome:
             return finish(QueryError(query_id=query_id, source=source, sql=sql, adapter=adapter, code=code,
-                                     message=message, duration_ms=elapsed_ms(started)))
+                                     message=message, duration_ms=elapsed_ms(started),
+                                     fallback_reason=fallback_reason))
 
         if source is not None and source not in SOURCES:
             return error("unknown_source", f"unknown source {source!r}; available: {', '.join(SOURCES)}")
@@ -584,13 +589,14 @@ class ZetarisDataLayer(DataLayer):
             if not self.fallback:
                 return error("timeout" if exc.timeout else "failed", reason)
             extra["fallback_reason"] = reason
+            self.fallbacks.append((query_id, reason))
             try:
                 outcome = self._local_layer().execute(source, sql, limit, timeout)
             except Exception as local_exc:  # noqa: BLE001 - a query never raises
                 return error("failed", f"{reason}; local fallback failed: {type(local_exc).__name__}: {local_exc}",
-                             FALLBACK_ADAPTER)
+                             FALLBACK_ADAPTER, reason)
             return finish(replace(outcome, query_id=query_id, adapter=FALLBACK_ADAPTER,
-                                  duration_ms=elapsed_ms(started)))
+                                  duration_ms=elapsed_ms(started), fallback_reason=reason))
 
         rows = convert_rows(rest, usl_tables)
         truncated = len(rows) > limit
