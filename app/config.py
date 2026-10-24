@@ -69,6 +69,11 @@ class Settings(BaseSettings):
     alert_z: float = Field(default=3.5, gt=0.0)
     max_ingest_rows: int = Field(default=5000, ge=1)
 
+    # HTTP API (architecture §7): bind address, port, and the wall-clock cap on one run.
+    api_host: str = "0.0.0.0"
+    api_port: int = Field(default=8000, ge=1, le=65535)
+    api_run_timeout_seconds: float = Field(default=600, gt=0)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 

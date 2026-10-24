@@ -11,7 +11,11 @@ Coordination: Nikolay talks to Claude Code; Claude Code posts tasks to agents in
 - **Rule change 22 Oct 12:30Z (announcement + Submission Requirements / Technical Execution pages
   "updated 2026-10-22"): Cursor is now OPTIONAL** — any coding tool (Claude Code named). Cursor is only
   needed for the optional Cursor award; the sponsor explanation mentions Cursor only if we compete for it.
-  Older lines below that say "Cursor required" are superseded. Same pages, recommended (not rules):
+  Older lines below that say "Cursor required" are superseded. **Update 24 Oct 08:11Z (organiser Aytan
+  Huseynova, HackOS general-admin): there is no longer a separate Cursor prize.** Current prizes: the three
+  track prizes, the Wildcard [Tinkerer] bonus track, and an in-kind prize for best use of NVIDIA Nemotron
+  (list at hackathon.genai.works/event/open-agent-hackathon-2026#prizes). Sponsor usage must be explained
+  in the README **and the project deck** (Rules reminder 24 Oct 08:17Z). Same pages, recommended (not rules):
   `.env.example` uses `METERLESS_BASE_URL`, `METERLESS_RUNTIME_TOKEN`, `METERLESS_MODEL=meterless/auto`,
   `ZETARIS_REST_URL`, `ZETARIS_ORG_ID`, `ZETARIS_API_KEY`; traces as `logs/trace-<run_id>.jsonl` with the
   model per request; `input_examples/` + `output_examples/` (≥3); Dockerfile; POST `/run` JSON endpoint
