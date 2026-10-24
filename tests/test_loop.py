@@ -188,14 +188,27 @@ def test_sample_mode_uses_committed_cache(tmp_path: Path) -> None:
 
 
 def test_committed_cache_entries_are_real_meterless_recordings() -> None:
-    """The committed sample cache is a live run through Meterless (Nightshift) on Nemotron."""
+    """The committed sample cache is a live run through Meterless (Nightshift) on Nemotron.
+
+    Since Sprint 8 the cache also holds entries recorded with the scripted stub for the Markovian plan
+    check (`recorded_with: stub`, provider `stub`), until they are re-recorded through Nightshift. Those
+    are checked to be marked as such; every other entry, including all of the Day 1 question's, must
+    be a live Meterless recording.
+    """
     entries = list((ROOT / "data" / "sample" / "llm_cache").glob("*.json"))
     assert entries
+    live = 0
     for path in entries:
         entry = json.loads(path.read_text())
+        if entry.get("recorded_with") == "stub":
+            assert entry["provider"] == "stub" and entry["model_routed"] == "scripted-stub", path.name
+            assert QUESTION not in json.dumps(entry["messages"]), path.name  # Day 1 stays a live recording
+            continue
+        live += 1
         assert entry["provider"] == "meterless", path.name
         assert "nemotron" in (entry["model_routed"] or ""), path.name
         assert entry["receipt_id"], path.name
+    assert live >= 15  # the 23 Oct Day 1 recording
 
 
 # --- no incident-specific wording ---------------------------------------------------------------
@@ -246,6 +259,9 @@ def test_agents_never_reference_the_answer_key() -> None:
 def _run_cli(*args: str, sample: bool = True) -> subprocess.CompletedProcess[str]:
     env = {k: v for k, v in os.environ.items() if not k.startswith(("METERLESS_", "NVIDIA_", "MAX_"))}
     env["SAMPLE_MODE"] = "true" if sample else "false"
+    # These tests cover the simple loop, whose prompts the recorded Day 1 cache holds (run.py's default
+    # is the Markovian orchestrator since Sprint 8).
+    env["LOOP"] = "simple"
     return subprocess.run(
         [sys.executable, "run.py", *args], cwd=ROOT, env=env, capture_output=True, text=True, check=False,
         timeout=300,

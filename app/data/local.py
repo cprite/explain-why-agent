@@ -182,6 +182,8 @@ class LocalDataLayer(DataLayer):
         self._record = settings.record_cache and not settings.sample_mode
         self._query_cache = resolve_path(settings.query_cache_dir)
         self._tables: dict[str, list[str]] = {}
+        self._active: set[duckdb.DuckDBPyConnection] = set()
+        self._active_lock = threading.Lock()
 
         work_dir = resolve_path(settings.duckdb_work_dir)
         work_dir.mkdir(parents=True, exist_ok=True)
@@ -228,8 +230,38 @@ class LocalDataLayer(DataLayer):
             con.close()
 
     def close(self) -> None:
-        """Close the database and remove its temporary file."""
+        """Close the database and remove its temporary file.
+
+        Statements still running on another thread are interrupted first (for up to
+        `CLOSE_RETRY_SECONDS`), so the connection is free to close: DuckDB refuses to close a
+        connection that is busy with another call.
+        """
+        give_up = time.monotonic() + CLOSE_RETRY_SECONDS
+        while self._active and time.monotonic() < give_up:
+            self.interrupt()  # again each time: an interrupt sent before a statement starts is lost
+            time.sleep(0.01)
         self._finalizer()
+
+    def interrupt(self) -> None:
+        """Interrupt every statement running now (a query or a schema read); the layer stays usable."""
+        with self._active_lock:
+            active = list(self._active)
+        for cur in active:
+            try:
+                cur.interrupt()
+            except duckdb.Error:
+                pass
+
+    def _cursor(self) -> duckdb.DuckDBPyConnection:
+        cur = self._con.cursor()
+        with self._active_lock:
+            self._active.add(cur)
+        return cur
+
+    def _release(self, cur: duckdb.DuckDBPyConnection) -> None:
+        with self._active_lock:
+            self._active.discard(cur)
+        cur.close()
 
     def __enter__(self) -> Self:
         return self
@@ -245,7 +277,7 @@ class LocalDataLayer(DataLayer):
         """Return tables, columns with DuckDB types and exact row counts for one source."""
         if source not in self._tables:
             raise KeyError(f"unknown source {source!r}; available: {', '.join(self._tables)}")
-        cur = self._con.cursor()
+        cur = self._cursor()
         try:
             tables = []
             for table in self._tables[source]:
@@ -264,7 +296,7 @@ class LocalDataLayer(DataLayer):
                 )
             return SourceInfo(name=source, tables=tables)
         finally:
-            cur.close()
+            self._release(cur)
 
     def _next_query_id(self) -> str:
         # Deterministic within a run (q001, q002, ...) so the same investigation produces the same
@@ -339,7 +371,7 @@ class LocalDataLayer(DataLayer):
         except GuardError as exc:
             return error("rejected", str(exc))
 
-        cur = self._con.cursor()
+        cur = self._cursor()
         timed_out = threading.Event()
 
         def interrupt() -> None:
@@ -358,6 +390,8 @@ class LocalDataLayer(DataLayer):
             columns = [d[0] for d in relation.description or []]
             raw = relation.fetchall()
         except duckdb.InterruptException:
+            if not timed_out.is_set():  # interrupted by `interrupt()` / `close()`, not by the timer
+                return error("cancelled", "the query was interrupted because the run was stopped")
             return error("timeout", f"query exceeded the {timeout:g} s timeout and was interrupted")
         except duckdb.Error as exc:
             if timed_out.is_set():
@@ -365,7 +399,7 @@ class LocalDataLayer(DataLayer):
             return error("failed", f"{type(exc).__name__}: {exc}")
         finally:
             timer.cancel()
-            cur.close()
+            self._release(cur)
 
         truncated = len(raw) > limit
         rows = [
@@ -384,8 +418,21 @@ class LocalDataLayer(DataLayer):
         )
 
 
+CLOSE_RETRY_SECONDS = 2.0
+"""How long `close` keeps retrying a connection that an interrupted statement still holds."""
+
+
 def _cleanup(con: duckdb.DuckDBPyConnection, tmp: tempfile.TemporaryDirectory) -> None:
     try:
-        con.close()
+        give_up = time.monotonic() + CLOSE_RETRY_SECONDS
+        while True:
+            try:
+                con.close()
+                break
+            except duckdb.Error:
+                # An interrupted statement on another thread can hold the connection for a moment.
+                if time.monotonic() >= give_up:
+                    raise
+                time.sleep(0.02)
     finally:
         tmp.cleanup()

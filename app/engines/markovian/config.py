@@ -36,6 +36,9 @@ class MarkovianConfig(BaseModel):
     chunk_timeout_seconds: float = Field(default=180.0, gt=0, le=3600)
     # Wall-clock limit for the single model-compression call in the carryover cascade (step 2).
     compression_timeout_seconds: float = Field(default=30.0, gt=0, le=600)
+    # Wall-clock limit for a whole orchestrated run (MARKOVIAN_RUN_TIMEOUT_S): the run stops with
+    # stop_reason "timeout" when it is reached. 540 s keeps a run inside the 10-minute demo limit.
+    run_timeout_s: float = Field(default=540.0, gt=0, le=3600)
 
     @model_validator(mode="after")
     def _check_relations(self) -> MarkovianConfig:

@@ -42,8 +42,14 @@ Build-plan task 15, issue #17. Nothing under `app/`, `run.py` or the recorded ca
   with run ids, trace files and query logs. Exit 0 whenever scoring finished; 2 on bad arguments.
 - Configuration in `.env.example`: `EVAL_QUESTION_TIMEOUT_SECONDS` (600), `EVAL_TOTAL_TIMEOUT_SECONDS`
   (3600). Read by the eval itself (not `app/config.py`, which this sprint does not touch).
-- CI plan check J (main's I is the HTTP API): `python eval/run_eval.py --sample`, then the last
-  line must match the score pattern. The score is reported, not gated.
+- CI plan check L (main's I is the HTTP API, J the Markovian orchestrator; K is taken by the
+  browser check in open PR #24, so this step moved from J to L): `python eval/run_eval.py --sample`,
+  then the last line must match the score pattern. The score is reported, not gated.
+- The eval calls the Sprint 2 loop `app.loop.run_investigation` directly, as issue #17 specifies, so
+  the `LOOP` setting (default `markovian` since Sprint 8) does not change it: `--sample` prints the
+  same `Score: 0/10 (answered 1, no_cache 9, errors 0)` with `LOOP` unset and with `LOOP=simple`.
+  The CI step is therefore not pinned. Scoring the Markovian orchestrator (via `app.runner`) needs
+  recorded Markovian replies for the ten questions and is left for a later sprint.
 
 ## Left out
 
@@ -54,8 +60,8 @@ Build-plan task 15, issue #17. Nothing under `app/`, `run.py` or the recorded ca
 
 ## How it was tested
 
-- `ruff check .` → `All checks passed!`; `pytest -q` → `360 passed` locally after merging
-  main with the HTTP API (Python 3.13, arm64); 56 of them are in the three eval test files below.
+- `ruff check .` → `All checks passed!`; `pytest -q` → `461 passed` locally after merging
+  main with the Markovian orchestrator (Python 3.13, arm64); 56 of them are in the three eval test files below.
 - `tests/test_eval_scoring.py`: correct cause (found); wrong type; incident-08 answered with only
   `volume` (not found) and with both (found); wrong segment; window outside; wrong explanation
   missing from `ruled_out` (check d fails, still found); undeterminable with a cause (not found),
@@ -88,6 +94,8 @@ Build-plan task 15, issue #17. Nothing under `app/`, `run.py` or the recorded ca
   ```
 
 - origin/main (6afcb78, Sprint 12 scanner) was merged in; only `.env.example` conflicted (both blocks kept).
+- origin/main (ae7d426, Sprint 8 Markovian orchestrator) was merged in; only `ci.yml` conflicted
+  (main's plan check J kept, the eval step appended as plan check L).
 
 ## Known limits
 

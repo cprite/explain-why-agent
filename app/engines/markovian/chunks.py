@@ -21,8 +21,9 @@ chunk would have had with a growing conversation, for the token report.
 
 from __future__ import annotations
 
+import json
 import math
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol
 
@@ -51,7 +52,8 @@ class ContextItem(Protocol):
 class ContextPayload(Protocol):
     """The ContextBuilder's payload: the items it selected and the size budget it worked to.
 
-    A stand-in until the World Model sprint merges; the orchestrator sprint wires the real builder.
+    `ContextBuilder.build()` returns a plain dict of that shape; `start_chunk` accepts either and
+    wraps a dict with `as_context_payload`.
     """
 
     @property
@@ -60,6 +62,45 @@ class ContextPayload(Protocol):
     def budget_chars(self) -> int: ...
     @property
     def used_chars(self) -> int: ...
+
+
+@dataclass(frozen=True)
+class SelectedItem:
+    """A `ContextItem` built from one item of the ContextBuilder's dict payload."""
+
+    id: str
+    type: str
+    summary: Any
+    selection_reason: str
+
+
+@dataclass(frozen=True)
+class SelectedContext:
+    """A `ContextPayload` built from the ContextBuilder's dict payload."""
+
+    items: Sequence[SelectedItem]
+    budget_chars: int
+    used_chars: int
+
+
+def as_context_payload(payload: ContextPayload | Mapping[str, Any] | None) -> ContextPayload | None:
+    """Wrap `ContextBuilder.build()`'s dict (items as dicts) as a `ContextPayload`; pass others through."""
+    if payload is None or not isinstance(payload, Mapping):
+        return payload
+    items = [
+        SelectedItem(
+            id=str(item.get("id", "")),
+            type=str(item.get("type", "")),
+            summary=item.get("summary", ""),
+            selection_reason=str(item.get("selection_reason", "")),
+        )
+        for item in list(payload.get("items") or [])[:MAX_CONTEXT_ITEMS]
+    ]
+    return SelectedContext(
+        items=items,
+        budget_chars=int(payload.get("budget_chars") or 0),
+        used_chars=int(payload.get("used_chars") or 0),
+    )
 
 
 class ChunkCapError(RuntimeError):
@@ -130,9 +171,15 @@ def _clip(text: str, limit: int) -> str:
     return text[: max(0, limit - 1)].rstrip() + "…"
 
 
+def _summary_text(summary: Any) -> str:
+    if isinstance(summary, (Mapping, list, tuple)):
+        return json.dumps(summary, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str)
+    return " ".join(str(summary).split())
+
+
 def render_item(item: ContextItem) -> str:
-    """One evidence line: id, type, summary and why it was selected."""
-    line = f"- [{item.id}] ({item.type}) {' '.join(str(item.summary).split())}"
+    """One evidence line: id, type, summary (a dict summary as compact sorted-key JSON) and why it was selected."""
+    line = f"- [{item.id}] ({item.type}) {_summary_text(item.summary)}"
     reason = " ".join(str(item.selection_reason).split())
     return f"{line} | selected because: {reason}" if reason else line
 
@@ -163,10 +210,14 @@ class ChunkManager:
         goal: str,
         *,
         carryover: Carryover | None = None,
-        context: ContextPayload | None = None,
+        context: ContextPayload | Mapping[str, Any] | None = None,
         label: str = "",
     ) -> ChunkInput:
-        """Build the input for the next chunk; raise `ChunkCapError` past `max_chunks`."""
+        """Build the input for the next chunk; raise `ChunkCapError` past `max_chunks`.
+
+        `context` is a `ContextPayload` or the ContextBuilder's dict payload.
+        """
+        context = as_context_payload(context)
         index = self.chunks_started + 1
         if index > self.config.max_chunks:
             raise ChunkCapError(index, self.config.max_chunks)
@@ -194,9 +245,15 @@ class ChunkManager:
         return chunk
 
     def build_input(
-        self, index: int, goal: str, *, carryover: Carryover | None, context: ContextPayload | None
+        self,
+        index: int,
+        goal: str,
+        *,
+        carryover: Carryover | None,
+        context: ContextPayload | Mapping[str, Any] | None,
     ) -> ChunkInput:
         """Pack goal, carryover and evidence into at most `chunk_budget_chars` characters."""
+        context = as_context_payload(context)
         budget = self.config.chunk_budget_chars
         goal_limit = budget // 4 if index == 1 else min(GOAL_CONTINUATION_CHARS, budget // 4)
         goal_text = _clip(goal, goal_limit)

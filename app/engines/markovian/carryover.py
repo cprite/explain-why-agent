@@ -31,7 +31,7 @@ import threading
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -231,11 +231,36 @@ class CompressionTimeout(Exception):
     """The compression call did not finish within its time limit."""
 
 
+COMPRESSION_DEADLINE_SHARE = 0.9
+"""The generator's own per-call deadline, as a share of `compression_timeout_seconds`: the HTTP call
+gives up a little before the cascade stops waiting, so the worker thread has ended by then."""
+
+
+class BoundableGenerateFn(Protocol):
+    """A generator that can hand out a copy bounded by a per-call deadline (the real `Generator`)."""
+
+    def with_limits(self, *, deadline_seconds: float, max_retries: int = 0) -> GenerateFn: ...
+
+
+def bounded_generator(generate: GenerateFn, deadline_seconds: float) -> GenerateFn:
+    """`generate` limited to one attempt that ends by `deadline_seconds`, if it supports that.
+
+    The real `Generator` does (`with_limits`): no retries, no repair call after the deadline, each HTTP
+    request's timeout cut to the time left. A plain function is returned unchanged.
+    """
+    with_limits = getattr(generate, "with_limits", None)
+    if callable(with_limits):
+        return with_limits(deadline_seconds=deadline_seconds, max_retries=0)
+    return generate
+
+
 def call_with_timeout(fn: Callable[[], GenerationResult], timeout_seconds: float) -> GenerationResult:
     """Run `fn` in a daemon thread and give up after `timeout_seconds` (`CompressionTimeout`).
 
-    On timeout the thread is abandoned, not killed (Python cannot stop a thread); the generator's own
-    HTTP timeouts end it later, and as a daemon it never holds up process exit. Exceptions raised by
+    Python cannot stop a thread, so `fn` must end by itself: `model_compression` passes a generator
+    bounded by `bounded_generator`, whose own deadline is shorter than this timeout, so the thread
+    has normally finished when this returns. A generator without `with_limits` that hangs leaves the
+    daemon thread running until it returns (it never holds up process exit). Exceptions raised by
     `fn` are re-raised here.
     """
     outcome: dict[str, Any] = {}
@@ -265,7 +290,7 @@ def model_compression(
     config: MarkovianConfig,
     run_id: str | None,
 ) -> CarryoverDraft:
-    """One generator call, schema-validated, with a wall-clock timeout."""
+    """One generator call, schema-validated, with a wall-clock timeout and a per-call deadline."""
     if generate is None:
         raise _StepFailed("no generator injected")
     messages = compression_messages(
@@ -276,9 +301,10 @@ def model_compression(
         preview_chars=config.chunk_budget_chars,
     )
     timeout = config.compression_timeout_seconds
+    bounded = bounded_generator(generate, timeout * COMPRESSION_DEADLINE_SHARE)
     try:
         result = call_with_timeout(
-            lambda: generate(messages, schema=CarryoverDraft, role=COMPRESSION_ROLE, run_id=run_id), timeout
+            lambda: bounded(messages, schema=CarryoverDraft, role=COMPRESSION_ROLE, run_id=run_id), timeout
         )
     except CompressionTimeout:
         raise _StepFailed(f"the generator did not answer within {timeout:g} s") from None
@@ -327,54 +353,143 @@ def _clip(text: str, limit: int) -> str:
     return cut.rstrip(" ,;:") + "…"
 
 
-def _item_id(line: str, prefix: str, index: int) -> str:
-    match = _HYPOTHESIS_ID.search(line)
-    return match.group(0) if match else f"{prefix}{index}"
+class FallbackIds:
+    """Ids for heuristic items that name no hypothesis: `C1`, `R2`, `C3`, ... from one running counter.
 
-
-def heuristic_items(text: str) -> CarryoverDraft:
-    """Deterministically pull ranking, ruled-out and open items from round text, line by line.
-
-    A line that names a rejection ("ruled out", "refuted", "not supported", ...) is a ruled-out item;
-    otherwise a numbered line or one starting "leading", "supported", "cause 1", ... is a ranking item;
-    otherwise a question or a line naming a follow-up / open question is an open question. Each list
-    keeps the first `MAX_ITEMS` distinct items; a hypothesis ruled out is removed from the ranking and
-    not ranked again.
+    Share one instance across a run (the orchestrator does) so a fallback id never names two
+    different items, within one round or across rounds.
     """
+
+    def __init__(self) -> None:
+        self._count = 0
+
+    def next(self, prefix: str) -> str:
+        """The next unused id with `prefix`."""
+        self._count += 1
+        return f"{prefix}{self._count}"
+
+
+_NEGATION = re.compile(
+    r"\b(?:not|never|cannot|can't|isn't|wasn't|hasn't|haven't|yet to)\b(?:\s+(?:yet|been|be|fully|definitively))*\s*$",
+    re.IGNORECASE,
+)
+_CLAUSE_SPLIT = re.compile(r";|,?\s+\b(?:while|whereas|but|although)\b\s+", re.IGNORECASE)
+_SUPPORTED = re.compile(
+    r"\b(?:is|was|remains|looks|seems)\s+(?:the\s+)?(?:supported|confirmed|leading|most likely|top)\b|"
+    r"\b(?:leading|leader|most likely|top) (?:cause|explanation|hypothesis)\b",
+    re.IGNORECASE,
+)
+
+
+def _clauses(line: str) -> list[str]:
+    return [part.strip() for part in _CLAUSE_SPLIT.split(line) if part and part.strip()]
+
+
+def _ruled_out_target(clause: str, match: re.Match[str]) -> str | None | Literal[False]:
+    """The hypothesis a rejection phrase is about, None if the clause names none, False if ambiguous.
+
+    The id nearest before the phrase wins ("H4 is supported; H1 not supported" files only H1). With
+    no id before it, a single id after it is used ("Ruled out: H1 (...)"). Several ids before the
+    phrase, or several after it with none before, are ambiguous.
+    """
+    before = _HYPOTHESIS_ID.findall(clause[: match.start()])
+    after = _HYPOTHESIS_ID.findall(clause[match.end() :])
+    if len(set(before)) > 1:
+        return False
+    if before:
+        return before[-1]
+    if len(set(after)) > 1:
+        return False
+    return after[0] if after else None
+
+
+def heuristic_items(text: str, ids: FallbackIds | None = None) -> CarryoverDraft:
+    """Deterministically pull ranking, ruled-out and open items from round text, clause by clause.
+
+    Each line is split into clauses at ';' and at 'while' / 'whereas' / 'but' / 'although'. A clause
+    with a rejection phrase ("ruled out", "refuted", "not supported", ...) is a ruled-out item for the
+    hypothesis id nearest before the phrase (or the one id after it), unless the phrase is negated
+    ("not ruled out", "cannot be excluded", "not yet refuted"), the clause is a question, or the id is
+    ambiguous: those are open questions. A numbered line, a line starting "leading", "supported",
+    "cause 1", ..., or a clause saying a hypothesis "is supported" / "is the leading cause" is a ranking
+    item; a clause without an id there takes the line's id when the line names exactly one. Otherwise
+    a question or a line naming a follow-up / open question is an open question. Each list keeps the
+    first `MAX_ITEMS` distinct items; a hypothesis ruled out is removed from the ranking and not ranked
+    again. Items with no hypothesis id get fallback ids from `ids` (a fresh counter if None).
+    """
+    ids = ids or FallbackIds()
     ranking: list[RankedItem] = []
     ruled_out: list[RuledOutItem] = []
     open_questions: list[str] = []
     seen_ids: set[str] = set()
+
+    def add_open(text_: str) -> None:
+        clipped_ = _clip(text_, HEURISTIC_ITEM_CHARS)
+        if clipped_ not in open_questions and len(open_questions) < MAX_ITEMS:
+            open_questions.append(clipped_)
+
+    def add_ranked(item_id: str | None, note: str) -> None:
+        nonlocal ranking
+        if item_id in seen_ids or len(ranking) >= MAX_ITEMS:
+            return
+        item_id = item_id or ids.next("C")
+        ranking.append(RankedItem(id=item_id, note=_clip(note, HEURISTIC_ITEM_CHARS)))
+        seen_ids.add(item_id)
+
+    def add_ruled_out(item_id: str | None, reason: str) -> None:
+        nonlocal ranking
+        item_id = item_id or ids.next("R")
+        # A later rejection wins over an earlier ranking of the same hypothesis.
+        ranking = [r for r in ranking if r.id != item_id]
+        if item_id not in {r.id for r in ruled_out} and len(ruled_out) < MAX_ITEMS:
+            ruled_out.append(RuledOutItem(id=item_id, reason=_clip(reason, HEURISTIC_ITEM_CHARS)))
+            seen_ids.add(item_id)
+
     for raw in text.splitlines()[:HEURISTIC_MAX_LINES]:
         line = _BULLET.sub("", raw).strip()
         if len(line) < 8:
             continue
-        clipped = _clip(line, HEURISTIC_ITEM_CHARS)
-        if _RULED_OUT.search(line):
-            item_id = _item_id(line, "R", len(ruled_out) + 1)
-            # A later rejection wins over an earlier ranking of the same hypothesis.
-            ranking = [r for r in ranking if r.id != item_id]
-            if item_id not in {r.id for r in ruled_out} and len(ruled_out) < MAX_ITEMS:
-                ruled_out.append(RuledOutItem(id=item_id, reason=clipped))
-                seen_ids.add(item_id)
-        elif _RANKED.search(raw):
-            item_id = _item_id(line, "C", len(ranking) + 1)
-            if item_id not in seen_ids and len(ranking) < MAX_ITEMS:
-                ranking.append(RankedItem(id=item_id, note=clipped))
-                seen_ids.add(item_id)
-        elif (line.endswith("?") or _OPEN.search(line)) and len(open_questions) < MAX_ITEMS:
-            if clipped not in open_questions:
-                open_questions.append(clipped)
+        line_ids = set(_HYPOTHESIS_ID.findall(line))
+        line_id = next(iter(line_ids)) if len(line_ids) == 1 else None
+        clauses = _clauses(line)
+        if not any(_RULED_OUT.search(clause) for clause in clauses):
+            if _RANKED.search(raw):
+                match = _HYPOTHESIS_ID.search(line)
+                add_ranked(match.group(0) if match else None, line)
+            elif line.endswith("?") or _OPEN.search(line):
+                add_open(line)
+            else:
+                for clause in clauses:
+                    if _SUPPORTED.search(clause):
+                        match = _HYPOTHESIS_ID.search(clause)
+                        add_ranked(match.group(0) if match else line_id, clause)
+            continue
+        for clause in clauses:
+            match = _RULED_OUT.search(clause)
+            if match is None:
+                if _SUPPORTED.search(clause):
+                    found = _HYPOTHESIS_ID.search(clause)
+                    add_ranked(found.group(0) if found else line_id, clause)
+                elif clause.endswith("?") or _OPEN.search(clause):
+                    add_open(clause)
+                continue
+            target = _ruled_out_target(clause, match)
+            if _NEGATION.search(clause[: match.start()]) or "?" in clause or target is False:
+                add_open(clause)
+            else:
+                add_ruled_out(target, line if len(clauses) == 1 else clause)
     return CarryoverDraft(ranking=ranking, ruled_out=ruled_out, open_questions=open_questions)
 
 
-def heuristic_extraction(round_output: RoundOutput, *, rounds_left: int, budget: int) -> tuple[CarryoverDraft, int]:
+def heuristic_extraction(
+    round_output: RoundOutput, *, rounds_left: int, budget: int, ids: FallbackIds | None = None
+) -> tuple[CarryoverDraft, int]:
     """Step 3: the extracted items, with trailing items dropped until the rendered state fits.
 
     Returns the draft and how many items were dropped. Raises when nothing is extractable or not even
     one item fits.
     """
-    draft = heuristic_items(round_output.text)
+    draft = heuristic_items(round_output.text, ids)
     if draft.is_empty():
         raise _StepFailed("no ranking, ruled-out or open-question lines found in the round text")
     ranking, ruled_out, questions = list(draft.ranking), list(draft.ruled_out), list(draft.open_questions)
@@ -425,8 +540,12 @@ def build_carryover(
     previous: Carryover | None = None,
     goal: str = "",
     run_id: str | None = None,
+    fallback_ids: FallbackIds | None = None,
 ) -> Carryover:
-    """Run the four-step cascade and return the first state that is valid and within budget."""
+    """Run the four-step cascade and return the first state that is valid and within budget.
+
+    Pass the run's `FallbackIds` so heuristic items without a hypothesis id stay unique across rounds.
+    """
     budget = config.carryover_budget_chars
     rounds_left = max(0, rounds_left)
     attempts: list[StepAttempt] = []
@@ -451,7 +570,7 @@ def build_carryover(
                 "one generator call, reply validated",
             ),
         ),
-        ("heuristic_extraction", lambda: _heuristic(round_output, rounds_left, budget)),
+        ("heuristic_extraction", lambda: _heuristic(round_output, rounds_left, budget, fallback_ids)),
     ]
     for step, run in steps:
         try:
@@ -469,8 +588,10 @@ def build_carryover(
     return final
 
 
-def _heuristic(round_output: RoundOutput, rounds_left: int, budget: int) -> tuple[CarryoverDraft, str]:
-    draft, dropped = heuristic_extraction(round_output, rounds_left=rounds_left, budget=budget)
+def _heuristic(
+    round_output: RoundOutput, rounds_left: int, budget: int, ids: FallbackIds | None
+) -> tuple[CarryoverDraft, str]:
+    draft, dropped = heuristic_extraction(round_output, rounds_left=rounds_left, budget=budget, ids=ids)
     count = len(draft.ranking) + len(draft.ruled_out) + len(draft.open_questions)
     detail = f"extracted {count} items" + (f", dropped {dropped} to fit" if dropped else "")
     return draft, detail
@@ -593,7 +714,14 @@ def run_sample(config: MarkovianConfig | None = None) -> int:
         ("C. state invalid, compressor raises -> heuristic", invalid_state, SampleStubGenerator("raise")),
         ("D. state invalid, reply not JSON, no verdict lines -> truncation", no_items, SampleStubGenerator("invalid_json")),
     ]
-    rounds_left = config.max_chunks - 2
+    # The recorded round is the second chunk of its run (plan, then one round); rounds_left comes from
+    # the chunk manager, as in the orchestrator. Imported here: chunks.py imports this module.
+    from app.engines.markovian.chunks import ChunkManager
+
+    manager = ChunkManager(config)
+    for label in ("plan", "round")[: config.max_chunks]:
+        manager.start_chunk(SAMPLE_GOAL, label=label)
+    rounds_left = manager.rounds_left
     expected = ["explicit_state", "model_compression", "heuristic_extraction", "truncation"]
     ok = True
     for (title, round_output, stub), want in zip(cases, expected, strict=True):

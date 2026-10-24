@@ -1,10 +1,14 @@
 """Record sample-mode cache entries for a question with the scripted stub (no model key needed).
 
-    python scripts/record_stub_cache.py "Why did order volume spike on 24 November 2017?"
+    python scripts/record_stub_cache.py "Why did order volume spike on 24 November 2017?" --loop simple
+    python scripts/record_stub_cache.py "<question>" --record-queries
 
-Runs the real loop (agents, DuckDB queries) with `app.llm.stub.ScriptedModel` standing in for the
-model, and writes one cache entry per model call to `LLM_CACHE_DIR` (default
-`data/sample/llm_cache/`), each marked `"recorded_with": "stub"`. Replace these with a real
+Runs the real investigation (agents, DuckDB queries) with `app.llm.stub.ScriptedModel` standing in
+for the model, and writes one cache entry per model call to `LLM_CACHE_DIR` (default
+`data/sample/llm_cache/`), each marked `"recorded_with": "stub"`. `--loop` picks the Markovian
+orchestrator (default, what run.py uses) or the simple loop; the two send different prompts, so
+each needs its own recording. `--record-queries` also writes the query rows to `QUERY_CACHE_DIR`
+(default `data/sample/query_cache/`) so sample mode serves the same rows on every machine. Replace these with a real
 recording: `SAMPLE_MODE=false RECORD_CACHE=true python run.py "<question>"` through Meterless.
 """
 
@@ -18,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.config import get_settings, resolve_path
 from app.data.local import LocalDataLayer
+from app.engines.markovian.orchestrator import run_markovian
 from app.llm.generator import GenerationResult, Message, ResponseCache
 from app.llm.stub import ScriptedModel
 from app.loop import run_investigation
@@ -62,12 +67,16 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("question")
     parser.add_argument("--run-id", default="record-stub")
+    parser.add_argument("--loop", choices=("markovian", "simple"), default="markovian",
+                        help="investigation loop to record (default markovian, as run.py)")
+    parser.add_argument("--record-queries", action="store_true", help="also record the query rows")
     args = parser.parse_args(argv)
 
-    settings = get_settings().model_copy(update={"sample_mode": False})
+    settings = get_settings().model_copy(update={"sample_mode": False, "record_cache": args.record_queries})
     recorder = StubRecorder(ResponseCache(resolve_path(settings.llm_cache_dir)))
+    run = run_investigation if args.loop == "simple" else run_markovian
     with LocalDataLayer(run_id=args.run_id, settings=settings) as data:
-        result = run_investigation(
+        result = run(
             args.question, run_id=args.run_id, generate=recorder, data=data, settings=settings, sample_mode=False
         )
     print(f"status: {result.status}; causes: {len(result.causes)}; entries written: {len(recorder.written)}")

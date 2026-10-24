@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0149,
+   "value": 0.1007
+  }
+ ],
+ "source": null,
+ "sql": "SELECT round(avg(CASE WHEN CAST(o.order_delivered_customer_date AS DATE) > CAST(o.order_estimated_delivery_date AS DATE) THEN 1.0 ELSE 0.0 END) FILTER (WHERE o.order_delivered_customer_date >= DATE '2018-05-28'), 4) AS value, round(avg(CASE WHEN CAST(o.order_delivered_customer_date AS DATE) > CAST(o.order_estimated_delivery_date AS DATE) THEN 1.0 ELSE 0.0 END) FILTER (WHERE NOT (o.order_delivered_customer_date >= DATE '2018-05-28')), 4) AS baseline FROM orders.orders o WHERE o.order_status = 'delivered' AND o.order_delivered_customer_date >= DATE '2018-04-30' AND o.order_delivered_customer_date < DATE '2018-06-04'",
+ "truncated": false
+}
