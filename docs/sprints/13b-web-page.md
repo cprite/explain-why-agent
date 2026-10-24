@@ -54,8 +54,9 @@ the page; the full trace is a download link.
   `requirements-dev.txt` only. Chromium is never run on the build machine.
 
 No scanner setting, threshold or default was changed, and nothing the model sees was changed. The
-recorded sample cache still matches. `main` has no `LOOP` setting yet (Sprint 8 not merged), so the
-CI server runs with `SAMPLE_MODE=true` only; once `LOOP` exists, the job needs `LOOP=simple`.
+recorded sample cache still matches. Sprint 8 (Markovian orchestrator, default `LOOP=markovian`) was
+merged into this branch from `main`; the Day-1 sample cache is recorded for the simple loop only, so
+the browser-check server runs with `SAMPLE_MODE=true` and `LOOP=simple`, like main's Day-1 CI steps.
 
 ## Left out
 
@@ -111,8 +112,8 @@ CI server runs with `SAMPLE_MODE=true` only; once `LOOP` exists, the job needs `
   `avg_review_score|category|relogios_presentes|2018-01-15`; `POST /run {"anomaly_id": that id}` →
   409 `cache_miss`; the Day-1 question → 200.
 - Browser check (CI job "Browser check"). The job starts `python -m app.api` with
-  `SAMPLE_MODE=true`, waits for `/health` (30 s cap) and runs `eval/browser_check.py` (whole job
-  capped at 600 s). The script:
+  `SAMPLE_MODE=true` and `LOOP=simple`, waits for `/health` (30 s cap) and runs
+  `eval/browser_check.py` (whole job capped at 600 s). The script:
   - opens `/` and asserts 1–10 overall cards and the review-score tile;
   - clicks "Show more" on that tile and asserts the incident-06 card appears;
   - clicks its "Explain" and asserts the cache_miss message with no stack trace;
@@ -137,6 +138,8 @@ CI server runs with `SAMPLE_MODE=true` only; once `LOOP` exists, the job needs `
   tile. The default was not changed.
 - Sample mode answers only the recorded Day-1 question. Explaining any card in sample mode gives
   the readable `cache_miss` message.
+- The page runs the Day-1 question under `LOOP=simple` until the sample cache is recorded for the
+  Markovian loop; with the default `LOOP=markovian`, sample mode gives `cache_miss` for it too.
 - Cards reached only through "Show more" usually have no attribution line: the scanner attributes
   its top 40 episodes and the board's cards only.
 - Single uvicorn worker assumed (the lock and the cache are per process).

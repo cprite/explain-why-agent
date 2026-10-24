@@ -21,6 +21,7 @@ jobs:
       - name: "Plan check K (task 19): web page in sample mode (board, Show more, cache_miss, Day-1 answer)"
         env:
           SAMPLE_MODE: "true"
+          LOOP: simple  # the recorded Day-1 answer is for the simple loop only
         run: |
           set -o pipefail
           python -m app.api > /tmp/web-server.log 2>&1 &
