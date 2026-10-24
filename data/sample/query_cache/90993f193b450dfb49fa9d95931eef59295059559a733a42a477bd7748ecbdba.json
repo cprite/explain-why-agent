@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.3456,
+   "value": 0.2714
+  }
+ ],
+ "source": null,
+ "sql": "WITH low AS (SELECT o.order_purchase_timestamp >= DATE '2018-01-01' AS in_window, i.seller_id, count(DISTINCT o.order_id) AS n FROM orders.orders o JOIN reviews.order_reviews rv ON rv.order_id = o.order_id JOIN orders.order_items i ON i.order_id = o.order_id WHERE o.order_id IN (SELECT i.order_id FROM orders.order_items i JOIN orders.products p ON p.product_id = i.product_id WHERE p.product_category_name = 'relogios_presentes') AND rv.review_score <= 2 AND o.order_purchase_timestamp >= DATE '2017-10-01' AND o.order_purchase_timestamp < DATE '2018-02-01' GROUP BY 1, 2) SELECT round(max(n) FILTER (WHERE in_window) / sum(n) FILTER (WHERE in_window), 4) AS value, round(max(n) FILTER (WHERE NOT in_window) / sum(n) FILTER (WHERE NOT in_window), 4) AS baseline FROM low",
+ "truncated": false
+}

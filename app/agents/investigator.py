@@ -6,7 +6,9 @@ the repair is visible in the trace (`repair_sql`, retry_count 1).
 
 The Markovian orchestrator passes `context`, the chunk input its chunk manager built (goal, carryover
 state, World Model evidence): it goes into the SQL request as `chunk` with a short note appended to
-the system prompt. Without it the request is exactly the simple loop's.
+the system prompt. For the change check it also asks for `spread` and `n` columns
+(`prompts/change_check_note.md`), which the orchestrator's no-significant-change branch and the
+Critic's sample-size check read. Without `context` the request is exactly the simple loop's.
 """
 
 from __future__ import annotations
@@ -87,6 +89,8 @@ def investigate(
     if context is not None:
         base_payload["chunk"] = context
         sql_prompt = f"{sql_prompt}\n\n{load_prompt('chunk_note')}"
+        if hypothesis is None:  # the orchestrator compares the change with its spread (Sprint 9)
+            sql_prompt = f"{sql_prompt}\n\n{load_prompt('change_check_note')}"
     query_ids: list[str] = []
 
     previous: tuple[str, QueryError] | None = None

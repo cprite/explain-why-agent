@@ -38,6 +38,7 @@ logs/*
 
 # Scanner DuckDB build files and spill directory
 .cache/
+browser-check.png
 
 # Ad-hoc run output saved at the repository root (python run.py ... > result.json)
 /result.json

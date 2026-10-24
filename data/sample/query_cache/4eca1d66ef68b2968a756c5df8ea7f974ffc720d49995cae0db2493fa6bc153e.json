@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 13.6991,
+   "value": 12.8825
+  }
+ ],
+ "source": null,
+ "sql": "WITH r AS (SELECT o.order_id, CAST(o.order_purchase_timestamp AS DATE) AS day, o.order_purchase_timestamp AS ts, o.order_delivered_customer_date AS delivered, o.order_estimated_delivery_date AS estimated, avg(rv.review_score) AS score, count(*) AS reviews FROM orders.orders o JOIN reviews.order_reviews rv ON rv.order_id = o.order_id WHERE o.order_id IN (SELECT i.order_id FROM orders.order_items i JOIN orders.products p ON p.product_id = i.product_id WHERE p.product_category_name = 'relogios_presentes') AND o.order_purchase_timestamp >= DATE '2017-10-01' AND o.order_purchase_timestamp < DATE '2018-02-01' GROUP BY 1, 2, 3, 4, 5) SELECT round(avg(date_diff('hour', ts, delivered) / 24.0) FILTER (WHERE day >= DATE '2018-01-01' AND delivered IS NOT NULL), 4) AS value, round(avg(date_diff('hour', ts, delivered) / 24.0) FILTER (WHERE NOT (day >= DATE '2018-01-01') AND delivered IS NOT NULL), 4) AS baseline FROM r",
+ "truncated": false
+}

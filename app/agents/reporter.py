@@ -37,6 +37,8 @@ class ReportOutcome:
     complete: bool = False
     determinable: bool = False
     causes: list[Cause] = field(default_factory=list)
+    cause_hypotheses: list[str] = field(default_factory=list)
+    """The hypothesis id behind each cause, in the same order (the orchestrator's Critic filter)."""
     ruled_out: list[RuledOut] = field(default_factory=list)
     limitations: list[str] = field(default_factory=list)
     follow_up: list[Hypothesis] = field(default_factory=list)
@@ -101,6 +103,7 @@ def report(
     limitations = list(draft.limitations)
 
     causes: list[Cause] = []
+    cause_hypotheses: list[str] = []
     if draft.determinable:
         for cause in draft.causes:
             evidence = [
@@ -120,6 +123,7 @@ def report(
                 if st.kind == "measured" and not query_ids:
                     continue
                 statements.append(Statement(text=st.text, kind=st.kind, query_ids=query_ids))
+            cause_hypotheses.append(cause.hypothesis_id)
             causes.append(
                 Cause(
                     rank=len(causes) + 1,
@@ -160,6 +164,7 @@ def report(
         complete=draft.complete,
         determinable=determinable,
         causes=causes,
+        cause_hypotheses=cause_hypotheses,
         ruled_out=ruled_out,
         limitations=limitations,
         follow_up=draft.follow_up,

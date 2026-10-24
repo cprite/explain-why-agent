@@ -80,8 +80,9 @@ def main(argv: list[str] | None = None) -> int:
             args.question, run_id=args.run_id, generate=recorder, data=data, settings=settings, sample_mode=False
         )
     print(f"status: {result.status}; causes: {len(result.causes)}; entries written: {len(recorder.written)}")
+    root = resolve_path(".")
     for path in recorder.written:
-        print(f"  {path.relative_to(resolve_path('.'))}")
+        print(f"  {path.relative_to(root) if path.is_relative_to(root) else path}")
     return 0 if result.status == "success" else 1
 
 

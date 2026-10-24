@@ -59,7 +59,13 @@ class Settings(BaseSettings):
     model_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
     max_output_tokens: int = Field(default=4096, ge=1)
     max_retries: int = Field(default=3, ge=0, le=3)
+    # Stream Meterless replies (SSE). Nightshift's provider deadline bounds the time to the response
+    # headers, which a buffered request only gets once the whole reply is generated (Sprint 8b).
+    model_stream: bool = True
     record_cache: bool = False
+    # With RECORD_CACHE in live mode, replay an entry already recorded with Meterless instead of
+    # calling the model again; only misses are called and written.
+    record_reuse_existing: bool = True
     llm_cache_dir: str = "data/sample/llm_cache"
     # Recorded query results for sample mode: written with RECORD_CACHE in a live run, served in
     # sample mode so the agents see identical rows on every machine (ties in ORDER BY ... LIMIT
@@ -81,6 +87,14 @@ class Settings(BaseSettings):
     alert_rel_change: float = Field(default=0.25, gt=0.0)
     alert_z: float = Field(default=3.5, gt=0.0)
     max_ingest_rows: int = Field(default=5000, ge=1)
+
+    # Branches and the Critic (architecture §4, Sprint 9). A change is within normal variation when
+    # |observed - baseline| <= CHANGE_VARIATION_THRESHOLD x spread (the measure's standard deviation
+    # across baseline periods as long as the window); the run then ends with significant=false.
+    change_variation_threshold: float = Field(default=2.0, gt=0.0)
+    # Fewer records than this behind the change in the window: the Critic flags the sample as too
+    # small and the run ends with determinable=false.
+    critic_min_sample_size: int = Field(default=30, ge=1)
 
     # HTTP API (architecture §7): bind address, port, and the wall-clock cap on one run.
     api_host: str = "0.0.0.0"

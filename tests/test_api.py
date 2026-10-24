@@ -110,10 +110,12 @@ def test_get_unknown_run_is_not_found(client: TestClient) -> None:
     assert_error(client.get("/runs/no-such-run/trace"), 404, "not_found")
 
 
+# "/runs/.." is sent as "/" by the client (dot-segment removal), which is now the web page; the
+# encoded form "/runs/%2E%2E" reaches the run route with the id "..".
 @pytest.mark.parametrize(
     "path",
     ["/runs/../etc", "/runs/a/b", "/runs/a%2Fb", "/runs/..%2Fetc", "/runs/..%2F..%2Fetc%2Fpasswd/trace",
-     "/runs/a..b", "/runs/..", "/runs/.hidden", "/runs/%2Fetc%2Fpasswd", "/runs/a%5Cb", "/runs/" + "x" * 65],
+     "/runs/a..b", "/runs/%2E%2E", "/runs/.hidden", "/runs/%2Fetc%2Fpasswd", "/runs/a%5Cb", "/runs/" + "x" * 65],
 )
 def test_traversal_ids_are_rejected_without_opening_files(
     client: TestClient, path: str, monkeypatch: pytest.MonkeyPatch

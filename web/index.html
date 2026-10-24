@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="run-timeout-seconds" content="600">
+  <title>Explain why — anomaly workspace</title>
+  <link rel="stylesheet" href="/web/style.css">
+</head>
+<body>
+  <header>
+    <h1>Why did this number change?</h1>
+    <p class="sub">Flagged movements from the anomaly scanner. Pick one and press Explain, or ask your own question.</p>
+    <span id="mode" class="badge" hidden></span>
+  </header>
+
+  <section id="ask-box" aria-label="Ask a question">
+    <label for="question">Your question</label>
+    <div class="ask-row">
+      <input id="question" type="text" maxlength="1000"
+             placeholder="Why did order volume spike on 24 November 2017?">
+      <button id="ask" type="button">Ask</button>
+    </div>
+  </section>
+
+  <section id="status" aria-live="polite">
+    <div id="progress" hidden>
+      <svg class="spinner" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" fill="none" stroke-width="3" stroke-dasharray="42 15"></circle>
+      </svg>
+      <span id="progress-text">Working</span>
+      <span id="elapsed">0 s</span>
+    </div>
+    <p id="message" role="alert" hidden></p>
+  </section>
+
+  <section id="result" aria-label="Answer" hidden></section>
+
+  <section aria-labelledby="top-title">
+    <h2 id="top-title">Top ten flagged movements</h2>
+    <div id="top-cards" class="cards"></div>
+  </section>
+
+  <section aria-labelledby="tiles-title">
+    <h2 id="tiles-title">By metric</h2>
+    <div id="tiles" class="tiles"></div>
+  </section>
+
+  <footer>
+    <p>The full trace of each run is a download (no live trace in this version).</p>
+  </footer>
+  <script src="/web/app.js"></script>
+</body>
+</html>

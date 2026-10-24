@@ -7,12 +7,16 @@
 - `GET /runs/{id}` returns `logs/result-<id>.json`; `GET /runs/{id}/trace` returns
   `logs/trace-<id>.jsonl` as NDJSON.
 - `GET /health` answers without touching the model or the data.
+- `GET /anomalies` returns the scanner's cards (overall top ten and the per-metric board), scanned
+  on first use and cached; `?metric=KEY&limit=N` returns one metric's flagged episodes ranked within
+  it. `POST /run` also takes `{"anomaly_id": ...}` and runs that card's pre-filled question.
+- `GET /` serves the web page (`web/index.html`, `web/app.js`, `web/style.css`).
 
 Every error has one shape: `{"error": {"code": ..., "message": ..., "run_id": ...}}`. One run at a
 time per process: a second `POST /run` while one is running gets `busy` (429) at once, which also
-keeps memory to one DuckDB instance. A `run_id` that was already used (its trace, result or query log
-exists) gets `run_id_taken` (409) and the earlier logs stay as they were; a bad `LOOP` setting gets
-`invalid_input` (400) before anything runs. A run that passes `API_RUN_TIMEOUT_SECONDS` gets `timeout`
+keeps memory to one DuckDB instance; a scan for `GET /anomalies` takes the same lock. A `run_id` that
+was already used (its trace, result or query log exists) gets `run_id_taken` (409) and the earlier logs
+stay as they were; a bad `LOOP` setting gets `invalid_input` (400) before anything runs. A run that passes `API_RUN_TIMEOUT_SECONDS` gets `timeout`
 (504); it cannot be killed, so it finishes in the background, still holding the run lock, and its
 result appears at `GET /runs/{id}` when it ends.
 """
@@ -24,20 +28,25 @@ import threading
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, Response
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.api.anomalies import MAX_METRIC_LIMIT, Board, BoardCache, Busy
 from app.config import Settings, get_settings, resolve_path
 from app.runner import RUN_ID_RULE, execute_run, new_run_id, select_loop, valid_run_id
 from app.schemas import Result, validate_result_file
 
 MAX_QUERY_CHARS = 1000
+MAX_ANOMALY_ID_CHARS = 300
+WEB_DIR = Path(__file__).resolve().parents[2] / "web"
+RUN_TIMEOUT_META = '<meta name="run-timeout-seconds" content="600">'
 
 log = logging.getLogger("app.api")
 _RUN_LOCK = threading.Lock()
+BOARD = BoardCache(_RUN_LOCK)
 
 
 class RunInput(BaseModel):
@@ -65,8 +74,18 @@ class RunRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     run_id: str | None = Field(default=None, description="Generated when absent.")
-    input: RunInput
+    input: RunInput | None = Field(default=None, description="A typed question; or give anomaly_id.")
+    anomaly_id: str | None = Field(
+        default=None, min_length=1, max_length=MAX_ANOMALY_ID_CHARS,
+        description="Id of a card from GET /anomalies; its pre-filled question is run.",
+    )
     options: RunOptions = Field(default_factory=RunOptions)
+
+    @model_validator(mode="after")
+    def _question_given(self) -> RunRequest:
+        if self.input is None and self.anomaly_id is None:
+            raise ValueError("input.query or anomaly_id is required")
+        return self
 
     @field_validator("run_id")
     @classmethod
@@ -161,6 +180,15 @@ def post_run(body: RunRequest) -> JSONResponse:
         select_loop(settings)
     except ValueError as exc:
         raise ApiError(400, "invalid_input", f"server setting {exc}", run_id) from None
+    if body.input is not None and body.anomaly_id is not None:
+        raise ApiError(400, "invalid_input", "give either input.query or anomaly_id, not both", run_id)
+    if body.input is not None:
+        question = body.input.query
+    else:
+        card = _board(run_id=run_id).by_id.get(body.anomaly_id or "")
+        if card is None:
+            raise ApiError(404, "not_found", f"no anomaly card with id {body.anomaly_id}", run_id)
+        question = card.question
 
     if not _RUN_LOCK.acquire(blocking=False):
         raise ApiError(429, "busy", "a run is already in progress; try again when it has finished", run_id)
@@ -175,7 +203,7 @@ def post_run(body: RunRequest) -> JSONResponse:
 
     def work() -> None:
         try:
-            outcome["result"] = execute_run(body.input.query, run_id=run_id, settings=settings)
+            outcome["result"] = execute_run(question, run_id=run_id, settings=settings)
         except Exception as exc:  # noqa: BLE001 - reported to the caller as run_failed
             outcome["error"] = exc
         finally:
@@ -234,3 +262,52 @@ def get_trace(run_id: str) -> Response:
     if not path.is_file():
         raise ApiError(404, "not_found", f"no trace for run id {run_id}", run_id)
     return Response(content=path.read_bytes(), media_type="application/x-ndjson")
+
+
+def _board(refresh: bool = False, run_id: str | None = None) -> Board:
+    try:
+        return BOARD.get(refresh=refresh)
+    except Busy as exc:
+        raise ApiError(429, "busy", str(exc), run_id) from None
+
+
+@app.get("/anomalies")
+def get_anomalies(
+    refresh: bool = False,
+    metric: str | None = Query(default=None, min_length=1, max_length=100),
+    limit: int = Query(default=10, ge=1),
+) -> JSONResponse:
+    """The scanner's cards: overall top ten and per-metric board, or one metric's ranked list."""
+    board = _board(refresh=refresh)
+    if metric is None:
+        report = board.report
+        return JSONResponse({
+            "generated_at": report.generated_at.isoformat(),
+            "timed_out": report.timed_out,
+            "episodes_found": report.episodes_found,
+            "cards": [card.model_dump(mode="json") for card in report.cards],
+            "by_metric": [b.model_dump(mode="json") for b in report.by_metric],
+        })
+    chosen = board.metric(metric, min(limit, MAX_METRIC_LIMIT))
+    if chosen is None:
+        raise ApiError(404, "not_found", f"no configured metric {metric}")
+    return JSONResponse(chosen.model_dump(mode="json"))
+
+
+@app.get("/", response_class=HTMLResponse)
+def index() -> HTMLResponse:
+    """The web page; the client-side wait is capped at API_RUN_TIMEOUT_SECONDS."""
+    html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+    timeout = get_settings().api_run_timeout_seconds
+    html = html.replace(RUN_TIMEOUT_META, f'<meta name="run-timeout-seconds" content="{timeout:g}">')
+    return HTMLResponse(html)
+
+
+@app.get("/web/app.js")
+def web_script() -> FileResponse:
+    return FileResponse(WEB_DIR / "app.js", media_type="text/javascript")
+
+
+@app.get("/web/style.css")
+def web_style() -> FileResponse:
+    return FileResponse(WEB_DIR / "style.css", media_type="text/css")
