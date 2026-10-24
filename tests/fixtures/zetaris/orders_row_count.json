@@ -1,0 +1,20 @@
+{
+ "name": "orders_row_count",
+ "recorded_with": "zetaris (live REST response)",
+ "recorded_at": "2026-10-24",
+ "request": {
+  "sql": "SELECT COUNT(*) AS n FROM lightning.metastore.explain_why.olist_usl.orders",
+  "limit": 5001
+ },
+ "response": {
+  "headers": [
+   "n"
+  ],
+  "data": [
+   [
+    "30256"
+   ]
+  ],
+  "total": 1
+ }
+}

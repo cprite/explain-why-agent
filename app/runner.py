@@ -1,10 +1,11 @@
 """The one way to run an investigation, shared by `run.py` and the HTTP API (architecture §7).
 
-`execute_run` wires the local data layer and the model generator around the selected loop: the
-Markovian orchestrator (`app/engines/markovian/orchestrator.py`, default) or the Sprint 2 simple
-loop (`app/loop.py`, `LOOP=simple`). Both write `logs/trace-<run_id>.jsonl` and
-`logs/result-<run_id>.json`. Setup failures (the data layer cannot open, a bad `LOOP`) raise;
-everything after that ends in a structured `Result`.
+`execute_run` wires the configured data layer (`make_data_layer`: Zetaris or local) and the model
+generator around the selected loop: the Markovian orchestrator
+(`app/engines/markovian/orchestrator.py`, default) or the Sprint 2 simple loop (`app/loop.py`,
+`LOOP=simple`). Both write `logs/trace-<run_id>.jsonl` and `logs/result-<run_id>.json`. Setup
+failures (the data layer cannot open, a bad `LOOP`) raise; everything after that ends in a
+structured `Result`.
 """
 
 from __future__ import annotations
@@ -50,12 +51,12 @@ def _close_quietly(close: Callable[[], None]) -> None:
 
 
 def execute_run(question: str, *, run_id: str, settings: Settings, loop: str | None = None) -> Result:
-    """Run one investigation on the local data layer with the configured model generator."""
+    """Run one investigation on the configured data layer with the configured model generator."""
     name = select_loop(settings, loop)
-    from app.data.local import LocalDataLayer
+    from app.data.factory import make_data_layer
     from app.llm.generator import Generator
 
-    data = LocalDataLayer(run_id=run_id, settings=settings)
+    data = make_data_layer(run_id, settings=settings)
     try:
         if name == "simple":
             from app.loop import run_investigation as run

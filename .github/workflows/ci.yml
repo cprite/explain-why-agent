@@ -36,6 +36,10 @@ jobs:
           python scripts/check_result.py /tmp/result-ci-day1.json
           echo "--- logs/trace-ci-day1.jsonl (first 3 lines) ---"
           head -n 3 logs/trace-ci-day1.jsonl
+      - name: "Plan check D (task 10): Day 1 queries through the Zetaris adapter (recorded REST responses) vs local DuckDB"
+        run: |
+          python scripts/zetaris_fixture_status.py
+          pytest -s -q -rs tests/test_zetaris_plan_check.py
       - name: "Plan check D (task 7): same observation written twice is one record, log shows a no-op"
         run: pytest -q -s tests/test_world_store.py::test_plan_check_task7_same_observation_twice_is_one_record
       - name: "Plan check E (task 8): interrupted ingest resumes from its checkpoint, no duplicates"

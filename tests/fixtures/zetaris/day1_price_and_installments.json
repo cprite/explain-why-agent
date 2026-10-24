@@ -1,0 +1,26 @@
+{
+ "name": "day1_price_and_installments",
+ "recorded_with": "zetaris (live REST response)",
+ "recorded_at": "2026-10-24",
+ "request": {
+  "sql": "WITH window_orders AS (\n  SELECT\n    o.order_id,\n    SUM(oi.price) AS order_total_price,\n    MAX(CASE WHEN op.payment_installments > 0 THEN 1 ELSE 0 END) AS has_discount\n  FROM lightning.metastore.explain_why.olist_usl.orders o\n  JOIN lightning.metastore.explain_why.olist_usl.order_items oi ON o.order_id = oi.order_id\n  JOIN lightning.metastore.explain_why.olist_usl.order_payments op ON o.order_id = op.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-24'\n    AND o.order_purchase_timestamp < DATE '2017-11-25'\n  GROUP BY o.order_id\n),\nbaseline_orders AS (\n  SELECT\n    o.order_id,\n    SUM(oi.price) AS order_total_price,\n    MAX(CASE WHEN op.payment_installments > 0 THEN 1 ELSE 0 END) AS has_discount\n  FROM lightning.metastore.explain_why.olist_usl.orders o\n  JOIN lightning.metastore.explain_why.olist_usl.order_items oi ON o.order_id = oi.order_id\n  JOIN lightning.metastore.explain_why.olist_usl.order_payments op ON o.order_id = op.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-17'\n    AND o.order_purchase_timestamp < DATE '2017-11-24'\n  GROUP BY o.order_id\n)\nSELECT\n  ROUND(AVG(wo.order_total_price), 4) AS avg_price_window,\n  ROUND(AVG(bo.order_total_price), 4) AS avg_price_baseline,\n  ROUND(SUM(wo.has_discount) * 1.0 / COUNT(*), 4) AS discount_prop_window,\n  ROUND(SUM(bo.has_discount) * 1.0 / COUNT(*), 4) AS discount_prop_baseline\nFROM window_orders wo, baseline_orders bo",
+  "limit": 5001
+ },
+ "response": {
+  "headers": [
+   "avg_price_window",
+   "avg_price_baseline",
+   "discount_prop_window",
+   "discount_prop_baseline"
+  ],
+  "data": [
+   [
+    "133.6690",
+    "165.0758",
+    "1.0000",
+    "1.0000"
+   ]
+  ],
+  "total": 1
+ }
+}

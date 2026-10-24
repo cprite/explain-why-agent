@@ -1,0 +1,45 @@
+[
+ {
+  "name": "orders_row_count",
+  "source": null,
+  "sql": "SELECT COUNT(*) AS n FROM orders.orders",
+  "note": "Same count the session ran live on 23 Oct (REST returned [[\"30256\"]])."
+ },
+ {
+  "name": "day1_orders_vs_baseline",
+  "source": null,
+  "sql": "WITH w AS (\n  SELECT COUNT(*) AS cnt\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-24'\n    AND order_purchase_timestamp < DATE '2017-11-25'\n),\nb AS (\n  SELECT COUNT(*) * 1.0 / 7 AS cnt\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-17'\n    AND order_purchase_timestamp < DATE '2017-11-24'\n)\nSELECT w.cnt AS value, ROUND(b.cnt, 4) AS baseline\nFROM w, b;"
+ },
+ {
+  "name": "day1_seller_spike",
+  "source": null,
+  "sql": "WITH window_orders AS (\n  SELECT DISTINCT o.order_id, oi.seller_id\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-24'\n    AND o.order_purchase_timestamp < DATE '2017-11-25'\n),\nbaseline_orders AS (\n  SELECT DISTINCT o.order_id, oi.seller_id\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-17'\n    AND o.order_purchase_timestamp < DATE '2017-11-24'\n),\nwindow_counts AS (\n  SELECT seller_id, COUNT(DISTINCT order_id) AS window_orders\n  FROM window_orders\n  GROUP BY seller_id\n),\nbaseline_counts AS (\n  SELECT seller_id, COUNT(DISTINCT order_id) AS baseline_orders\n  FROM baseline_orders\n  GROUP BY seller_id\n)\nSELECT\n  wc.seller_id,\n  wc.window_orders,\n  ROUND(COALESCE(bc.baseline_orders, 0) / 7.0, 4) AS baseline_avg_daily_orders,\n  ROUND(wc.window_orders * 1.0 / NULLIF(COALESCE(bc.baseline_orders, 0) / 7.0, 0), 4) AS spike_ratio\nFROM window_counts wc\nLEFT JOIN baseline_counts bc ON wc.seller_id = bc.seller_id\nORDER BY spike_ratio DESC NULLS LAST\nLIMIT 20;"
+ },
+ {
+  "name": "day1_category_mix",
+  "source": null,
+  "sql": "WITH window_orders AS (\n  SELECT\n    o.order_id,\n    pct.product_category_name_english AS category\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  JOIN orders.products pr ON oi.product_id = pr.product_id\n  JOIN orders.product_category_name_translation pct\n    ON pr.product_category_name = pct.product_category_name\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-24'\n    AND o.order_purchase_timestamp < DATE '2017-11-25'\n),\nbaseline_orders AS (\n  SELECT\n    o.order_id,\n    pct.product_category_name_english AS category\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  JOIN orders.products pr ON oi.product_id = pr.product_id\n  JOIN orders.product_category_name_translation pct\n    ON pr.product_category_name = pct.product_category_name\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-17'\n    AND o.order_purchase_timestamp < DATE '2017-11-24'\n),\ncategory_counts_window AS (\n  SELECT category, COUNT(DISTINCT order_id) AS cnt\n  FROM window_orders\n  GROUP BY category\n),\ncategory_counts_baseline AS (\n  SELECT category, COUNT(DISTINCT order_id) AS cnt\n  FROM baseline_orders\n  GROUP BY category\n),\ntop3_window AS (\n  SELECT category\n  FROM category_counts_window\n  ORDER BY cnt DESC\n  LIMIT 3\n),\ntop3_baseline AS (\n  SELECT category\n  FROM category_counts_baseline\n  ORDER BY cnt DESC\n  LIMIT 3\n),\nwindow_top3_orders AS (\n  SELECT COUNT(DISTINCT wo.order_id) AS top3_cnt\n  FROM window_orders wo\n  JOIN top3_window t ON wo.category = t.category\n),\nwindow_total_orders AS (\n  SELECT COUNT(DISTINCT wo.order_id) AS total_cnt\n  FROM window_orders wo\n),\nbaseline_top3_orders AS (\n  SELECT COUNT(DISTINCT bo.order_id) AS top3_cnt\n  FROM baseline_orders bo\n  JOIN top3_baseline t ON bo.category = t.category\n),\nbaseline_total_orders AS (\n  SELECT COUNT(DISTINCT bo.order_id) AS total_cnt\n  FROM baseline_orders bo\n)\nSELECT\n  ROUND(w.top3_cnt * 1.0 / wt.total_cnt, 4) AS value,\n  ROUND(b.top3_cnt * 1.0 / bt.total_cnt, 4) AS baseline\nFROM window_top3_orders w, window_total_orders wt, baseline_top3_orders b, baseline_total_orders bt;"
+ },
+ {
+  "name": "day1_duplicate_rows",
+  "source": null,
+  "sql": "WITH window_stats AS (\n  SELECT\n    COUNT(*) AS total_rows,\n    COUNT(DISTINCT order_id) AS distinct_order_ids,\n    COUNT(*) - COUNT(DISTINCT order_id) AS duplicate_rows\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-24'\n    AND order_purchase_timestamp < DATE '2017-11-25'\n),\nbaseline_stats AS (\n  SELECT\n    COUNT(*) AS total_rows,\n    COUNT(DISTINCT order_id) AS distinct_order_ids,\n    COUNT(*) - COUNT(DISTINCT order_id) AS duplicate_rows,\n    (COUNT(*) - COUNT(DISTINCT order_id)) / 7.0 AS avg_daily_duplicate_rows\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-17'\n    AND order_purchase_timestamp < DATE '2017-11-24'\n)\nSELECT\n  w.duplicate_rows AS value,\n  ROUND(b.avg_daily_duplicate_rows, 4) AS baseline,\n  w.total_rows AS window_total_rows,\n  w.distinct_order_ids AS window_distinct_order_ids\nFROM window_stats w, baseline_stats b;"
+ },
+ {
+  "name": "day1_price_and_installments",
+  "source": null,
+  "sql": "WITH window_orders AS (\n  SELECT\n    o.order_id,\n    SUM(oi.price) AS order_total_price,\n    MAX(CASE WHEN op.payment_installments > 0 THEN 1 ELSE 0 END) AS has_discount\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  JOIN payments.order_payments op ON o.order_id = op.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-24'\n    AND o.order_purchase_timestamp < DATE '2017-11-25'\n  GROUP BY o.order_id\n),\nbaseline_orders AS (\n  SELECT\n    o.order_id,\n    SUM(oi.price) AS order_total_price,\n    MAX(CASE WHEN op.payment_installments > 0 THEN 1 ELSE 0 END) AS has_discount\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  JOIN payments.order_payments op ON o.order_id = op.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-17'\n    AND o.order_purchase_timestamp < DATE '2017-11-24'\n  GROUP BY o.order_id\n)\nSELECT\n  ROUND(AVG(wo.order_total_price), 4) AS avg_price_window,\n  ROUND(AVG(bo.order_total_price), 4) AS avg_price_baseline,\n  ROUND(SUM(wo.has_discount) * 1.0 / COUNT(*), 4) AS discount_prop_window,\n  ROUND(SUM(bo.has_discount) * 1.0 / COUNT(*), 4) AS discount_prop_baseline\nFROM window_orders wo, baseline_orders bo;"
+ },
+ {
+  "name": "types_orders_payments",
+  "source": null,
+  "sql": "SELECT o.order_id, o.order_status, o.order_purchase_timestamp, o.order_delivered_customer_date,\n       o.order_estimated_delivery_date, p.payment_installments, p.payment_value\nFROM orders.orders o\nJOIN payments.order_payments p ON p.order_id = o.order_id\nWHERE o.order_delivered_customer_date IS NULL OR p.payment_value = 0\nORDER BY o.order_id, p.payment_sequential\nLIMIT 8",
+  "note": "Not a Day 1 query: covers timestamp, date, null, int and decimal (including zero) conversion."
+ },
+ {
+  "name": "scoped_payments_by_type",
+  "source": "payments",
+  "sql": "SELECT payment_type, COUNT(*) AS payments, ROUND(SUM(payment_value), 2) AS total_value\nFROM order_payments\nGROUP BY payment_type\nORDER BY payment_type",
+  "note": "Not a Day 1 query: a source-scoped statement with an unqualified table name."
+ }
+]

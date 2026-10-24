@@ -1,4 +1,4 @@
-"""The data-layer interface shared by every adapter (local DuckDB now, Zetaris later).
+"""The data-layer interface shared by every adapter (Zetaris over REST, local DuckDB).
 
 Agents only see this interface: they list sources, read schemas and run read-only SQL. A query
 never raises to the caller; it returns either a `QueryResult` or a `QueryError`, and both carry the
@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 
 @dataclass(frozen=True)
@@ -122,6 +122,15 @@ class DataLayer(ABC):
         `timeout` is in seconds. Defaults come from the adapter's settings.
         """
 
+    def close(self) -> None:
+        """Release the adapter's resources (database file, HTTP client). Default: nothing to release."""
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.close()
+
 
 class QueryLog:
     """Append-only JSONL log of every query: `logs/queries-<run_id>.jsonl` (architecture §8)."""
@@ -130,8 +139,12 @@ class QueryLog:
         self.path = Path(log_dir) / f"queries-{run_id}.jsonl"
         self.run_id = run_id
 
-    def write(self, outcome: QueryOutcome) -> None:
-        """Append one line for an accepted, rejected or failed query."""
+    def write(self, outcome: QueryOutcome, extra: dict[str, Any] | None = None) -> None:
+        """Append one line for an accepted, rejected or failed query.
+
+        `extra` adds adapter-specific fields (the Zetaris adapter adds `usl_tables` and, after a
+        fallback, `fallback_reason`).
+        """
         self.path.parent.mkdir(parents=True, exist_ok=True)
         record = {
             "timestamp": datetime.now(UTC).isoformat(),
@@ -145,6 +158,7 @@ class QueryLog:
             "truncated": outcome.truncated if isinstance(outcome, QueryResult) else False,
             "status": "ok" if isinstance(outcome, QueryResult) else outcome.code,
             "error": None if isinstance(outcome, QueryResult) else outcome.message,
+            **(extra or {}),
         }
         with self.path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(record, default=str) + "\n")
