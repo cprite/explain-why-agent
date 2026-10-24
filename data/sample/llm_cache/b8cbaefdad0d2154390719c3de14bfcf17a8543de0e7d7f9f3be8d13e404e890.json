@@ -1,0 +1,23 @@
+{
+  "key": "b8cbaefdad0d2154390719c3de14bfcf17a8543de0e7d7f9f3be8d13e404e890",
+  "role": "investigator",
+  "schema": "ObservationDraft",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are the Investigator. You ran a query to test a hypothesis (or the change check). Read the rows\nin the INPUT and record what they show.\n\n- `finding`: one sentence with the actual numbers from the rows, the window and the baseline.\n- `value` and `baseline`: the measure in the window and in the baseline, copied from the rows.\n- `effect`: value / baseline - 1 when both exist, otherwise empty.\n- `supports`: true if the rows support the hypothesis, false if they refute it, empty if they cannot\n  tell. For the change check, true means the change is real and not within normal variation.\n\nReport only what the rows show. Do not add numbers that are not in the rows."
+    },
+    {
+      "role": "user",
+      "content": "INPUT:\n{\"columns\":[\"value\",\"baseline\"],\"plan\":{\"baseline_window\":{\"end\":\"2017-10-01\",\"start\":\"2017-08-01\"},\"metric\":\"average order value (payments per order, by order purchase date)\",\"question\":\"Why has average order value been declining since August 2017?\",\"segment\":\"all\",\"window\":{\"end\":\"2017-11-01\",\"start\":\"2017-10-01\"}},\"rows\":[{\"baseline\":0.0032,\"value\":0.0077}],\"rows_returned\":1,\"sql\":\"WITH pay AS (SELECT order_id, sum(payment_value) AS v FROM payments.order_payments GROUP BY 1), items AS (SELECT order_id, count(*) AS k, avg(price) AS price FROM orders.order_items GROUP BY 1), a AS (SELECT o.order_id, CAST(o.order_purchase_timestamp AS DATE) AS day, pay.v, items.k, items.price FROM orders.orders o LEFT JOIN pay ON pay.order_id = o.order_id LEFT JOIN items ON items.order_id = o.order_id WHERE o.order_purchase_timestamp >= DATE '2017-08-01' AND o.order_purchase_timestamp < DATE '2017-11-01') SELECT round(avg(CASE WHEN v IS NULL OR v <= 0 OR k IS NULL THEN 1.0 ELSE 0.0 END) FILTER (WHERE day >= DATE '2017-10-01'), 4) AS value, round(avg(CASE WHEN v IS NULL OR v <= 0 OR k IS NULL THEN 1.0 ELSE 0.0 END) FILTER (WHERE NOT (day >= DATE '2017-10-01')), 4) AS baseline FROM a\",\"task\":{\"family\":\"data_artefact\",\"id\":\"H4\",\"kind\":\"hypothesis\",\"statement\":\"Orders with missing or zero payment records pull the average down.\",\"test\":{\"description\":\"Share of orders with missing payments or items, window against baseline.\",\"sources\":[\"orders\",\"payments\"]}},\"truncated\":false}"
+    }
+  ],
+  "reply": "{\"finding\": \"Share of orders with missing or zero payments or no items: 0.0077 in the window against 0.0032 in the baseline (+140.6%).\", \"value\": 0.0077, \"baseline\": 0.0032, \"effect\": 1.4062, \"supports\": false}",
+  "provider": "stub",
+  "model_requested": null,
+  "model_routed": "scripted-stub",
+  "receipt_id": null,
+  "usage": null,
+  "recorded_with": "stub",
+  "recorded_at": null
+}

@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0032,
+   "value": 0.0077
+  }
+ ],
+ "source": null,
+ "sql": "WITH pay AS (SELECT order_id, sum(payment_value) AS v FROM payments.order_payments GROUP BY 1), items AS (SELECT order_id, count(*) AS k, avg(price) AS price FROM orders.order_items GROUP BY 1), a AS (SELECT o.order_id, CAST(o.order_purchase_timestamp AS DATE) AS day, pay.v, items.k, items.price FROM orders.orders o LEFT JOIN pay ON pay.order_id = o.order_id LEFT JOIN items ON items.order_id = o.order_id WHERE o.order_purchase_timestamp >= DATE '2017-08-01' AND o.order_purchase_timestamp < DATE '2017-11-01') SELECT round(avg(CASE WHEN v IS NULL OR v <= 0 OR k IS NULL THEN 1.0 ELSE 0.0 END) FILTER (WHERE day >= DATE '2017-10-01'), 4) AS value, round(avg(CASE WHEN v IS NULL OR v <= 0 OR k IS NULL THEN 1.0 ELSE 0.0 END) FILTER (WHERE NOT (day >= DATE '2017-10-01')), 4) AS baseline FROM a",
+ "truncated": false
+}
