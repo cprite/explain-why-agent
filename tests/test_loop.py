@@ -188,14 +188,27 @@ def test_sample_mode_uses_committed_cache(tmp_path: Path) -> None:
 
 
 def test_committed_cache_entries_are_real_meterless_recordings() -> None:
-    """The committed sample cache is a live run through Meterless (Nightshift) on Nemotron."""
+    """The committed sample cache is a live run through Meterless (Nightshift) on Nemotron.
+
+    Since Sprint 8 the cache also holds entries recorded with the scripted stub for the Markovian plan
+    check (`recorded_with: stub`, provider `stub`), until they are re-recorded through Nightshift. Those
+    are checked to be marked as such; every other entry, including all of the Day 1 question's, must
+    be a live Meterless recording.
+    """
     entries = list((ROOT / "data" / "sample" / "llm_cache").glob("*.json"))
     assert entries
+    live = 0
     for path in entries:
         entry = json.loads(path.read_text())
+        if entry.get("recorded_with") == "stub":
+            assert entry["provider"] == "stub" and entry["model_routed"] == "scripted-stub", path.name
+            assert QUESTION not in json.dumps(entry["messages"]), path.name  # Day 1 stays a live recording
+            continue
+        live += 1
         assert entry["provider"] == "meterless", path.name
         assert "nemotron" in (entry["model_routed"] or ""), path.name
         assert entry["receipt_id"], path.name
+    assert live >= 15  # the 23 Oct Day 1 recording
 
 
 # --- no incident-specific wording ---------------------------------------------------------------
