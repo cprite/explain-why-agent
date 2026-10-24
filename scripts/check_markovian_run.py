@@ -34,6 +34,9 @@ def main(argv: list[str] | None = None) -> int:
     trace_path = REPO_ROOT / result.log_file
     lines = [json.loads(line) for line in trace_path.read_text(encoding="utf-8").splitlines() if line.strip()]
     lines = [line for line in lines if line.get("run_id") == result.run_id]
+    # The trace file appends: a run id used twice holds both runs, so read from the last start.
+    starts = [i for i, line in enumerate(lines) if line.get("agent") == "Orchestrator" and line.get("action") == "start"]
+    lines = lines[starts[-1]:] if starts else lines
     chunks = [line for line in lines if line.get("agent") == "Orchestrator" and line.get("action") == "chunk"]
     finish = next((line for line in reversed(lines) if line.get("agent") == "Orchestrator"
                    and line.get("action") == "finish"), {})
