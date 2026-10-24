@@ -1,0 +1,23 @@
+{
+  "key": "6ce41226392f10f52f8c0f50cc09acdf37b6cc2d2c79ae48c6591197718609b0",
+  "role": "investigator",
+  "schema": "ObservationDraft",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are the Investigator. You ran a query to test a hypothesis (or the change check). Read the rows\nin the INPUT and record what they show.\n\n- `finding`: one sentence with the actual numbers from the rows, the window and the baseline.\n- `value` and `baseline`: the measure in the window and in the baseline, copied from the rows.\n- `effect`: value / baseline - 1 when both exist, otherwise empty.\n- `supports`: true if the rows support the hypothesis, false if they refute it, empty if they cannot\n  tell. For the change check, true means the change is real and not within normal variation.\n\nReport only what the rows show. Do not add numbers that are not in the rows."
+    },
+    {
+      "role": "user",
+      "content": "INPUT:\n{\"columns\":[\"value\",\"baseline\"],\"plan\":{\"baseline_window\":{\"end\":\"2017-12-01\",\"start\":\"2017-11-01\"},\"metric\":\"average review score of reviewed orders, by order purchase date\",\"question\":\"Why did seller 1430239a858e7682bbc43b20758af153's review scores drop in early December 2017?\",\"segment\":\"seller 1430239a858e7682bbc43b20758af153\",\"window\":{\"end\":\"2017-12-16\",\"start\":\"2017-12-01\"}},\"rows\":[{\"baseline\":null,\"value\":3.9722}],\"rows_returned\":1,\"sql\":\"WITH r AS (SELECT o.order_id, CAST(o.order_purchase_timestamp AS DATE) AS day, o.order_purchase_timestamp AS ts, o.order_delivered_customer_date AS delivered, o.order_estimated_delivery_date AS estimated, avg(rv.review_score) AS score, count(*) AS reviews FROM orders.orders o JOIN reviews.order_reviews rv ON rv.order_id = o.order_id WHERE o.order_id IN (SELECT order_id FROM orders.order_items WHERE seller_id = '1430239a858e7682bbc43b20758af153') AND o.order_purchase_timestamp >= DATE '2017-11-01' AND o.order_purchase_timestamp < DATE '2017-12-16' GROUP BY 1, 2, 3, 4, 5) SELECT round(avg(date_diff('hour', ts, delivered) / 24.0) FILTER (WHERE day >= DATE '2017-12-01' AND delivered IS NOT NULL), 4) AS value, round(avg(date_diff('hour', ts, delivered) / 24.0) FILTER (WHERE NOT (day >= DATE '2017-12-01') AND delivered IS NOT NULL), 4) AS baseline FROM r\",\"task\":{\"family\":\"logistics_delay\",\"id\":\"H1\",\"kind\":\"hypothesis\",\"statement\":\"Deliveries took longer than usual, and late deliveries pulled the scores down.\",\"test\":{\"description\":\"Average days from purchase to delivery, window against baseline.\",\"sources\":[\"orders\",\"reviews\"]}},\"truncated\":false}"
+    }
+  ],
+  "reply": "{\"finding\": \"Average days from purchase to delivery of reviewed orders: 3.9722 in the window against None in the baseline.\", \"value\": 3.9722, \"baseline\": null, \"effect\": null, \"supports\": false}",
+  "provider": "stub",
+  "model_requested": null,
+  "model_routed": "scripted-stub",
+  "receipt_id": null,
+  "usage": null,
+  "recorded_with": "stub",
+  "recorded_at": null
+}

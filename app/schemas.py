@@ -107,13 +107,58 @@ class Observation(_Model):
     supports: bool | None = Field(default=None, description="Does it support the hypothesis?")
 
 
+CheckName = Literal["alternative_cause", "concentration", "sample_size", "date_basis", "data_artefact"]
+"""The Critic's disproof checks (architecture §4), each named in its output."""
+
+CHECK_NAMES: tuple[str, ...] = CheckName.__args__  # type: ignore[attr-defined]
+
+SUPPORTED_MIN_SCORE = 7
+"""A critique total (of 9) at or above this supports the hypothesis; below it is insufficient."""
+
+
+class CritiqueScores(_Model):
+    """The Critic's scored critique, 0 to 3 on each point (architecture §4)."""
+
+    supported_by_data: int = Field(ge=0, le=3, description="Is it supported by the data?")
+    explains_size_and_timing: int = Field(ge=0, le=3, description="Does it explain the size and timing of the change?")
+    alternatives_excluded: int = Field(ge=0, le=3, description="Are the alternative explanations excluded?")
+
+    @property
+    def total(self) -> int:
+        """The sum of the three scores, 0 to 9."""
+        return self.supported_by_data + self.explains_size_and_timing + self.alternatives_excluded
+
+
+class CriticCheck(_Model):
+    """One disproof check and what it found."""
+
+    name: CheckName
+    outcome: Literal["passed", "failed", "not_checked"] = Field(
+        description="passed: the check did not break the hypothesis; failed: it did; not_checked: no evidence."
+    )
+    detail: str = Field(default="", description="One sentence with the numbers the check rests on.")
+
+
 class Verdict(_Model):
-    """A judgement on one hypothesis (the Critic's job from a later sprint; Reporter fills it now)."""
+    """The Critic's judgement on one hypothesis.
+
+    The fields after `follow_up_tests` are optional so that verdicts written before the Critic existed
+    (and hooks that give only a verdict and a reason) still validate.
+    """
 
     hypothesis_id: str
     verdict: Literal["supported", "refuted", "insufficient"]
     reason: str
     follow_up_tests: list[str] = Field(default_factory=list)
+    scores: CritiqueScores | None = None
+    total_score: int | None = Field(default=None, ge=0, le=9)
+    checks: list[CriticCheck] = Field(default_factory=list)
+    observation_ids: list[str] = Field(default_factory=list, description="Evidence the verdict relies on.")
+    query_ids: list[str] = Field(default_factory=list, description="Queries behind that evidence.")
+    sample_size: int | None = Field(default=None, description="Records behind the change in the window.")
+    sample_too_small: bool = False
+    attempt: int = Field(default=1, ge=1, description="1 for the first critique, 2 after the revision.")
+    retry_count: int = Field(default=0, ge=0, description="Invalid replies retried before this verdict.")
 
 
 class Change(_Model):
@@ -125,6 +170,17 @@ class Change(_Model):
     baseline: float | None = None
     observed: float | None = None
     significant: bool | None = None
+    spread: float | None = Field(
+        default=None, description="Normal variation of the measure in the baseline (standard deviation)."
+    )
+
+    @model_serializer(mode="wrap")
+    def _drop_unset_spread(self, handler):  # unannotated: a return type would change the JSON schema
+        # Only the orchestrator measures a spread; the simple loop's output keeps its Sprint 2 shape.
+        data = handler(self)
+        if isinstance(data, dict) and data.get("spread", ...) is None:
+            del data["spread"]
+        return data
 
 
 class Statement(_Model):
@@ -185,7 +241,7 @@ class TokenReport(_Model):
     saving_percent: float = 0.0
 
 
-StopReason = Literal["completed", "max_chunks", "timeout", "no_hypotheses", "error"]
+StopReason = Literal["completed", "max_chunks", "max_tool_calls", "timeout", "no_hypotheses", "error"]
 """Why an orchestrated (Markovian) run stopped."""
 
 
@@ -218,13 +274,19 @@ class Result(_Model):
     stop_reason: StopReason | None = Field(
         default=None, description="Why the Markovian orchestrator stopped; None for the simple loop."
     )
+    summary: str | None = Field(
+        default=None,
+        description="One line for the reader (Markovian orchestrator); never names a cause when determinable is false.",
+    )
 
     @model_serializer(mode="wrap")
     def _drop_unset_stop_reason(self, handler):  # unannotated: a return type would change the JSON schema
-        # The simple loop has no stop reason; its output keeps the Sprint 2 shape (no `stop_reason` key).
+        # The simple loop has no stop reason or summary; its output keeps the Sprint 2 shape.
         data = handler(self)
-        if isinstance(data, dict) and data.get("stop_reason", ...) is None:
-            del data["stop_reason"]
+        if isinstance(data, dict):
+            for key in ("stop_reason", "summary"):
+                if data.get(key, ...) is None:
+                    del data[key]
         return data
 
     @model_validator(mode="after")
@@ -302,6 +364,33 @@ class ReportDraft(_Model):
     follow_up: list[Hypothesis] = Field(
         default_factory=list, description="Hypotheses to test next when complete is false."
     )
+
+
+class CritiqueDraft(_Model):
+    """The Critic's model reply. The code turns it into a `Verdict` (architecture §4):
+    `contradicted` gives refuted; otherwise a total of 7 or more of 9 gives supported, less gives
+    insufficient with the follow-up tests."""
+
+    checks: list[CriticCheck] = Field(description="One entry per disproof check, each check named once.")
+    scores: CritiqueScores
+    contradicted: bool = Field(description="True when the evidence contradicts the hypothesis.")
+    reason: str = Field(description="One or two sentences: why, with the numbers.")
+    follow_up_tests: list[str] = Field(
+        default_factory=list, max_length=3,
+        description="Specific measurements that would decide it (when the evidence is not enough).",
+    )
+    sample_size: int | None = Field(
+        default=None, ge=0, description="Records behind the change in the window, if the evidence shows it."
+    )
+    observation_ids: list[str] = Field(default_factory=list, description="Ids from the INPUT the verdict relies on.")
+
+    @model_validator(mode="after")
+    def _every_check_once(self) -> CritiqueDraft:
+        names = [check.name for check in self.checks]
+        missing = [name for name in CHECK_NAMES if name not in names]
+        if missing or len(names) != len(set(names)):
+            raise ValueError(f"checks must name each of {', '.join(CHECK_NAMES)} exactly once")
+        return self
 
 
 ALL_MODELS: tuple[type[BaseModel], ...] = (

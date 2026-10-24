@@ -24,7 +24,11 @@
 - Every provider call (and every cache lookup) is one line in `logs/trace-<run_id>.jsonl`.
 - Per-call limits: `generator.with_limits(deadline_seconds=..., max_retries=0)` returns a generate
   function whose calls end by the deadline (each HTTP request's timeout is cut to the time left, no
-  retry sleeps past it, no repair or fallback call once it has passed). The Markovian carryover
+  retry sleeps past it, no repair or fallback call once it has passed). httpx timeouts are per
+  phase (connect, each read), so a server that trickles its reply could still outlast them: a
+  bounded request therefore runs in a short-lived worker thread that reads the body (buffered or
+  streamed) chunk by chunk, the caller stops waiting at the deadline (a `timeout` error), and the
+  worker stops at its next chunk or by its own read timeout, whichever comes first. The Markovian carryover
   cascade uses it for the compressor so a timed-out compression does not leave a call running.
 
 No exception escapes `generate`: every failure comes back as `GenerationResult(ok=False, error=...)`.
@@ -35,6 +39,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import threading
 import time
 from collections.abc import Callable, Iterator
 from dataclasses import asdict, dataclass, field
@@ -158,6 +163,38 @@ class CallLimits:
     def remaining(self) -> float:
         """Seconds left before the deadline (negative once it has passed)."""
         return self.deadline - time.monotonic()
+
+
+CALL_THREAD_NAME = "generator-call"
+"""Name of the worker thread that runs one deadline-bounded HTTP request."""
+
+
+def run_by_deadline(
+    work: Callable[[threading.Event], Any], deadline: float, name: str, during: str = "the request"
+) -> Any:
+    """Run `work(stop)` in a worker thread and return its result, or raise `ProviderError("timeout")`
+    once the monotonic `deadline` passes (then `stop` is set so the worker ends at its next check).
+
+    Exceptions raised by `work` are re-raised here.
+    """
+    stop = threading.Event()
+    box: dict[str, Any] = {}
+
+    def target() -> None:
+        try:
+            box["value"] = work(stop)
+        except BaseException as exc:  # noqa: BLE001 - handed to the caller
+            box["error"] = exc
+
+    worker = threading.Thread(target=target, name=CALL_THREAD_NAME, daemon=True)
+    worker.start()
+    worker.join(max(0.0, deadline - time.monotonic()))
+    if worker.is_alive():
+        stop.set()
+        raise ProviderError("timeout", f"{name}: per-call deadline reached during {during}")
+    if "error" in box:
+        raise box["error"]
+    return box["value"]
 
 
 class ProviderError(Exception):
@@ -323,7 +360,7 @@ class OpenAICompatibleProvider:
     ) -> tuple[int, ProviderReply | None]:
         """One HTTP request: the status and, below 400, the reply (None when unreadable)."""
         url = f"{self.base_url}/chat/completions"
-        if not self.stream:
+        if not self.stream and limits is None:
             response = self.client.post(url, json=body, headers=self.headers(chat=True), timeout=timeout)
             status = response.status_code
             return status, (self._buffered_reply(response) if status < 400 else None)
@@ -331,11 +368,25 @@ class OpenAICompatibleProvider:
             status = response.status_code
             if status >= 400:
                 return status, None
-            if "text/event-stream" not in response.headers.get("content-type", "").lower():
+            if not self.stream or "text/event-stream" not in response.headers.get("content-type", "").lower():
                 # A server that ignores `stream` answers with the whole completion as JSON.
-                response.read()
-                return status, self._buffered_reply(response)
+                return status, self._buffered_reply(self._read_body(response, limits))
             return self._streamed_reply(response, limits)
+
+    def _read_body(self, response: httpx.Response, limits: CallLimits | None) -> httpx.Response:
+        """Read a streamed response's whole body; with `limits`, chunk by chunk, stopping at the deadline."""
+        if limits is None:
+            response.read()
+            return response
+        chunks: list[bytes] = []
+        for chunk in response.iter_bytes():
+            if limits.remaining() <= 0:
+                raise ProviderError("timeout", f"{self.name}: per-call deadline reached while reading")
+            chunks.append(chunk)
+        # The chunks are decoded already, so the encoding and length headers no longer describe them.
+        headers = [(k, v) for k, v in response.headers.multi_items()
+                   if k.lower() not in ("content-encoding", "content-length", "transfer-encoding")]
+        return httpx.Response(response.status_code, headers=headers, content=b"".join(chunks), request=response.request)
 
     def chat(
         self,
@@ -372,7 +423,13 @@ class OpenAICompatibleProvider:
                     raise ProviderError("timeout", f"{self.name}: per-call deadline reached", retries)
                 request_timeout = httpx.Timeout(min(left, self.timeout))
             try:
-                status, reply = self._send(body, request_timeout, limits)
+                if limits is None:
+                    status, reply = self._send(body, request_timeout, None)
+                else:
+                    status, reply = run_by_deadline(
+                        lambda _stop, t=request_timeout: self._send(body, t, limits), limits.deadline, self.name,
+                        "the stream" if self.stream else "the request",
+                    )
             except ProviderError as exc:
                 exc.retries = retries
                 raise

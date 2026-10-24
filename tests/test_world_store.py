@@ -140,7 +140,7 @@ def test_edges_record_agent_and_run_and_are_idempotent(store: WorldStore) -> Non
 
 def test_edge_types_and_ends_are_checked(store: WorldStore) -> None:
     ids = _seed_graph(store)
-    assert set(EDGE_TYPES) == {"tests", "supports", "refutes", "derived_from", "from_source"}
+    assert set(EDGE_TYPES) == {"tests", "supports", "refutes", "derived_from", "from_source", "judges", "relies_on"}
     with pytest.raises(ValueError, match="unknown edge type"):
         store.put_edge("likes", ids["observation"], ids["hypothesis"], agent="a", run_id="r")
     with pytest.raises(ValueError, match="needs observation -> hypothesis"):

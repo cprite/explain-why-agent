@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0406,
+   "value": 0.059
+  }
+ ],
+ "source": null,
+ "sql": "WITH s AS (SELECT o.order_purchase_timestamp >= DATE '2017-10-01' AS in_window, i.seller_id, sum(i.price) AS revenue FROM orders.orders o JOIN orders.order_items i ON i.order_id = o.order_id WHERE o.order_purchase_timestamp >= DATE '2017-08-01' AND o.order_purchase_timestamp < DATE '2017-11-01' GROUP BY 1, 2) SELECT round(max(revenue) FILTER (WHERE in_window) / sum(revenue) FILTER (WHERE in_window), 4) AS value, round(max(revenue) FILTER (WHERE NOT in_window) / sum(revenue) FILTER (WHERE NOT in_window), 4) AS baseline FROM s",
+ "truncated": false
+}

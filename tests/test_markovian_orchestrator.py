@@ -3,11 +3,15 @@
 Model replies come from the scripted stub (app/llm/stub.py), wrappers around it that fail or stall on
 purpose, or the committed sample-mode cache; the agents, the DuckDB queries, the World Model and the
 chunk manager run for real. No network.
+
+These are the Sprint 8 mechanics: `run()` pins the no-op critic (`critic=critic_hook`) unless a test
+passes its own. The real Critic and the branches are tested in tests/test_critic.py.
 """
 
 from __future__ import annotations
 
 import json
+import re
 import threading
 import time
 from pathlib import Path
@@ -64,6 +68,7 @@ def run(
     **kwargs: Any,
 ) -> Result:
     settings = settings or settings_for(tmp_path)
+    kwargs.setdefault("critic", critic_hook)
     layer_kwargs = {"sources": sources} if sources else {}
     with LocalDataLayer(run_id=run_id, log_dir=tmp_path / "logs", settings=settings, **layer_kwargs) as data:
         result = run_markovian(question, run_id=run_id, generate=generate, data=data, settings=settings,
@@ -142,7 +147,8 @@ def test_sample_mode_plan_check_question_replays_the_recorded_cache(tmp_path: Pa
     settings = settings_for(tmp_path, sample_mode=True, llm_cache_dir="data/sample/llm_cache")
     for run_id in ("s1", "another-run-id"):  # prompts do not depend on the run id
         generator = Generator(settings)
-        result = run(tmp_path, generator, question=PLAN_CHECK, run_id=run_id, settings=settings, sources=None)
+        result = run(tmp_path, generator, question=PLAN_CHECK, run_id=run_id, settings=settings, sources=None,
+                     critic=None)  # the real Critic: the cache is recorded with it (Sprint 9)
         assert result.status == "success", result.error
         assert result.stop_reason == "completed"
         assert result.causes[0].type == "logistics_delay"
@@ -263,9 +269,19 @@ def test_no_significant_change_means_no_hypotheses(tmp_path: Path) -> None:
             return {**reply, "supports": False}
         return reply
 
-    result = run(tmp_path, Scripted(ObservationDraft=not_real))
+    def no_spread(reply: dict[str, Any], messages: Any) -> dict[str, Any]:
+        if '"kind":"change_check"' in messages[-1]["content"]:
+            return {**reply, "sql": re.sub(r", round\(stddev_samp\(m\).*? AS n FROM d", " FROM d", reply["sql"])}
+        return reply
+
+    result = run(tmp_path, Scripted(ObservationDraft=not_real, SqlProposal=no_spread))
     assert result.stop_reason == "no_hypotheses"
-    assert result.status == "success" and result.determinable is False and result.causes == []
+    # Since Sprint 9 this is the no-significant-change branch: a determinable answer with no causes.
+    # The stub's change check has a spread; the run ends here when the change is within it (or, as here
+    # with the spread removed, when the Investigator reads the change as not real).
+    assert result.status == "success" and result.determinable is True and result.causes == []
+    assert result.change is not None and result.change.significant is False
+    assert result.summary and result.summary.startswith("No significant change")
     assert len(chunk_lines(tmp_path)) == 1
 
 

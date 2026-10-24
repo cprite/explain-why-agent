@@ -1,0 +1,20 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spread",
+  "n"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 142.4397,
+   "n": 3123,
+   "spread": 0.3571,
+   "value": 130.9566
+  }
+ ],
+ "source": null,
+ "sql": "WITH pay AS (SELECT order_id, sum(payment_value) AS v FROM payments.order_payments GROUP BY 1), items AS (SELECT order_id, count(*) AS k, avg(price) AS price FROM orders.order_items GROUP BY 1), a AS (SELECT o.order_id, CAST(o.order_purchase_timestamp AS DATE) AS day, pay.v, items.k, items.price FROM orders.orders o LEFT JOIN pay ON pay.order_id = o.order_id LEFT JOIN items ON items.order_id = o.order_id WHERE o.order_purchase_timestamp >= DATE '2017-08-01' AND o.order_purchase_timestamp < DATE '2017-11-01') SELECT round(avg(v) FILTER (WHERE day >= DATE '2017-10-01'), 4) AS value, round(avg(v) FILTER (WHERE NOT (day >= DATE '2017-10-01')), 4) AS baseline, (SELECT round(stddev_samp(m), 4) FROM (SELECT avg(v) AS m FROM a WHERE day < DATE '2017-10-01' GROUP BY floor(date_diff('day', DATE '2017-08-01', day) / 31))) AS spread, count(v) FILTER (WHERE day >= DATE '2017-10-01') AS n FROM a",
+ "truncated": false
+}
