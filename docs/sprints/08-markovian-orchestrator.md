@@ -79,10 +79,15 @@ there: `run.py --loop simple` or `LOOP=simple`.
     test that the run id never appears in a model request.
 - `MARKOVIAN_RUN_TIMEOUT_S` (default 540, >0, ≤3600) in `MarkovianConfig`, and `LOOP` (default
   `markovian`) in `Settings`, both documented in `.env.example`. `Result.stop_reason` is new and
-  optional. `run.py` leaves the key out when it is None, so the simple loop's JSON keeps its Sprint
-  2 shape.
+  optional. `Result` leaves the key out of its JSON when it is None, so the simple loop's output
+  (CLI, `POST /run` and `logs/result-<id>.json`) keeps its Sprint 2 shape.
 - `run.py --loop markovian|simple`. The flag wins over `LOOP`; a bad `LOOP` value exits 2 with
   `bad_loop`.
+- Since the HTTP API (Sprint 13, PR #19) merged, the loop is chosen in the shared run helper
+  `app/runner.py` (`select_loop`, `execute_run(..., loop=None)`), so `run.py` and `POST /run` take
+  the same path: the orchestrator by default, the simple loop with `LOOP=simple`. The helper closes
+  the data layer quietly (a close failure goes to stderr and never replaces the result). The
+  orchestrator also writes `logs/result-<id>.json`, so `GET /runs/{id}` serves orchestrated runs.
 - `scripts/check_markovian_run.py RESULT.json`: the plan-check report (below).
 - `scripts/record_stub_cache.py`: `--loop` (default `markovian`) and `--record-queries` (also writes
   the query rows to `data/sample/query_cache/`).
@@ -139,16 +144,19 @@ there: `run.py --loop simple` or `LOOP=simple`.
   A coordinator re-records them through Nightshift after the PR. The 15 Day 1 entries
   (`recorded_with: meterless`) and their 5 query files are untouched.
 - The orchestrator sends different prompts from the simple loop, so the Day 1 question misses the
-  cache under the new default (a structured `cache_miss` error). Two things that use the Day 1
-  recording are therefore **pinned to the simple loop**:
+  cache under the new default (a structured `cache_miss` error; 409 `cache_miss` over HTTP). The
+  things that use the Day 1 recording are therefore **pinned to the simple loop**:
   - CI "Plan check C" (`--loop simple` and `LOOP=simple`). Its output is unchanged: the
     `check_result.py` lines are identical and so is the result JSON apart from
     `execution_time_seconds`;
-  - the three `run.py` CLI tests in `tests/test_loop.py` (`LOOP=simple` in `_run_cli`).
+  - the three `run.py` CLI tests in `tests/test_loop.py` (`LOOP=simple` in `_run_cli`);
+  - CI "Plan check I (task 18)", the HTTP API step from Sprint 13 (`LOOP: simple` in its env). Its
+    output is unchanged apart from `execution_time_seconds`;
+  - the `logs` fixture in `tests/test_api.py` (`LOOP=simple`), which the Sprint 13 API tests share.
 - `test_committed_cache_entries_are_real_meterless_recordings` now accepts the stub entries if they
   are marked as such. All other entries, including every Day 1 entry, must still be live Meterless
   recordings on Nemotron with a receipt (at least 15).
-- New CI step **"Plan check I (task 12)"**. It runs the plan-check question in sample mode under
+- New CI step **"Plan check J (task 12)"** (I is the Sprint 13 HTTP API step). It runs the plan-check question in sample mode under
   `timeout 600`, prints the wall-clock seconds, then runs `scripts/check_markovian_run.py`. The
   script fails on:
   - a non-success result, or a `stop_reason` of `timeout` or `error`;
@@ -157,7 +165,7 @@ there: `run.py --loop simple` or `LOOP=simple`.
   - a chunk-line count that differs from `chunks_used`;
   - more than 600 s.
 
-  Plan checks A–H are unchanged.
+  Plan checks A–I are unchanged (C and I pinned to the simple loop, above).
 
 ## Left out
 
@@ -195,23 +203,28 @@ there: `run.py --loop simple` or `LOOP=simple`.
   clauses, ambiguous rejections, negation words, fallback ids within a text and across a run, the
   compression timeout leaving no thread, the bounded generator not retrying while the plain one
   still retries 3 times, and the real ContextBuilder payload through `start_chunk`.
-- `tests/test_run_loop.py` (10 tests): the default is the orchestrator; `--loop simple`, `LOOP=simple`
+- `tests/test_run_loop.py` (14 tests): the default is the orchestrator; `--loop simple`, `LOOP=simple`
   and flag-over-variable; a bad `LOOP`; `run.py` on the plan-check question with
   `MARKOVIAN_RUN_TIMEOUT_S` of 0.005, 0.02, 0.05 and 0.1 s gives a valid JSON result and no
   traceback or DuckDB abort on stderr: exit 1 with `stop_reason: timeout`, or (only for the larger
   limits on a fast machine, where the 0.1–0.2 s sample run can finish first) exit 0 with
   `completed` (before the fix 11 of 12 such
-  runs between 0.02 and 0.3 s exited 134 with an `internal` error).
+  runs between 0.02 and 0.3 s exited 134 with an `internal` error). After the merge with the HTTP
+  API: `select_loop`; `POST /run` runs the orchestrator by default (`stop_reason: completed`, and
+  `GET /runs/{id}` returns the same JSON) and the simple loop with `LOOP=simple` (no `stop_reason`
+  key); a result without a stop reason leaves the key out.
 - `tests/test_data_local.py`: `close()` while another thread runs a slow query returns, and the
   query ends with code `cancelled`; `interrupt()` stops a query and the layer stays usable.
-- Whole suite: `pytest -q` gives 305 passed under
+- Whole suite: `pytest -q` gives 356 passed (after merging the HTTP API from main) under
   `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0` on the build machine (arm64), about
   100 s. `ruff check .` is clean. No test uses the network: the generator runs on the stub, the
   cache or an httpx `MockTransport`.
 - Every CI step that existed on main was re-run on this branch and on `origin/main`, and the outputs
   diffed. Plan checks A, B, D–H and the two World Model sample steps are identical apart from the
-  checkout path. Plan check C is identical apart from `execution_time_seconds`.
-- Plan check I on the build machine:
+  checkout path. Plan check C is identical apart from `execution_time_seconds`. After merging main
+  (PR #19), the HTTP API step (plan check I) was run the same way on both trees (on another port,
+  as 8000 was taken on the build machine): identical apart from `execution_time_seconds`.
+- Plan check J on the build machine:
 
   ```
   wall_clock_seconds: 2
