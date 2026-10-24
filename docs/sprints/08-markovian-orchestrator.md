@@ -195,14 +195,16 @@ there: `run.py --loop simple` or `LOOP=simple`.
   clauses, ambiguous rejections, negation words, fallback ids within a text and across a run, the
   compression timeout leaving no thread, the bounded generator not retrying while the plain one
   still retries 3 times, and the real ContextBuilder payload through `start_chunk`.
-- `tests/test_run_loop.py` (9 tests): the default is the orchestrator; `--loop simple`, `LOOP=simple`
+- `tests/test_run_loop.py` (10 tests): the default is the orchestrator; `--loop simple`, `LOOP=simple`
   and flag-over-variable; a bad `LOOP`; `run.py` on the plan-check question with
-  `MARKOVIAN_RUN_TIMEOUT_S` of 0.02, 0.05 and 0.1 s exits 1 with a valid JSON result,
-  `stop_reason: timeout` and no traceback or DuckDB abort on stderr (before the fix 11 of 12 such
+  `MARKOVIAN_RUN_TIMEOUT_S` of 0.005, 0.02, 0.05 and 0.1 s gives a valid JSON result and no
+  traceback or DuckDB abort on stderr: exit 1 with `stop_reason: timeout`, or (only for the larger
+  limits on a fast machine, where the 0.1–0.2 s sample run can finish first) exit 0 with
+  `completed` (before the fix 11 of 12 such
   runs between 0.02 and 0.3 s exited 134 with an `internal` error).
 - `tests/test_data_local.py`: `close()` while another thread runs a slow query returns, and the
   query ends with code `cancelled`; `interrupt()` stops a query and the layer stays usable.
-- Whole suite: `pytest -q` gives 304 passed under
+- Whole suite: `pytest -q` gives 305 passed under
   `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0` on the build machine (arm64), about
   100 s. `ruff check .` is clean. No test uses the network: the generator runs on the stub, the
   cache or an httpx `MockTransport`.
