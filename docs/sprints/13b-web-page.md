@@ -70,7 +70,7 @@ the browser-check server runs with `SAMPLE_MODE=true` and `LOOP=simple`, like ma
 
 ## How it was tested
 
-- `tests/test_api_anomalies.py` (22 tests, FastAPI `TestClient`, no network). One real scan of the
+- `tests/test_api_anomalies.py` (23 tests, FastAPI `TestClient`, no network). One real scan of the
   committed sample per module, with an empty environment and `socket.connect` patched to fail.
   - ≤ 10 overall cards and a `by_metric` list, all validating against `app.scanner.models`.
   - Incident-06 (avg review score, relogios_presentes, January 2018) is not in the top ten and not
@@ -80,7 +80,8 @@ the browser-check server runs with `SAMPLE_MODE=true` and `LOOP=simple`, like ma
     unchanged.
   - The cache computes once until `?refresh=true`; the scan holds the run lock; `?refresh=true` or a
     first scan while the lock is held → 429 while the cached board is still served; a failing scan
-    releases the lock; the scanner connection is closed after the real scan.
+    releases the lock; a scan with `timed_out: true` is served but not cached, so the next call
+    scans again; the scanner connection is closed after the real scan.
   - `anomaly_id` from the top ten and from the expanded list passes the card's question to
     `execute_run` (stub), also before any board load. The real sample cache gives a structured 409
     `cache_miss` for incident-06, with the stored result carrying the card's question. Unknown id →
@@ -101,7 +102,8 @@ the browser-check server runs with `SAMPLE_MODE=true` and `LOOP=simple`, like ma
     card fields, comes out as text with no `img` element;
   - the run id in the trace link is URL-encoded;
   - card fields and signed change, tile count and Show more, and the error messages.
-- Full suite: `pytest -q` → 385 passed (353 before); `ruff check .` clean. Existing CI steps are
+- Full suite: `pytest -q` → 438 passed (353 before this sprint, 437 on `e2f4d5d` before the
+  timed-out cache fix); `ruff check .` clean. Existing CI steps are
   unchanged. One existing test case changed: in `tests/test_api.py`'s traversal test, the path
   `/runs/..` is sent by the client as `/` (dot-segment removal), so it only ever tested "unknown
   route → 404". With the page now at `/`, that case got 200. It is replaced by `/runs/%2E%2E`,
@@ -125,14 +127,17 @@ the browser-check server runs with `SAMPLE_MODE=true` and `LOOP=simple`, like ma
   - checks for no page JavaScript errors and no request to another host.
 
   Each assertion prints `[PASS]` or `[FAIL]` to the CI log. The full-page screenshot
-  `browser-check.png` is uploaded as the `browser-check` artifact. It runs only in CI, so its first
-  output is in the CI run of this PR, not here.
+  `browser-check.png` is uploaded as the `browser-check` artifact. It runs only in CI (Chromium is
+  never run on the build machine). On `e2f4d5d` it passed 23 of 23 checks: CI run 40106064293,
+  artifact `browser-check`.
 
 ## Known limits
 
 - One run or scan at a time per process (shared lock, no queue). The first board load takes about
   25 s (one scan), and an Explain before any board load waits for that scan first.
-- Cards are cached until `?refresh=true` or a restart. The page has no refresh button.
+- Cards are cached until `?refresh=true` or a restart. The page has no refresh button. A scan that
+  hits the scanner's time budget (`timed_out: true`) is shown but not cached: the next board load
+  scans again (about 25 s).
 - Incident-06 is not in the overall top ten (overall rank 37) and not in the default per-metric
   top 3 (6th of 25 in average review score). You reach it with "Show more" on the review-score
   tile. The default was not changed.
