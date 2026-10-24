@@ -156,7 +156,7 @@ def test_bounded_generator_does_not_retry_or_fall_back() -> None:
     bounded = generator(busy).with_limits(deadline_seconds=2.0)
     result = bounded([{"role": "user", "content": "hi"}], role="compressor")
     assert not result.ok and result.error is not None and result.error["code"] == "retries_exhausted"
-    assert calls == ["127.0.0.1"]  # MAX_RETRIES=3 would have sent four
+    assert calls == ["127.0.0.1"]  # unbounded, MAX_MODEL_ATTEMPTS=3 would have sent three
 
 
 def test_unbounded_generator_still_retries() -> None:
@@ -167,7 +167,7 @@ def test_unbounded_generator_still_retries() -> None:
         return httpx.Response(503)
 
     generator(busy)([{"role": "user", "content": "hi"}], role="planner")
-    assert len(calls) == 4
+    assert len(calls) == 3  # MAX_RETRIES=3, capped by MAX_MODEL_ATTEMPTS=3 per step
 
 
 # --- the real ContextBuilder payload ----------------------------------------------------------------

@@ -12,12 +12,17 @@
   error or timeout) or its retries are exhausted. An unauthorized Meterless token is reported, not
   silently bypassed.
 - Retries: 429 and 5xx are retried after 2 s, 4 s and 8 s (capped by `MAX_RETRIES`).
+- Attempt cap: one `generate` call (one agent step) sends at most `MAX_MODEL_ATTEMPTS` (3) HTTP
+  requests, counting retries, the fallback and the JSON repair call together. When the fallback is
+  configured, the primary keeps one of the three for it.
 - JSON mode: with `schema` (a pydantic model class) the reply is parsed and validated; on failure
   one repair call sends the validation error back; a second failure is a structured error.
 - Sample mode: replies come from a per-call cache under `data/sample/llm_cache/`, keyed by a hash of
   the normalised request (messages, schema name, role); a miss is a structured error. With
   `RECORD_CACHE=true` in live mode every reply is written to that cache.
-- Every provider call (and every cache lookup) is one line in `logs/trace-<run_id>.jsonl`.
+- Every provider call (and every cache lookup) is one line in `logs/trace-<run_id>.jsonl`; provider
+  lines carry `provider`, `model`, `attempt` (requests sent so far in this step) and, on the
+  fallback provider's line, `fallback_reason`.
 - Per-call limits: `generator.with_limits(deadline_seconds=..., max_retries=0)` returns a generate
   function whose calls end by the deadline (each HTTP request's timeout is cut to the time left, no
   retry sleeps past it, no repair or fallback call once it has passed). The Markovian carryover
@@ -54,6 +59,7 @@ PLACEHOLDER_TOKENS = frozenset({"rt-local"})
 NVIDIA_PROVIDER_ID = "nvidia"
 NVIDIA_DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1"
 RETRY_DELAYS_SECONDS: tuple[float, ...] = (2.0, 4.0, 8.0)
+MAX_MODEL_ATTEMPTS = 3
 DEFAULT_MODEL = "meterless/auto"
 ROLE_DEFAULT_MODELS: dict[str, str] = {
     "planner": "meterless/deep",
@@ -156,15 +162,29 @@ class CallLimits:
         return self.deadline - time.monotonic()
 
 
+@dataclass
+class _AttemptBudget:
+    """HTTP requests left for one `generate` call (one agent step)."""
+
+    left: int = MAX_MODEL_ATTEMPTS
+
+    @property
+    def used(self) -> int:
+        return MAX_MODEL_ATTEMPTS - self.left
+
+
 class ProviderError(Exception):
     """A provider call failed. `code` decides whether the generator falls back."""
 
-    def __init__(self, code: str, message: str, retries: int = 0, status_code: int | None = None):
+    def __init__(
+        self, code: str, message: str, retries: int = 0, status_code: int | None = None, attempts: int = 0
+    ):
         super().__init__(message)
         self.code = code
         self.message = message
         self.retries = retries
         self.status_code = status_code
+        self.attempts = attempts
 
 
 @dataclass
@@ -176,6 +196,7 @@ class ProviderReply:
     receipt_id: str | None
     usage: dict[str, Any] | None
     retries: int
+    attempts: int = 1
 
 
 def _content_text(message: dict[str, Any]) -> str:
@@ -231,11 +252,13 @@ class OpenAICompatibleProvider:
         temperature: float,
         max_tokens: int,
         limits: CallLimits | None = None,
+        max_attempts: int | None = None,
     ) -> ProviderReply:
         """POST /chat/completions with retries on 429/5xx; raises `ProviderError` on failure.
 
         With `limits`, at most `limits.max_retries` retries, and each request's timeout is the time
-        left before `limits.deadline` (a `timeout` error once none is left).
+        left before `limits.deadline` (a `timeout` error once none is left). With `max_attempts`, at
+        most that many requests in all. The error or reply says how many requests were sent.
         """
         if not self.configured:
             raise ProviderError("not_configured", f"{self.name} is not configured")
@@ -247,22 +270,29 @@ class OpenAICompatibleProvider:
         }
         retries = 0
         max_retries = self.max_retries if limits is None else max(0, min(limits.max_retries, self.max_retries))
+        if max_attempts is not None:
+            max_retries = max(0, min(max_retries, max_attempts - 1))
         while True:
             request_timeout: Any = httpx.USE_CLIENT_DEFAULT
             if limits is not None:
                 left = limits.remaining()
                 if left <= 0:
-                    raise ProviderError("timeout", f"{self.name}: per-call deadline reached", retries)
+                    raise ProviderError("timeout", f"{self.name}: per-call deadline reached", retries, attempts=retries)
                 request_timeout = httpx.Timeout(min(left, self.timeout))
+            sent = retries + 1
             try:
                 response = self.client.post(
                     f"{self.base_url}/chat/completions", json=body, headers=self.headers(chat=True),
                     timeout=request_timeout,
                 )
             except httpx.TimeoutException as exc:
-                raise ProviderError("timeout", f"{self.name} timed out: {type(exc).__name__}", retries) from exc
+                raise ProviderError(
+                    "timeout", f"{self.name} timed out: {type(exc).__name__}", retries, attempts=sent
+                ) from exc
             except httpx.HTTPError as exc:
-                raise ProviderError("offline", f"{self.name} unreachable: {type(exc).__name__}", retries) from exc
+                raise ProviderError(
+                    "offline", f"{self.name} unreachable: {type(exc).__name__}", retries, attempts=sent
+                ) from exc
 
             status = response.status_code
             if status == 429 or status >= 500:
@@ -276,19 +306,24 @@ class OpenAICompatibleProvider:
                     f"{self.name} returned HTTP {status} after {retries} retries",
                     retries,
                     status,
+                    attempts=sent,
                 )
             if status in (401, 403):
-                raise ProviderError("unauthorized", f"{self.name} rejected the token (HTTP {status})", retries, status)
+                raise ProviderError(
+                    "unauthorized", f"{self.name} rejected the token (HTTP {status})", retries, status, attempts=sent
+                )
             if status >= 400:
-                raise ProviderError("http_error", f"{self.name} returned HTTP {status}", retries, status)
+                raise ProviderError("http_error", f"{self.name} returned HTTP {status}", retries, status, attempts=sent)
             try:
                 data = response.json()
                 message = data["choices"][0]["message"]
             except (ValueError, KeyError, IndexError, TypeError) as exc:
-                raise ProviderError("bad_response", f"{self.name} sent an unreadable reply", retries) from exc
+                raise ProviderError(
+                    "bad_response", f"{self.name} sent an unreadable reply", retries, attempts=sent
+                ) from exc
             routed, receipt = self._reply_metadata(data, response)
             usage = data.get("usage") if isinstance(data.get("usage"), dict) else None
-            return ProviderReply(_content_text(message), routed, receipt, usage, retries)
+            return ProviderReply(_content_text(message), routed, receipt, usage, retries, sent)
 
 
 class MeterlessProvider(OpenAICompatibleProvider):
@@ -465,7 +500,7 @@ class Generator:
         self._traces: dict[str, TraceWriter] = {}
         self.meterless = MeterlessProvider(
             base_url=s.meterless_base_url,
-            token=s.meterless_runtime_token,
+            token=s.meterless_token,
             transport=transport,
             max_retries=s.max_retries,
             sleep=sleep,
@@ -506,8 +541,11 @@ class Generator:
         """Generate one reply; see the module docstring. Never raises."""
         started = time.perf_counter()
         trace = self._trace_for(run_id)
+        budget = _AttemptBudget()
         try:
-            first = self._complete(messages, schema=schema, role=role, trace=trace, repair=False, limits=limits)
+            first = self._complete(
+                messages, schema=schema, role=role, trace=trace, repair=False, limits=limits, budget=budget
+            )
             if not first.ok or schema is None:
                 return self._finish(first, started)
             parsed, problem = parse_json_reply(first.content or "", schema)
@@ -518,6 +556,14 @@ class Generator:
                 first.ok = False
                 first.error = {"code": "timeout", "message": f"reply rejected ({problem}); no time left for a repair call"}
                 return self._finish(first, started)
+            if not self.sample_mode and budget.left <= 0:
+                first.ok = False
+                first.error = {
+                    "code": "invalid_json",
+                    "message": f"reply rejected ({problem}); no attempt left for a repair call "
+                    f"(MAX_MODEL_ATTEMPTS={MAX_MODEL_ATTEMPTS} per step)",
+                }
+                return self._finish(first, started)
             repair_messages = [
                 *messages,
                 {"role": "assistant", "content": first.content or ""},
@@ -527,7 +573,9 @@ class Generator:
                     "Send the corrected reply as one JSON object only.",
                 },
             ]
-            second = self._complete(repair_messages, schema=schema, role=role, trace=trace, repair=True, limits=limits)
+            second = self._complete(
+                repair_messages, schema=schema, role=role, trace=trace, repair=True, limits=limits, budget=budget
+            )
             second.repaired = True
             second.retries += first.retries
             second.attempts = first.attempts + second.attempts
@@ -584,8 +632,10 @@ class Generator:
         trace: TraceWriter | None,
         repair: bool,
         limits: CallLimits | None = None,
+        budget: _AttemptBudget | None = None,
     ) -> GenerationResult:
         """One logical model call: cache in sample mode, otherwise provider chain with fallback."""
+        budget = budget or _AttemptBudget()
         schema_name = schema.__name__ if schema else None
         key = ResponseCache.key(messages, schema_name, role)
         model = self.model_for(role)
@@ -660,6 +710,7 @@ class Generator:
         attempts: list[dict[str, Any]] = []
         total_retries = 0
         last_error: ProviderError | None = None
+        fallback_ready = len(chain) > 1 and chain[1][0].configured
         for index, (provider, provider_model) in enumerate(chain):
             # Fallback only when the primary is offline or its retries are exhausted.
             if index > 0 and (
@@ -670,6 +721,18 @@ class Generator:
                 if last_error is None:
                     last_error = ProviderError("timeout", "per-call deadline reached before the call")
                 break
+            if budget.left <= 0:
+                if last_error is None:
+                    last_error = ProviderError(
+                        "attempts_exhausted", f"MAX_MODEL_ATTEMPTS={MAX_MODEL_ATTEMPTS} per step already used"
+                    )
+                break
+            # The primary leaves one attempt for a configured fallback.
+            allowed = max(1, budget.left - 1) if index == 0 and fallback_ready else budget.left
+            fallback_fields = (
+                {"fallback_reason": f"{last_error.code}: {last_error.message}"}
+                if index > 0 and last_error is not None else {}
+            )
             call_started = time.perf_counter()
             try:
                 reply = provider.chat(
@@ -678,35 +741,44 @@ class Generator:
                     temperature=self.settings.model_temperature,
                     max_tokens=self.settings.max_output_tokens,
                     limits=limits,
+                    max_attempts=allowed,
                 )
             except ProviderError as exc:
                 last_error = exc
                 total_retries += exc.retries
+                budget.left -= exc.attempts
                 attempts.append(
                     log(
                         provider.name,
                         exc.code,
                         model_requested=provider_model,
+                        model=provider_model,
+                        attempt=budget.used,
                         model_routed=None,
                         duration_ms=round((time.perf_counter() - call_started) * 1000.0, 1),
                         tokens=None,
                         retries=exc.retries,
                         error=exc.message,
+                        **fallback_fields,
                     )
                 )
                 continue
             total_retries += reply.retries
+            budget.left -= reply.attempts
             attempts.append(
                 log(
                     provider.name,
                     "ok",
                     model_requested=provider_model,
+                    model=reply.model_routed or provider_model,
+                    attempt=budget.used,
                     model_routed=reply.model_routed,
                     receipt_id=reply.receipt_id,
                     duration_ms=round((time.perf_counter() - call_started) * 1000.0, 1),
                     tokens=reply.usage,
                     retries=reply.retries,
                     fallback=index > 0,
+                    **fallback_fields,
                     content_summary=summarise(reply.content),
                 )
             )
