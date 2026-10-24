@@ -87,6 +87,8 @@ Build-plan task 15, issue #17. Nothing under `app/`, `run.py` or the recorded ca
   Score: 0/10 (answered 1, no_cache 9, errors 0)
   ```
 
+- origin/main (6afcb78, Sprint 12 scanner) was merged in; only `.env.example` conflicted (both blocks kept).
+
 ## Known limits
 
 - Nine of ten questions have no recorded model replies yet, so sample mode answers only
