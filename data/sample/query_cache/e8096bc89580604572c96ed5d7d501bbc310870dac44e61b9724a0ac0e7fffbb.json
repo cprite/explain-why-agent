@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0337,
+   "value": 0.0656
+  }
+ ],
+ "source": null,
+ "sql": "WITH s AS (SELECT o.order_delivered_customer_date >= DATE '2018-05-28' AS in_window, i.seller_id, count(DISTINCT o.order_id) AS n FROM orders.orders o JOIN orders.order_items i ON i.order_id = o.order_id WHERE o.order_status = 'delivered' AND o.order_delivered_customer_date >= DATE '2018-04-30' AND o.order_delivered_customer_date < DATE '2018-06-04' AND CAST(o.order_delivered_customer_date AS DATE) > CAST(o.order_estimated_delivery_date AS DATE) GROUP BY 1, 2) SELECT round(max(n) FILTER (WHERE in_window) / sum(n) FILTER (WHERE in_window), 4) AS value, round(max(n) FILTER (WHERE NOT in_window) / sum(n) FILTER (WHERE NOT in_window), 4) AS baseline FROM s",
+ "truncated": false
+}
