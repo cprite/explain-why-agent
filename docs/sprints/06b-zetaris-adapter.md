@@ -137,10 +137,14 @@ its first start with an empty volume.
 - The comparison passes rows that are identical, or that differ only in order. It has one more
   pass, for an `ORDER BY … LIMIT n` that cuts through a tie: the Day 1 seller query cuts its
   `LIMIT 20` through a tie, and engines may keep different sellers. That pass needs a statement
-  ending in `LIMIT n` with `n` rows returned, the same numbers with the same group sizes on both
-  sides, and identical labels in every group except the last tie group (the rows sharing the last
-  row's numbers). Labels attached to different numbers (swapped categories) and a date printed as
-  a timestamp (`2017-11-24` vs `2017-11-24 00:00:00`) fail. Each pass says which case it was.
+  ending in `LIMIT n` with `n` rows returned. The tie key is the column(s) of the final
+  `ORDER BY … LIMIT n` (a plain or qualified column name, or a position). Rows whose key equals the
+  last row's key are the group the LIMIT cut: there each engine may keep different rows, which may
+  differ in every other column, but both sides must end on that key value and hold the same number
+  of such rows. Every row above the cut must match (in any order). If the `ORDER BY` cannot be read
+  (an expression), the tie key falls back to all numeric columns. Labels attached to different
+  numbers (swapped categories) and a date printed as a timestamp (`2017-11-24` vs
+  `2017-11-24 00:00:00`) fail. Each pass says which case it was.
 - Numbers are equal within a relative tolerance of `1e-5` (`NUMERIC_REL_TOL` in
   `app/data/parity.py`), both in the row comparison and when rows are grouped into tie groups. A
   relative difference of `1e-3` fails (test).
@@ -161,8 +165,8 @@ its first start with an empty volume.
 
 ## How it was tested
 
-- `ruff check .` → `All checks passed!`. `pytest -q` → `199 passed`; 85 of these are new, in the
-  three files below.
+- `ruff check .` → `All checks passed!`. `pytest -q` → `212 passed` (24 Oct, live fixtures, nothing
+  skipped); the new tests are in the three files below.
 - `tests/test_data_zetaris.py` (54 tests). Every REST exchange goes through `httpx.MockTransport`;
   nothing in these tests can reach a server.
   - Interface: signatures match `LocalDataLayer`. Factory: every selection, and the configuration
@@ -212,75 +216,72 @@ its first start with an empty volume.
   - a Zetaris error stops the run with its message;
   - the CLI exits 2 without settings, and `--dry-run` sends nothing;
   - the committed init SQL is current, and the compose file is checked.
-- **Plan check D** (CI step `pytest -s -q tests/test_zetaris_plan_check.py`, 15 tests). The Day 1
+- **Plan check D** (CI step `pytest -s -q tests/test_zetaris_plan_check.py`, 27 tests). The Day 1
   question's five queries run two ways. The first is through `ZetarisDataLayer`, with the REST
   responses replayed from `tests/fixtures/zetaris/`; the replay requires the bearer, `X-Org-ID` and
   `X-Request-ID` headers and matches on the rewritten USL SQL. The second is `LocalDataLayer` on the
   sample. Both result sets are printed side by side. Three extra queries run the same way:
   `COUNT(*)` of orders, a types query (timestamps, dates, nulls, ints, decimals including zero) and
-  a source-scoped query. All eight `PASS`. The output on this machine:
+  a source-scoped query. The fixtures are the live recording of 24 Oct; all eight `PASS`. The output
+  on this machine (abridged):
 
   ```text
-  == plan check day1_orders_vs_baseline [synthetic (local DuckDB rows in Zetaris REST wire format)]: PASS
+  == plan check orders_row_count [zetaris (live REST response)]: PASS
+  == plan check day1_orders_vs_baseline [zetaris (live REST response)]: PASS
     local (DuckDB)            | zetaris (USL, REST)
            value     baseline |        value     baseline
             1176     136.5714 |         1176     136.5714
-  == plan check day1_price_and_installments [synthetic (...)]: PASS
-    avg_price_w~ avg_price_b~ discount_pr~ discount_pr~ | avg_price_w~ avg_price_b~ discount_pr~ discount_pr~
+  == plan check day1_seller_spike [zetaris (live REST response)]: PASS (same numbers; the LIMIT cut a tie at different rows)
+       seller_id window_orde~ baseline_av~  spike_ratio |    seller_id window_orde~ baseline_av~  spike_ratio
+    891071be6ba~           10       0.1429           70 | 891071be6ba~           10       0.1429      70.0001
+  == plan check day1_category_mix [zetaris (live REST response)]: PASS
+  == plan check day1_duplicate_rows [zetaris (live REST response)]: PASS
+  == plan check day1_price_and_installments [zetaris (live REST response)]: PASS
          133.669     165.0758            1            1 |      133.669     165.0758            1            1
+  == plan check types_orders_payments [zetaris (live REST response)]: PASS
+  == plan check scoped_payments_by_type [zetaris (live REST response)]: PASS
   ```
 
-  The seller query prints all 20 rows, and every number matches. The file also checks that the
-  fixtures contain no URL, host, IP address, token, key, password, org or request header. It also
-  checks that they are in REST wire format: only strings and nulls, 18-place decimals, `0E-18`, and
-  `yyyy-MM-dd HH:mm:ss` timestamps.
+  The file also checks that the fixtures contain no URL, host, IP address, token, key, password,
+  org or request header, and that they are in REST wire format: only strings and nulls, with
+  decimals, `yyyy-MM-dd HH:mm:ss.S` timestamps and dates as the live server sends them. Compare
+  tests pin the live seller case (tie at 21 passes) and a row above the cut that differs (fails).
 - The CI plan checks A–C are unchanged and still pass. `run.py` now selects the adapter through the
   factory, and in sample mode it gets the local one.
 
 ## Known limits
 
-- **The fixtures are synthetic until the maintainer records them live.** This sandbox cannot reach
-  Zetaris, so `scripts/zetaris_parity.py --synthetic` wrote `tests/fixtures/zetaris/`. It takes the
-  local DuckDB rows and encodes them exactly as Zetaris REST returns them: strings, 18-place
-  decimals, `0E-18`, timestamps with a space. Each file says so in `recorded_with`.
-  - So the plan check proves the adapter path (rewrite, request shape, type conversion, comparison)
-    on documented wire data. It does not prove that Zetaris computes the same numbers.
-  - Two figures do tie back to real runs. The 30,256 orders match the session's live probe on
-    23 Oct (REST returned `[["30256"]]`). The 1,176 orders on 24 Nov 2017 match the live Zetaris
-    figure from 14 Oct.
-  - With credentials, `python scripts/zetaris_parity.py --record` replaces the files with real
-    responses (`recorded_with: "zetaris (live REST response)"`). The plan check then replays those.
-  - **Acceptance criterion 7 stays open until that live recording is committed.** The maintainer
-    runs `python scripts/zetaris_parity.py --record` over the tunnel, checks that every file reads
-    `recorded_with: "zetaris (live REST response)"` and holds no host or token
-    (`tests/test_zetaris_plan_check.py` checks the latter), and commits the files.
-  - This state cannot slip through quietly. CI step "Plan check D" runs
-    `python scripts/zetaris_fixture_status.py`, which lists each fixture's provenance and raises a
-    GitHub warning annotation while any is synthetic. `test_fixtures_are_live_zetaris_responses`
-    is skipped with that reason (shown by `pytest -rs`). Before merging, both of these must pass:
-    `python scripts/zetaris_fixture_status.py --require-live` (exit 1 while any fixture is synthetic) and
-    `ZETARIS_REQUIRE_LIVE_FIXTURES=1 pytest -s -q tests/test_zetaris_plan_check.py`. A test also fails if the
-    fixtures mix live and synthetic files (a partial `--record` run).
-- **Live parity result:** _to be added by the maintainer after running
-  `python scripts/zetaris_parity.py` against the AWS instance._
-- **Spark decimal division differs from DuckDB at the 4th decimal.** The live parity run on 23 Oct
-  (setup OK: USL ready, 11 tables, 9 foreign keys) passed 7 of 8 queries and failed
-  `day1_seller_spike`. Spark evaluates `COALESCE(bc.baseline_orders, 0) / 7.0` as a DECIMAL with
-  scale 6 (1/7.0 -> 0.142857), so `ROUND(10 / 0.142857, 4)` gives 70.0001 where DuckDB's double
-  gives 70. The rest of that diff was which tied sellers (spike ratio 21) the `LIMIT 20` kept. The
-  check now treats numbers as equal within relative `1e-5`, which covers this and nothing of
-  `1e-4` or more. The Day 1 SQL is unchanged.
+- **CI replays fixtures, not a live server.** The fixtures in `tests/fixtures/zetaris/` were recorded
+  from the live Zetaris 2.4.3 (USL `olist_usl`, REST over the SSH tunnel) on 24 Oct with
+  `python scripts/zetaris_parity.py --record`; all 8 read `recorded_with: "zetaris (live REST
+  response)"` (`python scripts/zetaris_fixture_status.py --require-live` passes). CI cannot reach
+  Zetaris, so a later change on the server shows up only in the next live run.
+  `scripts/zetaris_fixture_status.py` and `test_fixtures_are_live_zetaris_responses` still guard
+  against synthetic (`--synthetic`) or mixed fixtures coming back.
+- **Live parity result (24 Oct):** 7 of 8 passed on the first live run; `day1_seller_spike` failed
+  the comparison. After the tie-key fix in this revision, the plan check replaying those live
+  responses gives **8/8 PASS**. The two differences in `day1_seller_spike`, both expected:
+  - **Spark decimal division.** Spark evaluates `COALESCE(bc.baseline_orders, 0) / 7.0` as a
+    DECIMAL with scale 6 (1/7.0 -> 0.142857), so `ROUND(10 / 0.142857, 4)` gives 70.0001 where
+    DuckDB's double gives 70. Numbers are equal within relative `1e-5`, which covers this and
+    nothing of `1e-4` or more.
+  - **The tie at spike ratio 21.** The query orders only by `spike_ratio`, and `LIMIT 20` cuts the
+    group at 21. Local keeps seller `54965…` (12 orders, baseline 0.5714) and `f3b80…`; Zetaris
+    keeps `3db66…` and `9b00ed…` (3 orders, baseline 0.1429). The comparison now keys ties on the
+    `ORDER BY` column only, so this passes with the tie verdict; every row above 21 matches.
+  The Day 1 SQL is unchanged.
 - **Setup statements that no one has run on our server yet.** The 14 Oct test covered `date`, `int`,
   `decimal` and `varchar` columns, a two-table USL with one foreign key, and activation with `CAST`
   and `COALESCE`. Not yet tried on 2.4.3: `timestamp`, `double` and `boolean` USL columns; USL
   tables without a primary key; `UPDATE USL … SET TABLE DESCRIPTION`; and the output shapes of
   `RUN DQ`, `LIST DQ USL` and `SHOW TABLES IN`. Listings are searched by value rather than by
-  column name, for that reason. The first live `python scripts/zetaris_setup.py` is the test.
+  column name, for that reason. The first live `python scripts/zetaris_setup.py` (23 Oct) finished
+  with the USL ready: 11 tables, 9 foreign keys.
 - **Which response field holds the invalid-record count is unknown.** The script takes `total` from
   `SHOW DQ INVALID RECORD` when the server sends it, else the number of rows returned (with a limit
   of 100,000). It also prints the `RUN DQ` row as it comes.
 - **Nulls in `varchar` columns.** If REST sends a null as the string `"null"`, a `varchar` column
-  keeps it as text. Other types convert it to `None`. The live parity run will show which it is.
+  keeps it as text. Other types convert it to `None`. The 24 Oct recording sends JSON `null`.
 - **Unqualified table names in a source scope** are rewritten only right after `FROM` or `JOIN`. A
   comma-separated `FROM a, b` is not rewritten. CTE names (`WITH name AS (` and `, name AS (`)
   are never rewritten, so a CTE named like a table keeps its meaning. Agents write `<source>.<table>` (the cross-source form), which is
