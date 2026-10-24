@@ -48,9 +48,16 @@ there: `run.py --loop simple` or `LOOP=simple`.
     A model failure on one hypothesis is not fatal: it goes into `limitations` as "Not tested: …"
     (as in the simple loop).
   - **Never hangs**: the investigation runs in a daemon worker thread. The calling thread checks the
-    run and chunk deadlines every 0.1 s. On a timeout it returns the timeout result at once and sets
-    a cancel flag; from then on the metered generator and the observed data layer refuse new calls,
-    so the worker winds down.
+    run and chunk deadlines every 0.1 s. On a timeout it builds the timeout result and sets a cancel
+    flag; from then on the metered generator and the observed data layer refuse new calls, so the
+    worker winds down. Before returning it interrupts any data call in flight
+    (`LocalDataLayer.interrupt()`, which interrupts every running DuckDB cursor, schema reads
+    included) and waits, at most 5 s, until the worker has left the data layer, then up to 0.5 s for
+    the worker to end. Without that wait `run.py` closed the data layer while the worker was still
+    inside a DuckDB call: the close raised "connection is busy", the timeout result was lost and
+    DuckDB aborted the interpreter at exit (exit code 134). `LocalDataLayer.close()` now interrupts
+    running statements itself, and `run.py` reports a close failure on stderr instead of letting it
+    replace the result.
   - **Logs**:
     - `logs/trace-<run>.jsonl` gets one `Orchestrator` / `chunk` line per chunk: `chunk`,
       `max_chunks`, `kind`, `hypothesis_id`, `queries`, `carryover_step` (the step that produced
@@ -172,6 +179,8 @@ there: `run.py --loop simple` or `LOOP=simple`.
   - `max_chunks` at caps 1–4, and a Reporter that always asks for follow-ups (never above the cap);
   - run timeout with a stub that stalls 10 s (returns in under 6 s including data loading), and a
     chunk timeout;
+  - a run timeout while the worker is inside a stalled schema read: the read is interrupted, the
+    worker has left the data layer when the run returns, and closing the layer works;
   - `no_hypotheses`;
   - generator errors on the Plan and on the Report (`error`), on one investigation (noted, run
     goes on), a generator that raises, and an invalid `MARKOVIAN_MAX_CHUNKS`;
@@ -186,9 +195,14 @@ there: `run.py --loop simple` or `LOOP=simple`.
   clauses, ambiguous rejections, negation words, fallback ids within a text and across a run, the
   compression timeout leaving no thread, the bounded generator not retrying while the plain one
   still retries 3 times, and the real ContextBuilder payload through `start_chunk`.
-- `tests/test_run_loop.py` (6 tests): the default is the orchestrator; `--loop simple`, `LOOP=simple`
-  and flag-over-variable; a bad `LOOP`.
-- Whole suite: `pytest -q` gives 298 passed under
+- `tests/test_run_loop.py` (9 tests): the default is the orchestrator; `--loop simple`, `LOOP=simple`
+  and flag-over-variable; a bad `LOOP`; `run.py` on the plan-check question with
+  `MARKOVIAN_RUN_TIMEOUT_S` of 0.02, 0.05 and 0.1 s exits 1 with a valid JSON result,
+  `stop_reason: timeout` and no traceback or DuckDB abort on stderr (before the fix 11 of 12 such
+  runs between 0.02 and 0.3 s exited 134 with an `internal` error).
+- `tests/test_data_local.py`: `close()` while another thread runs a slow query returns, and the
+  query ends with code `cancelled`; `interrupt()` stops a query and the layer stays usable.
+- Whole suite: `pytest -q` gives 304 passed under
   `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0` on the build machine (arm64), about
   100 s. `ruff check .` is clean. No test uses the network: the generator runs on the stub, the
   cache or an httpx `MockTransport`.
@@ -222,8 +236,8 @@ there: `run.py --loop simple` or `LOOP=simple`.
 - **`execution_time_seconds` covers the investigation, not data loading.** The local DuckDB sample
   loads in about 2 s on the build machine before the run starts; CI prints the wall clock too.
 - **A timed-out worker is abandoned, not killed** (Python cannot stop a thread). After the cancel
-  flag is set it makes no new model or data call, but a call already in flight runs until its own
-  timeout: 180 s for Meterless, `QUERY_TIMEOUT_SECONDS` for DuckDB. Trace lines from that call can
+  flag is set it makes no new model or data call; a DuckDB call in flight is interrupted, but a
+  model call in flight runs until its own timeout (180 s for Meterless). Trace lines from that call can
   appear after the `finish` line. A stub without timeouts, as in the tests, keeps the daemon thread
   until it returns.
 - **The compressor deadline needs the real `Generator`.** An injected function without

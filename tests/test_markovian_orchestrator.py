@@ -218,6 +218,45 @@ def test_chunk_timeout_stops_the_run(tmp_path: Path) -> None:
     assert result.error is not None and "MARKOVIAN_CHUNK_TIMEOUT_SECONDS=0.5" in result.error.message
 
 
+class _StallingSchemaRead(LocalDataLayer):
+    """A local layer whose schema read stalls until it is interrupted (a slow describe on a busy database)."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.interrupted = threading.Event()
+        self.inside = 0
+
+    def interrupt(self) -> None:
+        self.interrupted.set()
+        super().interrupt()
+
+    def describe(self, source: str) -> Any:
+        self.inside += 1
+        try:
+            self.interrupted.wait(10)
+            return super().describe(source)
+        finally:
+            self.inside -= 1
+
+
+def test_timeout_during_a_schema_read_leaves_the_data_layer_before_returning(tmp_path: Path) -> None:
+    """On a timeout the worker is out of the data layer when the run returns, so the caller can close it."""
+    settings = settings_for(tmp_path)
+    data = _StallingSchemaRead(run_id="m", log_dir=tmp_path / "logs", settings=settings, sources=("orders",))
+    started = time.monotonic()
+    try:
+        result = run_markovian(DAY1, run_id="m", generate=ScriptedModel(), data=data, settings=settings,
+                               config=config(run_timeout_s=0.5), log_dir=tmp_path / "logs")
+        assert data.interrupted.is_set()
+        assert data.inside == 0
+    finally:
+        data.close()  # raised "connection is busy with another call" when the worker was still inside
+    assert time.monotonic() - started < 6
+    Result.model_validate(result.model_dump())
+    assert result.stop_reason == "timeout"
+    assert result.error is not None and result.error.code == "timeout"
+
+
 def test_no_significant_change_means_no_hypotheses(tmp_path: Path) -> None:
     def not_real(reply: dict[str, Any], messages: Any) -> dict[str, Any]:
         if '"kind":"change_check"' in messages[-1]["content"]:

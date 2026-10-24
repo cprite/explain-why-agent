@@ -17,6 +17,7 @@ import json
 import re
 import sys
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -36,6 +37,14 @@ def _error_payload(question: str, run_id: str, code: str, message: str, sample_m
         "sample_mode": sample_mode,
         "error": {"code": code, "message": message},
     }
+
+
+def _close_quietly(close: Callable[[], None]) -> None:
+    """Close the data layer; a failure to close is reported on stderr and never replaces the result."""
+    try:
+        close()
+    except Exception as exc:  # noqa: BLE001 - the run's result is already built
+        print(f"warning: closing the data layer failed: {type(exc).__name__}: {exc}", file=sys.stderr)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -68,7 +77,8 @@ def main(argv: list[str] | None = None) -> int:
         from app.data.local import LocalDataLayer
         from app.llm.generator import Generator
 
-        with LocalDataLayer(run_id=run_id, settings=settings) as data:
+        data = LocalDataLayer(run_id=run_id, settings=settings)
+        try:
             if loop == "simple":
                 from app.loop import run_investigation
 
@@ -81,6 +91,8 @@ def main(argv: list[str] | None = None) -> int:
                 result = run_markovian(
                     args.question, run_id=run_id, generate=Generator(settings), data=data, settings=settings
                 )
+        finally:
+            _close_quietly(data.close)
         payload = result.model_dump(mode="json")
         if payload.get("stop_reason") is None:  # the simple loop's output keeps its Sprint 2 shape
             payload.pop("stop_reason", None)

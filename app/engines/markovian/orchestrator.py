@@ -24,8 +24,9 @@ reported), `max_chunks` (`MARKOVIAN_MAX_CHUNKS` reached with work left), `timeou
 `MARKOVIAN_RUN_TIMEOUT_S` or one chunk passed `MARKOVIAN_CHUNK_TIMEOUT_SECONDS`), `no_hypotheses`
 (the change check found no significant change, so nothing was left to test) and `error` (a fatal
 failure: no plan, no report, an unexpected exception). The run works in a daemon thread that the
-calling thread watches; on a timeout the caller returns at once and the worker is told to stop, so
-a slow model never holds the run beyond its limit.
+calling thread watches; on a timeout the worker is told to stop, any data call in flight is
+interrupted and the caller returns once the worker has left the data layer (so the caller can close
+it), so a slow model never holds the run beyond its limit.
 
 Per chunk, one `Orchestrator` / `chunk` line in `logs/trace-<run>.jsonl` (chunk number, hypothesis id,
 queries run, carryover step used, projected vs actual chunk chars) and one line in
@@ -79,6 +80,10 @@ from app.trace import TraceWriter
 AGENT = "Orchestrator"
 POLL_SECONDS = 0.1
 """How often the calling thread checks the run and chunk deadlines."""
+STOP_GRACE_SECONDS = 5.0
+"""After a timeout, how long the calling thread waits for the worker to leave the data layer."""
+WORKER_JOIN_SECONDS = 0.5
+"""After that, how long it waits for the worker to end (it may be inside a model call with its own timeout)."""
 MAX_REPORTS = 3
 """Reporter calls per run (a report that asks for follow-ups costs another one)."""
 MAX_FOLLOW_UPS = 2
@@ -165,8 +170,18 @@ class _MeteredGenerate:
         return call
 
 
+class RunCancelled(RuntimeError):
+    """Raised by a schema read once the run is stopped."""
+
+
 class _ObservedData(DataLayer):
-    """The injected data layer, keeping each query outcome for the World Model; refuses once cancelled."""
+    """The injected data layer, keeping each query outcome for the World Model; refuses once cancelled.
+
+    It counts the calls in flight, so that on a timeout the watching thread can interrupt them
+    (`inner.interrupt()`, if the layer has one) and wait until the worker has left the layer: the
+    caller closes the layer as soon as the run returns, and a connection busy on the worker's
+    thread cannot be closed.
+    """
 
     def __init__(self, inner: DataLayer, cancel: threading.Event) -> None:
         self.inner = inner
@@ -174,21 +189,61 @@ class _ObservedData(DataLayer):
         self.adapter_name = getattr(inner, "adapter_name", "unknown")
         self.log = getattr(inner, "log", None)
         self.outcomes: list[QueryOutcome] = []
+        self.in_flight = 0
+        self.idle = threading.Condition()
+
+    def _enter(self) -> bool:
+        with self.idle:
+            if self.cancel.is_set():
+                return False
+            self.in_flight += 1
+            return True
+
+    def _leave(self) -> None:
+        with self.idle:
+            self.in_flight -= 1
+            self.idle.notify_all()
 
     def list_sources(self) -> list[str]:
-        return self.inner.list_sources()
+        if not self._enter():
+            raise RunCancelled("the run was stopped")
+        try:
+            return self.inner.list_sources()
+        finally:
+            self._leave()
 
     def describe(self, source: str) -> SourceInfo:
-        return self.inner.describe(source)
+        if not self._enter():
+            raise RunCancelled("the run was stopped")
+        try:
+            return self.inner.describe(source)
+        finally:
+            self._leave()
 
     def query(self, source: str | None, sql: str, limit: int | None = None,
               timeout: float | None = None) -> QueryOutcome:
-        if self.cancel.is_set():
+        if not self._enter():
             return QueryError(query_id="cancelled", source=source, sql=sql, adapter=self.adapter_name,
                               code="cancelled", message="the run was stopped")
-        outcome = self.inner.query(source, sql, limit, timeout)
+        try:
+            outcome = self.inner.query(source, sql, limit, timeout)
+        finally:
+            self._leave()
         self.outcomes.append(outcome)
         return outcome
+
+    def drain(self, until: float) -> bool:
+        """After `cancel` is set: interrupt the calls in flight until none is left or `until` passes."""
+        interrupt = getattr(self.inner, "interrupt", None)
+        with self.idle:
+            while self.in_flight:
+                if callable(interrupt):
+                    interrupt()
+                left = until - time.monotonic()
+                if left <= 0:
+                    return False
+                self.idle.wait(min(POLL_SECONDS, left))
+        return True
 
     def take(self) -> list[QueryOutcome]:
         """The outcomes since the last call."""
@@ -300,10 +355,24 @@ class _Run:
                 "timeout", status="error", determinable=False, error=ResultError(code="timeout", message=message),
                 limitations=self._partial_findings(),
             )
+            self._stop_worker(worker)
             if timed_out is not None:
                 return timed_out
         assert self.result is not None  # the worker always finishes with a result
         return self.result
+
+    def _stop_worker(self, worker: threading.Thread) -> None:
+        """Get the cancelled worker out of the data layer, then give it a short wait to end.
+
+        The worker refuses new model and data calls once `cancel` is set; a data call in flight is
+        interrupted. Waiting for that means the caller can close the data layer as soon as the run
+        returns. A model call in flight is not waited for beyond `WORKER_JOIN_SECONDS` (it has its
+        own timeout and touches nothing the caller closes).
+        """
+        if not self.data.drain(time.monotonic() + STOP_GRACE_SECONDS):
+            self.trace.write(agent=AGENT, action="stop_worker", status="error",
+                             output_summary=f"a data call was still running after {STOP_GRACE_SECONDS:g} s")
+        worker.join(WORKER_JOIN_SECONDS)
 
     def _deadline(self) -> tuple[float, str]:
         phase_started = self.phase_started
