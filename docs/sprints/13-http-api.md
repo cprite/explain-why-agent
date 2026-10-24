@@ -71,7 +71,7 @@ and §8), with no second implementation of the loop.
   asserts the results are equal apart from `run_id`, `trace_id`, `log_file`, `query_log` and
   `execution_time_seconds`, and that the API went through `app.runner.execute_run`.
 - Full suite: `pytest -q` — 161 passed; `ruff check .` clean.
-- Plan check D in CI: starts `python -m app.api` with `SAMPLE_MODE=true`, waits for `/health`
+- Plan check I in CI: starts `python -m app.api` with `SAMPLE_MODE=true`, waits for `/health`
   (30 s cap), `curl -sS -X POST localhost:8000/run -H 'Content-Type: application/json' -d
   '{"input":{"query":"Why did order volume spike on 24 November 2017?"},"options":{"sample_mode":true}}'`,
   prints the response, validates it with `python -m app.schemas` and `scripts/check_result.py`,
