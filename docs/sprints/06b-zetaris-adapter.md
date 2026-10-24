@@ -110,7 +110,8 @@ its first start with an empty volume.
 
 ### Selection and configuration
 
-- `app/data/factory.py` `make_data_layer` chooses the adapter, and `run.py` uses it.
+- `app/data/factory.py` `make_data_layer` chooses the adapter. `app/runner.py::execute_run` (main's
+  Sprint 13 run wiring, shared by `run.py` and `POST /run`) builds its data layer with it.
   - `SAMPLE_MODE=true` → local, always; nothing touches the network.
   - `DATA_LAYER=local` → local.
   - `DATA_LAYER=zetaris` (the default) → Zetaris. If `ZETARIS_URL` is empty it uses local and says
@@ -173,6 +174,9 @@ its first start with an empty volume.
     errors.
   - Sample mode never touches the network: a subprocess runs `run.py` on the Day 1 question with
     Zetaris configured at an unreachable address. Every query-log line says `adapter: local`.
+  - Run wiring: `execute_run` with `DATA_LAYER=zetaris` and sample mode off hands the loop a
+    `ZetarisDataLayer` (its query goes to a `MockTransport`), and with `DATA_LAYER=local` a
+    `LocalDataLayer`, so neither `run.py` nor `POST /run` can drop the factory quietly.
   - Requests: bearer key, `X-Org-ID`, a unique UUID `X-Request-ID`, `queryId`, the rewritten SQL,
     `limit+1`, and a timeout on every call (the read timeout and the 10 s connect timeout).
   - Auth: login when no key is set (Basic auth, one login reused); a refused key falls back to
@@ -246,8 +250,9 @@ its first start with an empty volume.
   org or request header, and that they are in REST wire format: only strings and nulls, with
   decimals, `yyyy-MM-dd HH:mm:ss.S` timestamps and dates as the live server sends them. Compare
   tests pin the live seller case (tie at 21 passes) and a row above the cut that differs (fails).
-- The CI plan checks A–C are unchanged and still pass. `run.py` now selects the adapter through the
-  factory, and in sample mode it gets the local one.
+- The CI plan checks A–C and main's D–I are unchanged and still pass. The Zetaris step is labelled
+  "Plan check D (task 10)" next to main's "Plan check D (task 7)". `run.py` and `POST /run` select
+  the adapter through the factory (via `execute_run`), and in sample mode they get the local one.
 
 ## Known limits
 

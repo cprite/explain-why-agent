@@ -1,8 +1,9 @@
 """The one way to run an investigation, shared by `run.py` and the HTTP API (architecture §7).
 
-`execute_run` wires the local data layer and the model generator around `run_investigation`; the
-loop writes `logs/trace-<run_id>.jsonl` and `logs/result-<run_id>.json`. Setup failures (the data
-layer cannot open, say) raise; everything after that ends in a structured `Result`.
+`execute_run` wires the configured data layer (`make_data_layer`: Zetaris or local) and the model
+generator around `run_investigation`; the loop writes `logs/trace-<run_id>.jsonl` and
+`logs/result-<run_id>.json`. Setup failures (the data layer cannot open, say) raise; everything
+after that ends in a structured `Result`.
 """
 
 from __future__ import annotations
@@ -29,10 +30,10 @@ def new_run_id() -> str:
 
 
 def execute_run(question: str, *, run_id: str, settings: Settings) -> Result:
-    """Run one investigation on the local data layer with the configured model generator."""
-    from app.data.local import LocalDataLayer
+    """Run one investigation on the configured data layer with the configured model generator."""
+    from app.data.factory import make_data_layer
     from app.llm.generator import Generator
     from app.loop import run_investigation
 
-    with LocalDataLayer(run_id=run_id, settings=settings) as data:
+    with make_data_layer(run_id, settings=settings) as data:
         return run_investigation(question, run_id=run_id, generate=Generator(settings), data=data, settings=settings)

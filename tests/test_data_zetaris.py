@@ -138,6 +138,40 @@ def test_sample_mode_run_never_touches_zetaris(tmp_path: Path) -> None:
     assert "fallback" not in result.stdout
 
 
+
+def test_execute_run_uses_the_zetaris_layer_when_configured(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """run.py and POST /run share `execute_run`; with DATA_LAYER=zetaris it must hand the loop a Zetaris layer."""
+    import app.llm.generator
+    import app.loop
+    import app.runner
+
+    real_from_settings = ZetarisClient.from_settings
+
+    def count_reply(request: httpx.Request) -> httpx.Response:
+        return ok(["n"], [["30256"]])
+
+    monkeypatch.setattr(
+        ZetarisClient, "from_settings",
+        classmethod(lambda cls, cfg, **kw: real_from_settings(cfg, transport=httpx.MockTransport(count_reply))),
+    )
+    monkeypatch.setattr(app.llm.generator, "Generator", lambda cfg: object())
+    seen: dict[str, object] = {}
+
+    def fake_investigation(question: str, *, run_id: str, generate: object, data: DataLayer, settings: Settings) -> str:
+        seen["data"] = data
+        seen["result"] = data.query(None, "SELECT COUNT(*) AS n FROM orders.orders")
+        return "result"
+
+    monkeypatch.setattr(app.loop, "run_investigation", fake_investigation)
+    cfg = settings(tmp_path, data_layer="zetaris")
+    assert app.runner.execute_run("q", run_id="zt-run", settings=cfg) == "result"
+    assert isinstance(seen["data"], ZetarisDataLayer)
+    result = seen["result"]
+    assert isinstance(result, QueryResult) and result.adapter == "zetaris" and result.rows == [{"n": 30256}]
+
+    app.runner.execute_run("q", run_id="local-run", settings=settings(tmp_path, data_layer="local"))
+    assert isinstance(seen["data"], LocalDataLayer)
+
 # --- REST client --------------------------------------------------------------------------------------
 
 
