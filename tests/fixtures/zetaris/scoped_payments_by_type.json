@@ -1,7 +1,7 @@
 {
  "name": "scoped_payments_by_type",
- "recorded_with": "synthetic (local DuckDB rows in Zetaris REST wire format)",
- "recorded_at": "2026-10-23",
+ "recorded_with": "zetaris (live REST response)",
+ "recorded_at": "2026-10-24",
  "request": {
   "sql": "SELECT payment_type, COUNT(*) AS payments, ROUND(SUM(payment_value), 2) AS total_value\nFROM lightning.metastore.explain_why.olist_usl.order_payments\nGROUP BY payment_type\nORDER BY payment_type",
   "limit": 5001
@@ -16,27 +16,27 @@
    [
     "boleto",
     "5689",
-    "805719.350000000000000000"
+    "805719.35"
    ],
    [
     "credit_card",
     "23831",
-    "3836644.200000000000000000"
+    "3836644.20"
    ],
    [
     "debit_card",
     "389",
-    "55041.010000000000000000"
+    "55041.01"
    ],
    [
     "not_defined",
     "1",
-    "0E-18"
+    "0.00"
    ],
    [
     "voucher",
     "1650",
-    "95855.020000000000000000"
+    "95855.02"
    ]
   ],
   "total": 5

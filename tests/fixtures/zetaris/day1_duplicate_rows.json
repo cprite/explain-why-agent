@@ -1,7 +1,7 @@
 {
  "name": "day1_duplicate_rows",
- "recorded_with": "synthetic (local DuckDB rows in Zetaris REST wire format)",
- "recorded_at": "2026-10-23",
+ "recorded_with": "zetaris (live REST response)",
+ "recorded_at": "2026-10-24",
  "request": {
   "sql": "WITH window_stats AS (\n  SELECT\n    COUNT(*) AS total_rows,\n    COUNT(DISTINCT order_id) AS distinct_order_ids,\n    COUNT(*) - COUNT(DISTINCT order_id) AS duplicate_rows\n  FROM lightning.metastore.explain_why.olist_usl.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-24'\n    AND order_purchase_timestamp < DATE '2017-11-25'\n),\nbaseline_stats AS (\n  SELECT\n    COUNT(*) AS total_rows,\n    COUNT(DISTINCT order_id) AS distinct_order_ids,\n    COUNT(*) - COUNT(DISTINCT order_id) AS duplicate_rows,\n    (COUNT(*) - COUNT(DISTINCT order_id)) / 7.0 AS avg_daily_duplicate_rows\n  FROM lightning.metastore.explain_why.olist_usl.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-17'\n    AND order_purchase_timestamp < DATE '2017-11-24'\n)\nSELECT\n  w.duplicate_rows AS value,\n  ROUND(b.avg_daily_duplicate_rows, 4) AS baseline,\n  w.total_rows AS window_total_rows,\n  w.distinct_order_ids AS window_distinct_order_ids\nFROM window_stats w, baseline_stats b",
   "limit": 5001
@@ -16,7 +16,7 @@
   "data": [
    [
     "0",
-    "0E-18",
+    "0.0000",
     "1176",
     "1176"
    ]

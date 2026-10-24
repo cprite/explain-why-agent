@@ -1,7 +1,7 @@
 {
  "name": "day1_seller_spike",
- "recorded_with": "synthetic (local DuckDB rows in Zetaris REST wire format)",
- "recorded_at": "2026-10-23",
+ "recorded_with": "zetaris (live REST response)",
+ "recorded_at": "2026-10-24",
  "request": {
   "sql": "WITH window_orders AS (\n  SELECT DISTINCT o.order_id, oi.seller_id\n  FROM lightning.metastore.explain_why.olist_usl.orders o\n  JOIN lightning.metastore.explain_why.olist_usl.order_items oi ON o.order_id = oi.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-24'\n    AND o.order_purchase_timestamp < DATE '2017-11-25'\n),\nbaseline_orders AS (\n  SELECT DISTINCT o.order_id, oi.seller_id\n  FROM lightning.metastore.explain_why.olist_usl.orders o\n  JOIN lightning.metastore.explain_why.olist_usl.order_items oi ON o.order_id = oi.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-17'\n    AND o.order_purchase_timestamp < DATE '2017-11-24'\n),\nwindow_counts AS (\n  SELECT seller_id, COUNT(DISTINCT order_id) AS window_orders\n  FROM window_orders\n  GROUP BY seller_id\n),\nbaseline_counts AS (\n  SELECT seller_id, COUNT(DISTINCT order_id) AS baseline_orders\n  FROM baseline_orders\n  GROUP BY seller_id\n)\nSELECT\n  wc.seller_id,\n  wc.window_orders,\n  ROUND(COALESCE(bc.baseline_orders, 0) / 7.0, 4) AS baseline_avg_daily_orders,\n  ROUND(wc.window_orders * 1.0 / NULLIF(COALESCE(bc.baseline_orders, 0) / 7.0, 0), 4) AS spike_ratio\nFROM window_counts wc\nLEFT JOIN baseline_counts bc ON wc.seller_id = bc.seller_id\nORDER BY spike_ratio DESC NULLS LAST\nLIMIT 20",
   "limit": 5001
@@ -17,122 +17,122 @@
    [
     "891071be6ba827b591264c90c2ae8a63",
     "10",
-    "0.142900000000000000",
-    "70.000000000000000000"
-   ],
-   [
-    "ef506c96320abeedfb894c34db06f478",
-    "6",
-    "0.142900000000000000",
-    "42.000000000000000000"
+    "0.1429",
+    "70.0001"
    ],
    [
     "8581055ce74af1daba164fdbd55a40de",
     "6",
-    "0.142900000000000000",
-    "42.000000000000000000"
+    "0.1429",
+    "42.0000"
    ],
    [
     "1a3df491d1c4f1589fc2b934ada68bf2",
     "6",
-    "0.142900000000000000",
-    "42.000000000000000000"
+    "0.1429",
+    "42.0000"
    ],
    [
-    "1554a68530182680ad5c8b042c3ab563",
-    "5",
-    "0.142900000000000000",
-    "35.000000000000000000"
+    "ef506c96320abeedfb894c34db06f478",
+    "6",
+    "0.1429",
+    "42.0000"
    ],
    [
     "05f51e13da97139648b8125c31e5f51b",
     "5",
-    "0.142900000000000000",
-    "35.000000000000000000"
-   ],
-   [
-    "1da3aeb70d7989d1e6d9b0e887f97c23",
-    "5",
-    "0.142900000000000000",
-    "35.000000000000000000"
+    "0.1429",
+    "35.0000"
    ],
    [
     "8e6cc767478edae941d9bd9eb778d77a",
     "5",
-    "0.142900000000000000",
-    "35.000000000000000000"
+    "0.1429",
+    "35.0000"
+   ],
+   [
+    "1554a68530182680ad5c8b042c3ab563",
+    "5",
+    "0.1429",
+    "35.0000"
+   ],
+   [
+    "1da3aeb70d7989d1e6d9b0e887f97c23",
+    "5",
+    "0.1429",
+    "35.0000"
    ],
    [
     "7d76b645482be4a332374e8223836592",
     "9",
-    "0.285700000000000000",
-    "31.500000000000000000"
-   ],
-   [
-    "391fc6631aebcf3004804e51b40bcf1e",
-    "12",
-    "0.428600000000000000",
-    "28.000000000000000000"
-   ],
-   [
-    "900ba814c251a692506d7834c1218441",
-    "4",
-    "0.142900000000000000",
-    "28.000000000000000000"
+    "0.2857",
+    "31.5000"
    ],
    [
     "0db783cfcd3b73998abc6e10e59a102f",
     "4",
-    "0.142900000000000000",
-    "28.000000000000000000"
+    "0.1429",
+    "28.0000"
+   ],
+   [
+    "900ba814c251a692506d7834c1218441",
+    "4",
+    "0.1429",
+    "28.0000"
+   ],
+   [
+    "391fc6631aebcf3004804e51b40bcf1e",
+    "12",
+    "0.4286",
+    "28.0000"
    ],
    [
     "ccc4bbb5f32a6ab2b7066a4130f114e3",
     "7",
-    "0.285700000000000000",
-    "24.500000000000000000"
+    "0.2857",
+    "24.5000"
    ],
    [
     "8160255418d5aaa7dbdc9f4c64ebda44",
     "26",
-    "1.142900000000000000",
-    "22.750000000000000000"
-   ],
-   [
-    "cfb1a033743668a192316f3c6d1d2671",
-    "3",
-    "0.142900000000000000",
-    "21.000000000000000000"
+    "1.1429",
+    "22.7500"
    ],
    [
     "36a968b544695394e4e9d7572688598f",
     "6",
-    "0.285700000000000000",
-    "21.000000000000000000"
-   ],
-   [
-    "54965bbe3e4f07ae045b90b0b8541f52",
-    "12",
-    "0.571400000000000000",
-    "21.000000000000000000"
-   ],
-   [
-    "a3a38f4affed601eb87a97788c949667",
-    "3",
-    "0.142900000000000000",
-    "21.000000000000000000"
-   ],
-   [
-    "f3b80352b986ab4d1057a4b724be19d0",
-    "3",
-    "0.142900000000000000",
-    "21.000000000000000000"
+    "0.2857",
+    "21.0000"
    ],
    [
     "2138ccb85b11a4ec1e37afbd1c8eda1f",
     "3",
-    "0.142900000000000000",
-    "21.000000000000000000"
+    "0.1429",
+    "21.0000"
+   ],
+   [
+    "3db66a856d18a9cba7c9241fc5221c50",
+    "3",
+    "0.1429",
+    "21.0000"
+   ],
+   [
+    "9b00ed88b7fdb95d6ff76e27c1b52d16",
+    "3",
+    "0.1429",
+    "21.0000"
+   ],
+   [
+    "a3a38f4affed601eb87a97788c949667",
+    "3",
+    "0.1429",
+    "21.0000"
+   ],
+   [
+    "cfb1a033743668a192316f3c6d1d2671",
+    "3",
+    "0.1429",
+    "21.0000"
    ]
   ],
   "total": 20
