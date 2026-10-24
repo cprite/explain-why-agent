@@ -74,3 +74,69 @@ def test_tiny_run_timeout_at_the_cli_returns_the_timeout_result(timeout_s: str) 
         assert payload["error"]["code"] == "timeout"
     else:
         assert payload["stop_reason"] == "completed"
+
+
+# --- The shared run helper (app/runner.py) and the HTTP API use the same loop selection ----------
+
+PLAN_CHECK_QUESTION = "Why did delivery lateness spike for deliveries completed the week of 28 May 2018?"
+
+
+@pytest.fixture
+def api_logs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    from app.config import Settings
+
+    for key in Settings.model_fields:
+        monkeypatch.delenv(key.upper(), raising=False)
+    monkeypatch.setenv("SAMPLE_MODE", "true")
+    monkeypatch.setenv("LOG_DIR", str(tmp_path / "logs"))
+    return tmp_path / "logs"
+
+
+def test_select_loop_flag_wins_and_bad_names_raise() -> None:
+    from app.config import Settings
+    from app.runner import select_loop
+
+    assert select_loop(Settings(loop="markovian")) == "markovian"
+    assert select_loop(Settings(loop=" Simple ")) == "simple"
+    assert select_loop(Settings(loop="simple"), "markovian") == "markovian"
+    with pytest.raises(ValueError, match="chunky"):
+        select_loop(Settings(loop="chunky"))
+
+
+def test_post_run_uses_the_orchestrator_by_default_and_stores_its_result(api_logs: Path) -> None:
+    from fastapi.testclient import TestClient
+
+    import app.api.main as api
+
+    body = {"run_id": "api-markovian", "input": {"query": PLAN_CHECK_QUESTION}, "options": {"sample_mode": True}}
+    response = TestClient(api.app).post("/run", json=body)
+    assert response.status_code == 200, response.text
+    served = response.json()
+    assert served["status"] == "success" and served["stop_reason"] == "completed"
+    assert (api_logs / "result-api-markovian.json").is_file()
+    stored = TestClient(api.app).get("/runs/api-markovian")
+    assert stored.status_code == 200 and stored.json() == served
+    trace = [json.loads(line) for line in (api_logs / "trace-api-markovian.jsonl").read_text().splitlines()]
+    assert any(line.get("agent") == "Orchestrator" and line.get("action") == "chunk" for line in trace)
+
+
+def test_post_run_follows_loop_simple(api_logs: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from fastapi.testclient import TestClient
+
+    import app.api.main as api
+
+    monkeypatch.setenv("LOOP", "simple")
+    body = {"input": {"query": "Why did order volume spike on 24 November 2017?"}, "options": {"sample_mode": True}}
+    response = TestClient(api.app).post("/run", json=body)
+    assert response.status_code == 200, response.text
+    assert response.json()["status"] == "success"
+    assert "stop_reason" not in response.json()  # the simple loop's Sprint 2 shape, also over HTTP
+
+
+def test_result_without_stop_reason_keeps_the_sprint2_shape() -> None:
+    base = {"run_id": "r", "status": "success", "question": "q", "determinable": False, "trace_id": "r",
+            "log_file": "logs/trace-r.jsonl", "execution_time_seconds": 0.0}
+    assert "stop_reason" not in Result(**base).model_dump(mode="json")
+    assert "stop_reason" not in json.loads(Result(**base).model_dump_json())
+    assert Result(**base, stop_reason="completed").model_dump(mode="json")["stop_reason"] == "completed"
+    assert "stop_reason" in Result.model_json_schema()["properties"]
