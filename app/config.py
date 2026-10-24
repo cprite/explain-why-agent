@@ -59,7 +59,13 @@ class Settings(BaseSettings):
     model_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
     max_output_tokens: int = Field(default=4096, ge=1)
     max_retries: int = Field(default=3, ge=0, le=3)
+    # Stream Meterless replies (SSE). Nightshift's provider deadline bounds the time to the response
+    # headers, which a buffered request only gets once the whole reply is generated (Sprint 8b).
+    model_stream: bool = True
     record_cache: bool = False
+    # With RECORD_CACHE in live mode, replay an entry already recorded with Meterless instead of
+    # calling the model again; only misses are called and written.
+    record_reuse_existing: bool = True
     llm_cache_dir: str = "data/sample/llm_cache"
     # Recorded query results for sample mode: written with RECORD_CACHE in a live run, served in
     # sample mode so the agents see identical rows on every machine (ties in ORDER BY ... LIMIT
