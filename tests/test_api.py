@@ -35,6 +35,7 @@ def logs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     for key in Settings.model_fields:
         monkeypatch.delenv(key.upper(), raising=False)
     monkeypatch.setenv("SAMPLE_MODE", "true")
+    monkeypatch.setenv("LOOP", "simple")  # the Day 1 cache is recorded for the simple loop
     log_dir = tmp_path / "logs"
     monkeypatch.setenv("LOG_DIR", str(log_dir))
     return log_dir

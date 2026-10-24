@@ -3,6 +3,10 @@
 The model writes the SQL and reads the rows; provenance (query id, sources, SQL) is taken from the
 data layer, never from the model. A failed statement is repaired once from the error message, and
 the repair is visible in the trace (`repair_sql`, retry_count 1).
+
+The Markovian orchestrator passes `context`, the chunk input its chunk manager built (goal, carryover
+state, World Model evidence): it goes into the SQL request as `chunk` with a short note appended to
+the system prompt. Without it the request is exactly the simple loop's.
 """
 
 from __future__ import annotations
@@ -65,12 +69,24 @@ def _sources_in(sql: str, sources: list[str]) -> str:
 
 
 def investigate(
-    ctx: AgentContext, plan: Plan, hypothesis: Hypothesis | None, observation_id: str
+    ctx: AgentContext,
+    plan: Plan,
+    hypothesis: Hypothesis | None,
+    observation_id: str,
+    *,
+    context: str | None = None,
 ) -> InvestigationOutcome:
-    """Test `hypothesis` (or the plan's change check when None) and return one observation."""
+    """Test `hypothesis` (or the plan's change check when None) and return one observation.
+
+    `context` is the Markovian chunk input (see the module docstring); None for the simple loop.
+    """
     task = _task(plan, hypothesis)
     target = task["id"] or "change_check"
     base_payload = {"plan": _plan_summary(plan), "task": task, "sources": ctx.source_schemas()}
+    sql_prompt = load_prompt("investigator_sql")
+    if context is not None:
+        base_payload["chunk"] = context
+        sql_prompt = f"{sql_prompt}\n\n{load_prompt('chunk_note')}"
     query_ids: list[str] = []
 
     previous: tuple[str, QueryError] | None = None
@@ -82,7 +98,7 @@ def investigate(
             payload["previous_sql"] = previous[0]
             payload["previous_error"] = previous[1].message
         reply = ctx.generate(
-            build_messages(load_prompt("investigator_sql"), payload),
+            build_messages(sql_prompt, payload),
             schema=SqlProposal,
             role=ROLE,
             run_id=ctx.run_id,

@@ -18,6 +18,10 @@
   the normalised request (messages, schema name, role); a miss is a structured error. With
   `RECORD_CACHE=true` in live mode every reply is written to that cache.
 - Every provider call (and every cache lookup) is one line in `logs/trace-<run_id>.jsonl`.
+- Per-call limits: `generator.with_limits(deadline_seconds=..., max_retries=0)` returns a generate
+  function whose calls end by the deadline (each HTTP request's timeout is cut to the time left, no
+  retry sleeps past it, no repair or fallback call once it has passed). The Markovian carryover
+  cascade uses it for the compressor so a timed-out compression does not leave a call running.
 
 No exception escapes `generate`: every failure comes back as `GenerationResult(ok=False, error=...)`.
 """
@@ -140,6 +144,18 @@ class GenerateFn(Protocol):
     ) -> GenerationResult: ...
 
 
+@dataclass(frozen=True)
+class CallLimits:
+    """Limits for one `generate` call: a monotonic-clock deadline and a retry cap."""
+
+    deadline: float
+    max_retries: int = 0
+
+    def remaining(self) -> float:
+        """Seconds left before the deadline (negative once it has passed)."""
+        return self.deadline - time.monotonic()
+
+
 class ProviderError(Exception):
     """A provider call failed. `code` decides whether the generator falls back."""
 
@@ -208,9 +224,19 @@ class OpenAICompatibleProvider:
         return (model if isinstance(model, str) else None), None
 
     def chat(
-        self, messages: list[Message], *, model: str, temperature: float, max_tokens: int
+        self,
+        messages: list[Message],
+        *,
+        model: str,
+        temperature: float,
+        max_tokens: int,
+        limits: CallLimits | None = None,
     ) -> ProviderReply:
-        """POST /chat/completions with retries on 429/5xx; raises `ProviderError` on failure."""
+        """POST /chat/completions with retries on 429/5xx; raises `ProviderError` on failure.
+
+        With `limits`, at most `limits.max_retries` retries, and each request's timeout is the time
+        left before `limits.deadline` (a `timeout` error once none is left).
+        """
         if not self.configured:
             raise ProviderError("not_configured", f"{self.name} is not configured")
         body = {
@@ -220,10 +246,18 @@ class OpenAICompatibleProvider:
             "max_tokens": max_tokens,
         }
         retries = 0
+        max_retries = self.max_retries if limits is None else max(0, min(limits.max_retries, self.max_retries))
         while True:
+            request_timeout: Any = httpx.USE_CLIENT_DEFAULT
+            if limits is not None:
+                left = limits.remaining()
+                if left <= 0:
+                    raise ProviderError("timeout", f"{self.name}: per-call deadline reached", retries)
+                request_timeout = httpx.Timeout(min(left, self.timeout))
             try:
                 response = self.client.post(
-                    f"{self.base_url}/chat/completions", json=body, headers=self.headers(chat=True)
+                    f"{self.base_url}/chat/completions", json=body, headers=self.headers(chat=True),
+                    timeout=request_timeout,
                 )
             except httpx.TimeoutException as exc:
                 raise ProviderError("timeout", f"{self.name} timed out: {type(exc).__name__}", retries) from exc
@@ -232,8 +266,9 @@ class OpenAICompatibleProvider:
 
             status = response.status_code
             if status == 429 or status >= 500:
-                if retries < self.max_retries:
-                    self._sleep(RETRY_DELAYS_SECONDS[retries])
+                delay = RETRY_DELAYS_SECONDS[retries] if retries < max_retries else None
+                if delay is not None and (limits is None or limits.remaining() > delay):
+                    self._sleep(delay)
                     retries += 1
                     continue
                 raise ProviderError(
@@ -466,17 +501,22 @@ class Generator:
         schema: type[BaseModel] | None = None,
         role: str = "default",
         run_id: str | None = None,
+        limits: CallLimits | None = None,
     ) -> GenerationResult:
         """Generate one reply; see the module docstring. Never raises."""
         started = time.perf_counter()
         trace = self._trace_for(run_id)
         try:
-            first = self._complete(messages, schema=schema, role=role, trace=trace, repair=False)
+            first = self._complete(messages, schema=schema, role=role, trace=trace, repair=False, limits=limits)
             if not first.ok or schema is None:
                 return self._finish(first, started)
             parsed, problem = parse_json_reply(first.content or "", schema)
             if parsed is not None:
                 first.parsed = parsed
+                return self._finish(first, started)
+            if limits is not None and limits.remaining() <= 0:
+                first.ok = False
+                first.error = {"code": "timeout", "message": f"reply rejected ({problem}); no time left for a repair call"}
                 return self._finish(first, started)
             repair_messages = [
                 *messages,
@@ -487,7 +527,7 @@ class Generator:
                     "Send the corrected reply as one JSON object only.",
                 },
             ]
-            second = self._complete(repair_messages, schema=schema, role=role, trace=trace, repair=True)
+            second = self._complete(repair_messages, schema=schema, role=role, trace=trace, repair=True, limits=limits)
             second.repaired = True
             second.retries += first.retries
             second.attempts = first.attempts + second.attempts
@@ -509,6 +549,27 @@ class Generator:
 
     generate = __call__
 
+    def with_limits(self, *, deadline_seconds: float, max_retries: int = 0) -> GenerateFn:
+        """A generate function whose every call ends within `deadline_seconds` of its start.
+
+        Each call gets its own deadline; retries are capped at `max_retries` (default none). Used for
+        calls the caller stops waiting for (the carryover compressor), so they finish by themselves.
+        """
+        if deadline_seconds <= 0:
+            raise ValueError("deadline_seconds must be positive")
+
+        def bounded(
+            messages: list[Message],
+            *,
+            schema: type[BaseModel] | None = None,
+            role: str = "default",
+            run_id: str | None = None,
+        ) -> GenerationResult:
+            limits = CallLimits(time.monotonic() + deadline_seconds, max_retries)
+            return self(messages, schema=schema, role=role, run_id=run_id, limits=limits)
+
+        return bounded
+
     @staticmethod
     def _finish(result: GenerationResult, started: float) -> GenerationResult:
         result.duration_ms = (time.perf_counter() - started) * 1000.0
@@ -522,6 +583,7 @@ class Generator:
         role: str,
         trace: TraceWriter | None,
         repair: bool,
+        limits: CallLimits | None = None,
     ) -> GenerationResult:
         """One logical model call: cache in sample mode, otherwise provider chain with fallback."""
         schema_name = schema.__name__ if schema else None
@@ -604,6 +666,10 @@ class Generator:
                 last_error is None or last_error.code not in FALLBACK_CODES or not provider.configured
             ):
                 break
+            if limits is not None and limits.remaining() <= 0:
+                if last_error is None:
+                    last_error = ProviderError("timeout", "per-call deadline reached before the call")
+                break
             call_started = time.perf_counter()
             try:
                 reply = provider.chat(
@@ -611,6 +677,7 @@ class Generator:
                     model=provider_model,
                     temperature=self.settings.model_temperature,
                     max_tokens=self.settings.max_output_tokens,
+                    limits=limits,
                 )
             except ProviderError as exc:
                 last_error = exc

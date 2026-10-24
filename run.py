@@ -1,8 +1,10 @@
 """Command line: one question in, result JSON out (architecture §7).
 
-    python run.py "<question>" [--sample] [--run-id ID] [--save]
+    python run.py "<question>" [--sample] [--run-id ID] [--save] [--loop markovian|simple]
 
-Prints the result JSON on stdout. Exit code 0 when the result's status is success, 1 when the run
+The Markovian orchestrator (`app/engines/markovian/orchestrator.py`) runs the investigation by
+default; `--loop simple` (or `LOOP=simple`) runs the Sprint 2 loop in `app/loop.py` instead. The flag
+wins over the variable. Prints the result JSON on stdout. Exit code 0 when the result's status is success, 1 when the run
 ended in a structured error, 2 on bad arguments. `--save` also writes
 `output_examples/<run_id>.json`; nothing is written there otherwise. Traces go to
 `logs/trace-<run_id>.jsonl`, the result to `logs/result-<run_id>.json` and queries to
@@ -17,7 +19,7 @@ import sys
 from pathlib import Path
 
 from app.config import REPO_ROOT, get_settings
-from app.runner import RUN_ID_RE, execute_run, new_run_id
+from app.runner import LOOPS, RUN_ID_RE, execute_run, new_run_id, select_loop
 
 
 def _error_payload(question: str, run_id: str, code: str, message: str, sample_mode: bool) -> dict:
@@ -39,6 +41,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--sample", action="store_true", help="Force sample mode (local data, cached model replies)")
     parser.add_argument("--run-id", help="Run id used for the trace and log file names")
     parser.add_argument("--save", action="store_true", help="Also write output_examples/<run_id>.json")
+    parser.add_argument("--loop", choices=LOOPS, help="Investigation loop (default: LOOP, else markovian)")
     args = parser.parse_args(argv)
 
     settings = get_settings()
@@ -50,9 +53,14 @@ def main(argv: list[str] | None = None) -> int:
                                  "run id must be 1-64 letters, digits, '.', '_' or '-'", settings.sample_mode)
         print(json.dumps(payload, indent=2))
         return 2
+    try:
+        loop = select_loop(settings, args.loop)
+    except ValueError as exc:
+        print(json.dumps(_error_payload(args.question, run_id, "bad_loop", str(exc), settings.sample_mode), indent=2))
+        return 2
 
     try:
-        payload = execute_run(args.question, run_id=run_id, settings=settings).model_dump(mode="json")
+        payload = execute_run(args.question, run_id=run_id, settings=settings, loop=loop).model_dump(mode="json")
     except Exception as exc:  # noqa: BLE001 - the CLI always answers with JSON
         payload = _error_payload(args.question, run_id, "internal", f"{type(exc).__name__}: {exc}", settings.sample_mode)
 
