@@ -76,7 +76,11 @@ def run_scan() -> Board:
 
 
 class BoardCache:
-    """The last scan, computed on first use; `get(refresh=True)` recomputes."""
+    """The last scan, computed on first use; `get(refresh=True)` recomputes.
+
+    A scan that hit its time budget (`report.timed_out`) is served once but not kept, so the next
+    call scans again instead of serving a partial board until a refresh.
+    """
 
     def __init__(self, run_lock: threading.Lock, compute: Callable[[], Board] = run_scan) -> None:
         self._run_lock = run_lock
@@ -90,10 +94,11 @@ class BoardCache:
         if not self._run_lock.acquire(blocking=False):
             raise Busy("a run or a scan is already in progress; try again when it has finished")
         try:
-            self._board = self._compute()
+            board = self._compute()
         finally:
             self._run_lock.release()
-        return self._board
+        self._board = None if board.report.timed_out else board
+        return board
 
     def clear(self) -> None:
         self._board = None

@@ -218,6 +218,25 @@ def test_first_scan_during_a_run_is_busy(client: TestClient, served: list[int]) 
     assert served == []
 
 
+def test_timed_out_scan_is_served_but_not_cached(client: TestClient, real_board: Board,
+                                                monkeypatch: pytest.MonkeyPatch) -> None:
+    partial = Board(real_board.report.model_copy(update={"timed_out": True}), real_board.expanded)
+    boards = [partial, real_board]
+    calls: list[bool] = []
+
+    def compute() -> Board:
+        calls.append(partial is boards[0])
+        return boards.pop(0)
+
+    monkeypatch.setattr(api, "BOARD", BoardCache(api._RUN_LOCK, compute))
+    first = client.get("/anomalies")
+    assert first.status_code == 200 and first.json()["timed_out"] is True
+    # The next call scans again; the complete board is then cached.
+    assert client.get("/anomalies").json()["timed_out"] is False
+    assert client.get("/anomalies").json()["timed_out"] is False
+    assert calls == [True, False]
+
+
 def test_failed_scan_releases_the_lock_and_is_not_cached(logs: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     def broken() -> Board:
         raise RuntimeError("scanner exploded at /secret/path")
