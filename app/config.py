@@ -61,6 +61,14 @@ class Settings(BaseSettings):
     max_agent_rounds: int = Field(default=6, ge=1)
     max_tool_calls: int = Field(default=20, ge=1)
 
+    # World Model (architecture §5.1, Sprint 5).
+    world_db_path: str = "logs/world.db"
+    # An observation is flagged as an alert when |relative change| >= ALERT_REL_CHANGE or
+    # |robust z| >= ALERT_Z (z only exists where the baseline is a series).
+    alert_rel_change: float = Field(default=0.25, gt=0.0)
+    alert_z: float = Field(default=3.5, gt=0.0)
+    max_ingest_rows: int = Field(default=5000, ge=1)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
