@@ -149,6 +149,10 @@ def wire_body(result: QueryResult) -> dict[str, Any]:
 
 
 _TRAILING_LIMIT = re.compile(r"\bLIMIT\s+(\d+)\s*;?\s*$", re.IGNORECASE)
+_FINAL_ORDER_BY = re.compile(r"\bORDER\s+BY\s+((?:(?!\bORDER\s+BY\b).)+?)\s+LIMIT\s+\d+\s*;?\s*$",
+                             re.IGNORECASE | re.DOTALL)
+_ORDER_MODIFIERS = re.compile(r"\s+(?:ASC|DESC)\b|\s+NULLS\s+(?:FIRST|LAST)\b", re.IGNORECASE)
+_IDENTIFIER = re.compile(r'(?:\w+\.)?(?:\w+|"[^"]+")')
 
 # Relative tolerance for numbers. Spark evaluates `x / 7.0` as a DECIMAL with scale 6 (1/7 -> 0.142857),
 # DuckDB as a DOUBLE, so a ratio rounded to 4 places can read 70.0001 on Zetaris and 70 locally
@@ -206,19 +210,74 @@ def _format_variant(a: Any, b: Any) -> bool:
     return left != right and (left.startswith(right) or right.startswith(left))
 
 
+def _order_columns(sql: str, columns: list[str]) -> list[str] | None:
+    """The result columns of the statement's final `ORDER BY … LIMIT n`, or None if it cannot be read.
+
+    Each item must be a plain output column (optionally qualified, `t.col`) or a 1-based position,
+    with optional `ASC`/`DESC` and `NULLS FIRST`/`NULLS LAST`; an expression gives None.
+    """
+    match = _FINAL_ORDER_BY.search(sql.strip())
+    if not match or ")" in match.group(1):
+        return None
+    by_name = {c.lower(): c for c in columns}
+    out = []
+    for item in match.group(1).split(","):
+        term = _ORDER_MODIFIERS.sub("", item).strip()
+        if term.isdigit() and 1 <= int(term) <= len(columns):
+            out.append(columns[int(term) - 1])
+        elif _IDENTIFIER.fullmatch(term) and term.rsplit(".", 1)[-1].strip('"').lower() in by_name:
+            out.append(by_name[term.rsplit(".", 1)[-1].strip('"').lower()])
+        else:
+            return None
+    return out or None
+
+
 def _tie_at_cut(local: QueryResult, zetaris: QueryResult, numeric: list[str]) -> bool:
     """True if the results differ only in which tied rows an `ORDER BY … LIMIT n` kept.
 
-    Legitimate only when the statement ends in `LIMIT n` and the limit was reached: then the last
-    tie group (the rows sharing the numbers of the last row, within `NUMERIC_REL_TOL`) can be cut at
-    a different member on each engine. Every other group must carry the same identifiers, both sides
-    must hold the same numbers with the same group sizes, and an identifier that is a reformatting of
-    the other side's (a date printed as a timestamp) is a difference, not a tie.
+    Legitimate only when the statement ends in `LIMIT n` and the limit was reached. The tie key is
+    the final `ORDER BY` column(s): rows whose key equals the last row's (within `NUMERIC_REL_TOL`)
+    form the group the LIMIT cut, and each engine may keep different members of it, which can differ
+    in every other column. Both sides must hold the same number of them, every row above the cut must
+    match (in any order, numbers within tolerance), and a label that is a reformatting of the other
+    side's (a date printed as a timestamp) is a difference, not a tie. If the `ORDER BY` cannot be
+    read, the tie key falls back to all numeric columns (`_tie_at_cut_by_numbers`).
     """
     match = _TRAILING_LIMIT.search(local.sql.strip())
-    if not numeric or not match or not local.rows or len(local.rows) != int(match.group(1)):
+    if not match or not local.rows or len(local.rows) != int(match.group(1)):
         return False
     if len(zetaris.rows) != len(local.rows):
+        return False
+    keys = _order_columns(local.sql, local.columns)
+    if keys is None:
+        return _tie_at_cut_by_numbers(local, zetaris, numeric)
+    cut = tuple(local.rows[-1].get(c) for c in keys)
+
+    def at_cut(row: dict[str, Any]) -> bool:
+        return _same_numbers(cut, tuple(row.get(c) for c in keys))
+
+    if not at_cut(zetaris.rows[-1]):
+        return False
+    columns = local.columns
+    left_above = sorted((r for r in local.rows if not at_cut(r)), key=lambda row: _sort_key(row, columns))
+    right_above = sorted((r for r in zetaris.rows if not at_cut(r)), key=lambda row: _sort_key(row, columns))
+    if not _rows_equal(left_above, right_above, columns):
+        return False
+    other = [c for c in columns if c not in keys]
+    lvals = [r.get(c) for r in local.rows if at_cut(r) for c in other]
+    rvals = [r.get(c) for r in zetaris.rows if at_cut(r) for c in other]
+    return not any(_format_variant(a, b) for a in lvals for b in rvals
+                   if isinstance(a, str) and isinstance(b, str))
+
+
+def _tie_at_cut_by_numbers(local: QueryResult, zetaris: QueryResult, numeric: list[str]) -> bool:
+    """The tie check keyed on all numeric columns, for a statement whose `ORDER BY` cannot be read.
+
+    The last tie group (the rows sharing the numbers of the last row, within `NUMERIC_REL_TOL`) can be
+    cut at a different member on each engine. Every other group must carry the same identifiers, both
+    sides must hold the same numbers with the same group sizes, and reformatted identifiers fail.
+    """
+    if not numeric:
         return False
     other = [c for c in local.columns if c not in numeric]
     left = _group(local.rows, numeric, other)
@@ -244,8 +303,8 @@ def compare(local: QueryOutcome, zetaris: QueryOutcome) -> tuple[bool, str]:
     """(passed, verdict): the same columns and the same values.
 
     Rows are compared in order first, then as sorted rows (only the order differs). The one other
-    pass is an `ORDER BY … LIMIT n` that cuts through a tie: the engines may keep different sellers
-    from the tie group at the cut, so only that last group may carry different identifiers (see
+    pass is an `ORDER BY … LIMIT n` that cuts through a tie: the engines may keep different rows
+    whose order key equals the cut value, so only those rows may differ in their other columns (see
     `_tie_at_cut`). Labels attached to different numbers, or dates formatted differently, fail.
     """
     if not isinstance(local, QueryResult) or not isinstance(zetaris, QueryResult):

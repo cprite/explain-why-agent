@@ -83,12 +83,18 @@ def test_fixtures_hold_no_hosts_tokens_or_org_secrets() -> None:
 
 
 def test_fixtures_are_in_zetaris_wire_format() -> None:
-    """Every value is a string or null, as REST returns them (decimals with 18 places, `0E-18`)."""
+    """Every value is a string or null, as REST returns them.
+
+    The live recording (24 Oct) sends decimals at their column scale (`111.12`, `0.1429`), timestamps
+    as `2017-10-21 19:32:06.0` and dates as `2017-11-03`. The `0E-18` and 18-place decimal forms seen
+    in earlier tests are still converted (`tests/test_data_zetaris.py`), but this recording has none.
+    """
     values = [v for f in FIXTURES.values() for row in f["response"]["data"] for v in row]
     assert values and all(v is None or isinstance(v, str) for v in values)
-    assert any(v == "0E-18" for v in values)
-    assert any(v and re.fullmatch(r"\d+\.\d{18}", v) for v in values)
-    assert any(v and re.fullmatch(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", v) for v in values)
+    assert None in values
+    assert any(v and re.fullmatch(r"-?\d+\.\d+", v) for v in values)
+    assert any(v and re.fullmatch(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?", v) for v in values)
+    assert any(v and re.fullmatch(r"\d{4}-\d{2}-\d{2}", v) for v in values)
 
 
 @pytest.mark.parametrize("query", QUERIES, ids=[q.name for q in QUERIES])
@@ -252,3 +258,53 @@ def test_fixture_status_script_flags_synthetic_fixtures(tmp_path: Path, label: s
         assert strict.returncode == 1 and "FAIL: 1 of 2" in strict.stdout
     else:
         assert "all 2 fixtures recorded from a live Zetaris" in warn.stdout and strict.returncode == 0
+
+
+TIE = "PASS (same numbers; the LIMIT cut a tie at different rows)"
+
+
+def test_compare_live_seller_spike_tie_at_21_passes(adapters: tuple) -> None:
+    # Live run, 24 Oct: the SQL orders only by spike_ratio, and LIMIT 20 cuts the spike_ratio 21 group.
+    # Local keeps seller 54965… (12 orders, baseline 0.5714); Zetaris keeps 3db66…/9b00ed… (3 orders,
+    # baseline 0.1429). Same order key, different other columns: a tie, not a difference.
+    local, zetaris, _ = adapters
+    query = next(q for q in QUERIES if q.name == "day1_seller_spike")
+    left, right = local.query(query.source, query.sql), zetaris.query(query.source, query.sql)
+    assert FIXTURES[query.name]["recorded_with"] == LIVE
+    at_21 = [r for r in left.rows if r["spike_ratio"] == 21]
+    assert {r["window_orders"] for r in at_21} != {r["window_orders"] for r in right.rows if r["spike_ratio"] == 21}
+    assert compare(left, right) == (True, TIE)
+
+
+def test_compare_tie_key_is_the_order_by_column() -> None:
+    local = _result([_spike("s1", 10, 0.1429, 70.0), _spike("s2", 12, 0.5714, 21.0),
+                     _spike("s3", 3, 0.1429, 21.0)], "local", SPIKE)
+    zetaris = _result([_spike("s1", 10, 0.1429, 70.0001), _spike("s8", 3, 0.1429, 21.0),
+                       _spike("s9", 3, 0.1429, 21.0)])
+    assert compare(local, zetaris) == (True, TIE)
+    # Qualified names and positions are read too.
+    for order_by in ("t.spike_ratio DESC", "4 DESC NULLS LAST"):
+        sql = SPIKE.replace("spike_ratio DESC NULLS LAST", order_by)
+        assert compare(_result(local.rows, "local", sql), zetaris) == (True, TIE)
+    # A row above the cut that differs still fails, even with the cut group tied.
+    above = _result([_spike("s1", 11, 0.1429, 70.0), _spike("s8", 3, 0.1429, 21.0), _spike("s9", 3, 0.1429, 21.0)])
+    assert compare(local, above) == (False, "FAIL: values differ")
+    other_seller = _result([_spike("s7", 10, 0.1429, 70.0), _spike("s8", 3, 0.1429, 21.0),
+                            _spike("s9", 3, 0.1429, 21.0)])
+    assert compare(local, other_seller) == (False, "FAIL: values differ")
+    # Every row kept at the cut must carry the cut's order-key value, and the counts must match.
+    short_tie = _result([_spike("s1", 10, 0.1429, 70.0), _spike("s2", 12, 0.5714, 22.0),
+                         _spike("s9", 3, 0.1429, 21.0)])
+    assert compare(local, short_tie) == (False, "FAIL: values differ")
+
+
+def test_compare_falls_back_to_numeric_tie_key_for_an_order_by_expression() -> None:
+    sql = SPIKE.replace("spike_ratio DESC NULLS LAST", "spike_ratio * 2 DESC")
+    local = _result([_spike("s1", 10, 0.1429, 70.0), _spike("s2", 12, 0.5714, 21.0),
+                     _spike("s3", 3, 0.1429, 21.0)], "local", sql)
+    same_numbers = _result([_spike("s1", 10, 0.1429, 70.0), _spike("s2", 12, 0.5714, 21.0),
+                            _spike("s9", 3, 0.1429, 21.0)])
+    assert compare(local, same_numbers) == (True, TIE)
+    other_numbers = _result([_spike("s1", 10, 0.1429, 70.0), _spike("s8", 3, 0.1429, 21.0),
+                             _spike("s9", 3, 0.1429, 21.0)])
+    assert compare(local, other_numbers) == (False, "FAIL: values differ")
