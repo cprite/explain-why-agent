@@ -70,6 +70,19 @@ class Settings(BaseSettings):
     max_agent_rounds: int = Field(default=6, ge=1)
     max_tool_calls: int = Field(default=20, ge=1)
 
+    # World Model (architecture §5.1, Sprint 5).
+    world_db_path: str = "logs/world.db"
+    # An observation is flagged as an alert when |relative change| >= ALERT_REL_CHANGE or
+    # |robust z| >= ALERT_Z (z only exists where the baseline is a series).
+    alert_rel_change: float = Field(default=0.25, gt=0.0)
+    alert_z: float = Field(default=3.5, gt=0.0)
+    max_ingest_rows: int = Field(default=5000, ge=1)
+
+    # HTTP API (architecture §7): bind address, port, and the wall-clock cap on one run.
+    api_host: str = "0.0.0.0"
+    api_port: int = Field(default=8000, ge=1, le=65535)
+    api_run_timeout_seconds: float = Field(default=600, gt=0)
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 

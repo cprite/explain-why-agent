@@ -35,3 +35,6 @@ logs/*
 *.swo
 *~
 .DS_Store
+
+# Scanner DuckDB build files and spill directory
+.cache/

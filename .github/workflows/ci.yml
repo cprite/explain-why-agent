@@ -34,7 +34,67 @@ jobs:
           python scripts/check_result.py /tmp/result-ci-day1.json
           echo "--- logs/trace-ci-day1.jsonl (first 3 lines) ---"
           head -n 3 logs/trace-ci-day1.jsonl
-      - name: "Plan check D: Day 1 queries through the Zetaris adapter (recorded REST responses) vs local DuckDB"
+      - name: "Plan check D (task 10): Day 1 queries through the Zetaris adapter (recorded REST responses) vs local DuckDB"
         run: |
           python scripts/zetaris_fixture_status.py
           pytest -s -q -rs tests/test_zetaris_plan_check.py
+      - name: "Plan check D (task 7): same observation written twice is one record, log shows a no-op"
+        run: pytest -q -s tests/test_world_store.py::test_plan_check_task7_same_observation_twice_is_one_record
+      - name: "Plan check E (task 8): interrupted ingest resumes from its checkpoint, no duplicates"
+        run: pytest -q -s tests/test_world_ingest.py::test_plan_check_task8_interrupted_ingest_resumes_without_duplicates
+      - name: "World Model sample ingest, run twice: entity and edge counts must be identical"
+        env:
+          SAMPLE_MODE: "true"
+          WORLD_DB_PATH: logs/world-ci.db
+        run: |
+          set -o pipefail
+          python -m app.engines.world_model.ingest --sample | tee /tmp/ingest-1.txt
+          python -m app.engines.world_model.ingest --sample | tee /tmp/ingest-2.txt
+          grep '^COUNTS ' /tmp/ingest-1.txt > /tmp/counts-1.txt
+          grep '^COUNTS ' /tmp/ingest-2.txt > /tmp/counts-2.txt
+          diff /tmp/counts-1.txt /tmp/counts-2.txt && echo "[PASS] counts identical on both runs"
+      - name: "Plan check F (task 9): critique payload within budget with supporting and refuting evidence"
+        run: pytest -q -s tests/test_world_context.py::test_plan_check_task9_critique_has_support_and_refutation_within_budget
+      - name: "World Model sample context: critique payload"
+        env:
+          SAMPLE_MODE: "true"
+          WORLD_DB_PATH: logs/world-ci.db
+        run: python -m app.engines.world_model.context --sample --intent critique
+      - name: "Plan check G (task 11): Markovian carryover cascade (step used and used/budget chars per case)"
+        run: |
+          set -o pipefail
+          pytest -q -s -p no:cacheprovider tests/test_markovian_carryover.py | tee /tmp/markovian-plan-check.log
+          echo "--- plan check summary ---"
+          grep "PLAN-CHECK" /tmp/markovian-plan-check.log
+      - name: "Plan check H (task 11): Markovian carryover sample mode (recorded round, stub generator)"
+        run: python -m app.engines.markovian.carryover --sample
+
+      - name: "Plan check I (task 18): HTTP API in sample mode (POST /run, GET /runs/{id}, schema validation)"
+        env:
+          SAMPLE_MODE: "true"
+        run: |
+          set -o pipefail
+          python -m app.api > /tmp/api-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -s --max-time 2 localhost:8000/health; then echo; break; fi
+            if [ "$i" = 30 ]; then echo "server not healthy after 30 s"; cat /tmp/api-server.log; exit 1; fi
+            sleep 1
+          done
+          curl -sS --max-time 120 -X POST localhost:8000/run \
+            -H 'Content-Type: application/json' \
+            -d '{"input":{"query":"Why did order volume spike on 24 November 2017?"},"options":{"sample_mode":true}}' \
+            | tee /tmp/api-result.json
+          echo
+          python -m app.schemas /tmp/api-result.json
+          python scripts/check_result.py /tmp/api-result.json
+          RUN_ID=$(python -c 'import json; print(json.load(open("/tmp/api-result.json"))["run_id"])')
+          curl -sS --max-time 10 -f -o /tmp/api-stored.json "localhost:8000/runs/$RUN_ID"
+          curl -sS --max-time 10 -f -o /tmp/api-trace.jsonl "localhost:8000/runs/$RUN_ID/trace"
+          python -c 'import json, sys; a, b = (json.load(open(f)) for f in sys.argv[1:]); assert a == b, "GET /runs/{id} differs from POST /run"; print("[PASS] GET /runs/" + a["run_id"] + " returns the POST /run result")' /tmp/api-result.json /tmp/api-stored.json
+          echo "--- GET /runs/$RUN_ID/trace: $(wc -l < /tmp/api-trace.jsonl) lines, first 2 ---"
+          head -n 2 /tmp/api-trace.jsonl
+          kill $SERVER_PID
+          echo "--- server log ---"
+          cat /tmp/api-server.log

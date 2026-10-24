@@ -1,4 +1,5 @@
-"""Run trace writer: `logs/trace-<run_id>.jsonl`, one JSON line per agent action (architecture §8).
+"""Run trace writer: `logs/trace-<run_id>.jsonl`, one JSON line per agent action (architecture §8),
+and the run's final result next to it, `logs/result-<run_id>.json` (served by `GET /runs/{id}`).
 
 Each line carries a timestamp, the acting agent, the action, the target agent, short input and
 output summaries, the status and the retry count; callers may add extra fields (the model generator
@@ -29,6 +30,7 @@ class TraceWriter:
     def __init__(self, log_dir: Path | str, run_id: str) -> None:
         self.run_id = run_id
         self.path = Path(log_dir) / f"trace-{run_id}.jsonl"
+        self.result_path = Path(log_dir) / f"result-{run_id}.json"
         self._lock = threading.Lock()
 
     def write(
@@ -62,6 +64,16 @@ class TraceWriter:
             with self.path.open("a", encoding="utf-8") as handle:
                 handle.write(line + "\n")
         return record
+
+    def write_result(self, payload: dict[str, Any]) -> Path:
+        """Write the run's final result JSON; replaces the file whole, so readers never see half of it."""
+        text = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
+        with self._lock:
+            self.result_path.parent.mkdir(parents=True, exist_ok=True)
+            partial = self.result_path.with_name(self.result_path.name + ".partial")
+            partial.write_text(text, encoding="utf-8")
+            partial.replace(self.result_path)
+        return self.result_path
 
     def read(self) -> list[dict[str, Any]]:
         """Read the trace back."""
