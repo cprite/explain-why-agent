@@ -1,7 +1,7 @@
-"""Plan check L (build-plan tasks 13+14): verify the Critic and the branches in a run.py result and its trace.
+"""Plan check N (build-plan tasks 13+14): verify the Critic and the branches in a run.py result and its trace.
 
     python scripts/check_critic_run.py --question incident-06       # prints the question from eval/answer_key.json
-    python run.py "<question>" --sample --run-id ci-plan-check-l-06 > result.json
+    python run.py "<question>" --sample --run-id ci-plan-check-n-06 > result.json
     python scripts/check_critic_run.py result.json --expect refuted:logistics_delay
     python scripts/check_critic_run.py result.json --expect undeterminable
     python scripts/check_critic_run.py result.json --expect no-change
