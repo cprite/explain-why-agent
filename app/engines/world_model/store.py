@@ -2,11 +2,13 @@
 
 One SQLite file (`WORLD_DB_PATH`, default `logs/world.db`) holds four tables:
 
-- `entities`: Question, Metric, Segment, Hypothesis, Observation, Query, Source. The id is a content
+- `entities`: Question, Metric, Segment, Hypothesis, Observation, Query, Source, and the Critic's
+  Verdict (Sprint 9). The id is a content
   hash: the entity type plus its canonical fields as sorted-key JSON, SHA-256, a 16-hex-digit prefix
   behind a type tag (`obs_3f2a…`). The same content gets the same id in every process.
 - `edges`: `tests` (query → hypothesis), `supports` / `refutes` (observation → hypothesis),
-  `derived_from` (observation → query), `from_source` (query → source). The id hashes the type and
+  `derived_from` (observation → query), `from_source` (query → source), `judges` (verdict →
+  hypothesis) and `relies_on` (verdict → observation, its provenance). The id hashes the type and
   both ends; each edge records the agent and run that first wrote it.
 - `log`: one row per write (entity, edge or ingest checkpoint) with timestamp, agent, run id,
   operation and whether it was a no-op because the record already existed.
@@ -40,6 +42,7 @@ ENTITY_TAGS: dict[str, str] = {
     "observation": "obs",
     "query": "qry",
     "source": "src",
+    "verdict": "vrd",
 }
 """Entity type → id tag."""
 
@@ -51,6 +54,7 @@ CANONICAL_FIELDS: dict[str, tuple[str, ...]] = {
     "observation": ("query_entity_id", "metric", "segment", "window", "baseline_window", "value", "baseline"),
     "query": ("source", "sql"),
     "source": ("name",),
+    "verdict": ("hypothesis_id", "attempt", "verdict", "reason"),
 }
 """Fields that make up an entity's identity. Other fields are stored but do not change the id."""
 
@@ -60,6 +64,8 @@ EDGE_TYPES: dict[str, tuple[str, str]] = {
     "refutes": ("observation", "hypothesis"),
     "derived_from": ("observation", "query"),
     "from_source": ("query", "source"),
+    "judges": ("verdict", "hypothesis"),
+    "relies_on": ("verdict", "observation"),
 }
 """Edge type → (source entity type, target entity type)."""
 
