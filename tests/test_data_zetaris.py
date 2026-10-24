@@ -121,26 +121,39 @@ def test_zetaris_layer_refuses_sample_mode(tmp_path: Path) -> None:
         ZetarisDataLayer(settings=settings(tmp_path, sample_mode=True))
 
 
-def test_sample_mode_run_never_touches_zetaris(tmp_path: Path) -> None:
-    """With Zetaris configured but sample mode on, the Day 1 run uses local data only."""
+@pytest.mark.parametrize(
+    ("loop", "question", "run_id"),
+    [
+        # Each question replays the sample cache recorded for its loop (plan checks C and J).
+        ("simple", "Why did order volume spike on 24 November 2017?", "zt-sample"),
+        ("markovian", "Why did delivery lateness spike for deliveries completed the week of 28 May 2018?", "ci-plan-check-j"),
+    ],
+)
+def test_sample_mode_run_never_touches_zetaris(tmp_path: Path, loop: str, question: str, run_id: str) -> None:
+    """With Zetaris configured but sample mode on, a run on either loop uses local data only."""
     env = {
-        "PATH": "/usr/bin:/bin", "SAMPLE_MODE": "true", "DATA_LAYER": "zetaris",
+        "PATH": "/usr/bin:/bin", "SAMPLE_MODE": "true", "DATA_LAYER": "zetaris", "LOOP": loop,
         "ZETARIS_URL": "http://127.0.0.1:9/api/v1.0", "ZETARIS_API_KEY": KEY, "ZETARIS_ORG_ID": "1",
         "LOG_DIR": str(tmp_path),
     }
     result = subprocess.run(
-        [sys.executable, "run.py", "Why did order volume spike on 24 November 2017?", "--run-id", "zt-sample"],
+        [sys.executable, "run.py", question, "--run-id", run_id],
         cwd=ROOT, env=env, capture_output=True, text=True, timeout=300, check=False,
     )
     assert result.returncode == 0, result.stdout[-2000:] + result.stderr[-2000:]
-    lines = [json.loads(line) for line in (tmp_path / "queries-zt-sample.jsonl").read_text().splitlines()]
+    assert json.loads(result.stdout).get("error") is None
+    lines = [json.loads(line) for line in (tmp_path / f"queries-{run_id}.jsonl").read_text().splitlines()]
     assert lines and {line["adapter"] for line in lines} == {"local"}
     assert "fallback" not in result.stdout
 
 
 
-def test_execute_run_uses_the_zetaris_layer_when_configured(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """run.py and POST /run share `execute_run`; with DATA_LAYER=zetaris it must hand the loop a Zetaris layer."""
+@pytest.mark.parametrize("loop", ["markovian", "simple"])
+def test_execute_run_uses_the_zetaris_layer_when_configured(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, loop: str
+) -> None:
+    """run.py and POST /run share `execute_run`; with DATA_LAYER=zetaris it must hand either loop a Zetaris layer."""
+    import app.engines.markovian.orchestrator
     import app.llm.generator
     import app.loop
     import app.runner
@@ -162,14 +175,17 @@ def test_execute_run_uses_the_zetaris_layer_when_configured(tmp_path: Path, monk
         seen["result"] = data.query(None, "SELECT COUNT(*) AS n FROM orders.orders")
         return "result"
 
-    monkeypatch.setattr(app.loop, "run_investigation", fake_investigation)
+    if loop == "simple":
+        monkeypatch.setattr(app.loop, "run_investigation", fake_investigation)
+    else:
+        monkeypatch.setattr(app.engines.markovian.orchestrator, "run_markovian", fake_investigation)
     cfg = settings(tmp_path, data_layer="zetaris")
-    assert app.runner.execute_run("q", run_id="zt-run", settings=cfg) == "result"
+    assert app.runner.execute_run("q", run_id="zt-run", settings=cfg, loop=loop) == "result"
     assert isinstance(seen["data"], ZetarisDataLayer)
     result = seen["result"]
     assert isinstance(result, QueryResult) and result.adapter == "zetaris" and result.rows == [{"n": 30256}]
 
-    app.runner.execute_run("q", run_id="local-run", settings=settings(tmp_path, data_layer="local"))
+    app.runner.execute_run("q", run_id="local-run", settings=settings(tmp_path, data_layer="local"), loop=loop)
     assert isinstance(seen["data"], LocalDataLayer)
 
 # --- REST client --------------------------------------------------------------------------------------
