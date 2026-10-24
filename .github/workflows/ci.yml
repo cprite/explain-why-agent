@@ -110,3 +110,13 @@ jobs:
           timeout 600 python run.py "Why did delivery lateness spike for deliveries completed the week of 28 May 2018?" --sample --run-id ci-plan-check-j | tee /tmp/result-ci-plan-check-j.json
           echo "wall_clock_seconds: $(( $(date +%s) - start ))"
           python scripts/check_markovian_run.py /tmp/result-ci-plan-check-j.json --max-seconds 600
+
+      - name: "Plan check L: evaluation against the answer key in sample mode (score reported, not gated)"
+        env:
+          SAMPLE_MODE: "true"
+        run: |
+          set -o pipefail
+          python eval/run_eval.py --sample | tee /tmp/eval.txt
+          tail -n 1 /tmp/eval.txt | grep -E '^Score: [0-9]+/[0-9]+ \(answered [0-9]+, no_cache [0-9]+, errors [0-9]+\)$'
+          echo "--- $(ls logs/eval-*.json) ---"
+          python -c "import json,glob; r=json.load(open(sorted(glob.glob('logs/eval-*.json'))[-1])); print({i['id']: (i['status'], i['run_id']) for i in r['incidents']})"

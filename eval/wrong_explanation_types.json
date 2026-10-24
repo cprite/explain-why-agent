@@ -1,0 +1,42 @@
+{
+  "incident-01": {
+    "type": "data_artefact",
+    "reason": "A logging error that duplicated order records is a data artefact."
+  },
+  "incident-02": {
+    "type": "single_seller",
+    "reason": "One seller (or region) that stopped shipping is a concentrated, single-party problem."
+  },
+  "incident-03": {
+    "type": "volume",
+    "reason": "Marketplace-wide demand falling is a broad order-volume change."
+  },
+  "incident-04": {
+    "type": "mix_shift",
+    "reason": "Orders getting heavier or bigger is a shift in the product mix being shipped."
+  },
+  "incident-05": {
+    "type": "volume",
+    "reason": "Overall demand in MG changing is an order-volume change."
+  },
+  "incident-06": {
+    "type": "logistics_delay",
+    "reason": "The delivery-delay story is a logistics delay."
+  },
+  "incident-07": {
+    "type": "volume",
+    "reason": "Seasonal demand is a demand (order-volume) swing, checked against organic-origin sellers."
+  },
+  "incident-08": {
+    "type": "single_seller",
+    "reason": "A single seller's problem is the single_seller family."
+  },
+  "incident-09": {
+    "type": null,
+    "reason": "'Any confident single-cause story' names no one family."
+  },
+  "incident-10": {
+    "type": null,
+    "reason": "'Any single-segment explanation' spans several families (single state, category or seller)."
+  }
+}
