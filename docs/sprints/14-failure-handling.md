@@ -126,11 +126,23 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
   - `test_generator.py::test_429_retry_sequence_then_success`: no fallback configured, 2 retries
   - `::test_retries_exhausted_falls_back_to_nvidia`: 2 Meterless attempts, then NVIDIA
   - `test_markovian_review_fixes.py::test_unbounded_generator_still_retries`: 3 requests
-- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 557 passed
-  (506 on main before this sprint), about 3 m 40 s on the Pi.
+- After merging origin/main (Sprints 8b streaming, 9+10 Critic, 11 eval, 13b web page):
+  - `test_generator_streaming.py::test_error_events_exhaust_retries_then_fall_back_to_buffered_nvidia`
+    pinned 4 streamed Meterless requests before the fallback; it now pins the cap (1 retry, 3
+    requests in all, `attempt` 3 and `fallback_reason` on the NVIDIA line).
+  - New `::test_bounded_streamed_calls_keep_the_attempt_cap_and_trace_fields`: the same through
+    `with_limits` (the `run_by_deadline` worker), so the cap and trace fields hold for bounded
+    streamed calls too.
+  - `test_eval_run.py` compared incident-01 with the root `result.json`; that file (unchanged) is
+    now `tests/fixtures/day1-sample-result.json` and the test reads it there.
+- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 702 passed
+  (650 on origin/main 457cde2: 51 in `test_failure_handling.py`, 1 new streaming test), about
+  5 minutes on the Pi.
 - Every step of the existing `test` job was rerun locally and passes: A, B, C, D (Zetaris and task 7),
   E, F, G, H, I (a live server on a spare port, including a `run_id_taken` answer for a reused id),
-  J, and the World Model ingest and context. The results of C and J are identical to origin/main's
+  J, both L steps (the eval prints the same `Score: 0/10 (answered 1, no_cache 9, errors 0)` as
+  origin/main; the Critic checks all pass), and the World Model ingest and context. The results of C
+  and J are identical to origin/main's
   apart from `execution_time_seconds`. Plan check C's three printed trace
   lines are identical; later `run_query` lines gain `"adapter": "local"`.
 - `scripts/clean_clone_check.sh` from a fresh `git clone` with an empty `.env`, run inside
