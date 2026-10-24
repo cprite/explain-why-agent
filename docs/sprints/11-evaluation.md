@@ -42,8 +42,8 @@ Build-plan task 15, issue #17. Nothing under `app/`, `run.py` or the recorded ca
   with run ids, trace files and query logs. Exit 0 whenever scoring finished; 2 on bad arguments.
 - Configuration in `.env.example`: `EVAL_QUESTION_TIMEOUT_SECONDS` (600), `EVAL_TOTAL_TIMEOUT_SECONDS`
   (3600). Read by the eval itself (not `app/config.py`, which this sprint does not touch).
-- CI plan check I: `python eval/run_eval.py --sample`, then the last line must match the score
-  pattern. The score is reported, not gated.
+- CI plan check J (main's I is the HTTP API): `python eval/run_eval.py --sample`, then the last
+  line must match the score pattern. The score is reported, not gated.
 
 ## Left out
 
@@ -54,7 +54,8 @@ Build-plan task 15, issue #17. Nothing under `app/`, `run.py` or the recorded ca
 
 ## How it was tested
 
-- `ruff check .` → `All checks passed!`; `pytest -q` → `167 passed` locally (Python 3.13, arm64).
+- `ruff check .` → `All checks passed!`; `pytest -q` → `360 passed` locally after merging
+  main with the HTTP API (Python 3.13, arm64); 56 of them are in the three eval test files below.
 - `tests/test_eval_scoring.py`: correct cause (found); wrong type; incident-08 answered with only
   `volume` (not found) and with both (found); wrong segment; window outside; wrong explanation
   missing from `ruled_out` (check d fails, still found); undeterminable with a cause (not found),
