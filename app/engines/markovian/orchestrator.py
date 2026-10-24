@@ -36,9 +36,9 @@ Stops, each with a schema-valid `Result` and `stop_reason`: `completed` (every h
 reported), `max_chunks` (`MARKOVIAN_MAX_CHUNKS` reached with work left), `max_tool_calls`
 (`MAX_TOOL_CALLS` reached with work left), `timeout` (the run passed `MARKOVIAN_RUN_TIMEOUT_S` or one
 chunk passed `MARKOVIAN_CHUNK_TIMEOUT_SECONDS`), `no_hypotheses` (the no-significant-change branch)
-and `error` (a fatal failure: no plan, no report, an unexpected exception). The run works in a daemon thread that the
-calling thread monitors; on a timeout the worker is told to stop, any data call in flight is
-interrupted and the caller returns once the worker has left the data layer (so the caller can close
+and `error` (a fatal failure: no plan, no report, an unexpected exception). The run works in a
+daemon thread that the calling thread monitors; on a timeout the worker is told to stop, any data
+call in flight is interrupted and the caller returns once the worker has left the data layer (so the caller can close
 it), so a slow model never holds the run beyond its limit.
 
 Per chunk, one `Orchestrator` / `chunk` line in `logs/trace-<run>.jsonl` (chunk number, hypothesis id,
