@@ -16,15 +16,19 @@
   one repair call sends the validation error back; a second failure is a structured error.
 - Sample mode: replies come from a per-call cache under `data/sample/llm_cache/`, keyed by a hash of
   the normalised request (messages, schema name, role); a miss is a structured error. With
-  `RECORD_CACHE=true` in live mode every reply is written to that cache.
+  `RECORD_CACHE=true` in live mode every reply is written to that cache; with
+  `RECORD_REUSE_EXISTING=true` (default) an entry already recorded with Meterless is replayed instead
+  of called again, so only missing entries are recorded.
+- Streaming: Meterless replies are streamed (`MODEL_STREAM=true`, default) so the response headers
+  arrive before Nightshift's 45 s provider deadline; the NVIDIA fallback stays buffered.
 - Every provider call (and every cache lookup) is one line in `logs/trace-<run_id>.jsonl`.
 - Per-call limits: `generator.with_limits(deadline_seconds=..., max_retries=0)` returns a generate
   function whose calls end by the deadline (each HTTP request's timeout is cut to the time left, no
   retry sleeps past it, no repair or fallback call once it has passed). httpx timeouts are per
   phase (connect, each read), so a server that trickles its reply could still outlast them: a
-  bounded request therefore runs in a short-lived worker thread that reads the body chunk by chunk,
-  the caller stops waiting at the deadline (a `timeout` error), and the worker stops at its next
-  chunk or by its own read timeout, whichever comes first. The Markovian carryover
+  bounded request therefore runs in a short-lived worker thread that reads the body (buffered or
+  streamed) chunk by chunk, the caller stops waiting at the deadline (a `timeout` error), and the
+  worker stops at its next chunk or by its own read timeout, whichever comes first. The Markovian carryover
   cascade uses it for the compressor so a timed-out compression does not leave a call running.
 
 No exception escapes `generate`: every failure comes back as `GenerationResult(ok=False, error=...)`.
@@ -32,13 +36,12 @@ No exception escapes `generate`: every failure comes back as `GenerationResult(o
 
 from __future__ import annotations
 
-import functools
 import hashlib
 import json
 import re
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -166,7 +169,9 @@ CALL_THREAD_NAME = "generator-call"
 """Name of the worker thread that runs one deadline-bounded HTTP request."""
 
 
-def run_by_deadline(work: Callable[[threading.Event], Any], deadline: float, name: str) -> Any:
+def run_by_deadline(
+    work: Callable[[threading.Event], Any], deadline: float, name: str, during: str = "the request"
+) -> Any:
     """Run `work(stop)` in a worker thread and return its result, or raise `ProviderError("timeout")`
     once the monotonic `deadline` passes (then `stop` is set so the worker ends at its next check).
 
@@ -186,7 +191,7 @@ def run_by_deadline(work: Callable[[threading.Event], Any], deadline: float, nam
     worker.join(max(0.0, deadline - time.monotonic()))
     if worker.is_alive():
         stop.set()
-        raise ProviderError("timeout", f"{name}: per-call deadline reached during the request")
+        raise ProviderError("timeout", f"{name}: per-call deadline reached during {during}")
     if "error" in box:
         raise box["error"]
     return box["value"]
@@ -224,8 +229,42 @@ def _content_text(message: dict[str, Any]) -> str:
     return ""
 
 
+def _error_status(error: Any) -> int:
+    """HTTP status an error event in a stream stands for; 502 (retryable) when it names none."""
+    if isinstance(error, dict):
+        for value in (error.get("status"), error.get("status_code"), error.get("code")):
+            if isinstance(value, int) and 400 <= value <= 599:
+                return value
+            if isinstance(value, str) and value.isdigit() and 400 <= int(value) <= 599:
+                return int(value)
+    return 502
+
+
+def _sse_events(lines: Iterator[str]) -> Iterator[str]:
+    """The `data` payloads of a server-sent event stream (multi-line data joined by newlines)."""
+    data: list[str] = []
+    for line in lines:
+        if not line:
+            if data:
+                yield "\n".join(data)
+                data = []
+            continue
+        if line.startswith(":"):
+            continue
+        name, _, value = line.partition(":")
+        if name == "data":
+            data.append(value.removeprefix(" "))
+    if data:
+        yield "\n".join(data)
+
+
 class OpenAICompatibleProvider:
-    """A chat-completions provider over httpx with the shared retry policy."""
+    """A chat-completions provider over httpx with the shared retry policy.
+
+    With `stream=True` the request asks for a server-sent event stream (`stream: true` with the usage
+    chunk) and the reply is joined from the content deltas. The client timeout is then the read
+    timeout between chunks, and a per-call deadline is checked after every event.
+    """
 
     name = "openai-compatible"
 
@@ -238,12 +277,14 @@ class OpenAICompatibleProvider:
         transport: httpx.BaseTransport | None = None,
         max_retries: int = 3,
         sleep: Callable[[float], None] = time.sleep,
+        stream: bool = False,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self._token = token
         self.timeout = timeout
         self.max_retries = max(0, min(max_retries, len(RETRY_DELAYS_SECONDS)))
         self._sleep = sleep
+        self.stream = stream
         self.client = httpx.Client(timeout=httpx.Timeout(timeout), transport=transport)
 
     @property
@@ -259,24 +300,93 @@ class OpenAICompatibleProvider:
         model = data.get("model")
         return (model if isinstance(model, str) else None), None
 
-    def _read_until_stopped(self, body: dict[str, Any], timeout: Any, stop: threading.Event) -> httpx.Response:
-        """POST and read the body chunk by chunk, giving up when `stop` is set (see `run_by_deadline`)."""
-        request = self.client.build_request(
-            "POST", f"{self.base_url}/chat/completions", json=body, headers=self.headers(chat=True), timeout=timeout
-        )
-        response = self.client.send(request, stream=True)
+    def _buffered_reply(self, response: httpx.Response) -> ProviderReply | None:
+        """Read a whole JSON chat completion; None when it is unreadable."""
         try:
-            chunks: list[bytes] = []
-            for chunk in response.iter_bytes():
-                if stop.is_set():
-                    raise ProviderError("timeout", f"{self.name}: per-call deadline reached while reading")
-                chunks.append(chunk)
-        finally:
-            response.close()
+            data = response.json()
+            message = data["choices"][0]["message"]
+        except (ValueError, KeyError, IndexError, TypeError):
+            return None
+        routed, receipt = self._reply_metadata(data, response)
+        usage = data.get("usage") if isinstance(data.get("usage"), dict) else None
+        return ProviderReply(_content_text(message), routed, receipt, usage, 0)
+
+    def _streamed_reply(
+        self, response: httpx.Response, limits: CallLimits | None
+    ) -> tuple[int, ProviderReply | None]:
+        """Join an SSE chat completion: `(200, reply)`, `(status, None)` for an error event, or
+        `(200, None)` when the stream is unreadable. Raises `ProviderError("timeout")` past the deadline."""
+        pieces: list[str] = []
+        usage: dict[str, Any] | None = None
+        model: str | None = None
+        meterless: dict[str, Any] = {}
+        saw_choices = False
+        for payload in _sse_events(response.iter_lines()):
+            if limits is not None and limits.remaining() <= 0:
+                raise ProviderError("timeout", f"{self.name}: per-call deadline reached during the stream")
+            if payload.strip() == "[DONE]":
+                break
+            try:
+                chunk = json.loads(payload)
+            except ValueError:
+                return 200, None
+            if not isinstance(chunk, dict):
+                return 200, None
+            if chunk.get("error") is not None:
+                return _error_status(chunk["error"]), None
+            if isinstance(chunk.get("meterless"), dict):
+                meterless.update({k: v for k, v in chunk["meterless"].items() if v is not None})
+            if isinstance(chunk.get("model"), str):
+                model = chunk["model"]
+            if isinstance(chunk.get("usage"), dict):
+                usage = chunk["usage"]
+            choices = chunk.get("choices")
+            if isinstance(choices, list):
+                saw_choices = True
+                if choices and isinstance(choices[0], dict):
+                    delta = choices[0].get("delta")
+                    # Only the answer text; reasoning deltas (reasoning_content, reasoning) are dropped.
+                    text = delta.get("content") if isinstance(delta, dict) else None
+                    if isinstance(text, str):
+                        pieces.append(text)
+        if not saw_choices:
+            return 200, None
+        data: dict[str, Any] = {"model": model, "meterless": meterless}
+        routed, receipt = self._reply_metadata(data, response)
+        return 200, ProviderReply("".join(pieces), routed, receipt, usage, 0)
+
+    def _send(
+        self, body: dict[str, Any], timeout: Any, limits: CallLimits | None
+    ) -> tuple[int, ProviderReply | None]:
+        """One HTTP request: the status and, below 400, the reply (None when unreadable)."""
+        url = f"{self.base_url}/chat/completions"
+        if not self.stream and limits is None:
+            response = self.client.post(url, json=body, headers=self.headers(chat=True), timeout=timeout)
+            status = response.status_code
+            return status, (self._buffered_reply(response) if status < 400 else None)
+        with self.client.stream("POST", url, json=body, headers=self.headers(chat=True), timeout=timeout) as response:
+            status = response.status_code
+            if status >= 400:
+                return status, None
+            if not self.stream or "text/event-stream" not in response.headers.get("content-type", "").lower():
+                # A server that ignores `stream` answers with the whole completion as JSON.
+                return status, self._buffered_reply(self._read_body(response, limits))
+            return self._streamed_reply(response, limits)
+
+    def _read_body(self, response: httpx.Response, limits: CallLimits | None) -> httpx.Response:
+        """Read a streamed response's whole body; with `limits`, chunk by chunk, stopping at the deadline."""
+        if limits is None:
+            response.read()
+            return response
+        chunks: list[bytes] = []
+        for chunk in response.iter_bytes():
+            if limits.remaining() <= 0:
+                raise ProviderError("timeout", f"{self.name}: per-call deadline reached while reading")
+            chunks.append(chunk)
         # The chunks are decoded already, so the encoding and length headers no longer describe them.
         headers = [(k, v) for k, v in response.headers.multi_items()
                    if k.lower() not in ("content-encoding", "content-length", "transfer-encoding")]
-        return httpx.Response(response.status_code, headers=headers, content=b"".join(chunks), request=request)
+        return httpx.Response(response.status_code, headers=headers, content=b"".join(chunks), request=response.request)
 
     def chat(
         self,
@@ -290,16 +400,19 @@ class OpenAICompatibleProvider:
         """POST /chat/completions with retries on 429/5xx; raises `ProviderError` on failure.
 
         With `limits`, at most `limits.max_retries` retries, and each request's timeout is the time
-        left before `limits.deadline` (a `timeout` error once none is left).
+        left before `limits.deadline` (a `timeout` error once none is left, also mid-stream).
         """
         if not self.configured:
             raise ProviderError("not_configured", f"{self.name} is not configured")
-        body = {
+        body: dict[str, Any] = {
             "model": model,
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
+        if self.stream:
+            body["stream"] = True
+            body["stream_options"] = {"include_usage": True}
         retries = 0
         max_retries = self.max_retries if limits is None else max(0, min(limits.max_retries, self.max_retries))
         while True:
@@ -311,13 +424,11 @@ class OpenAICompatibleProvider:
                 request_timeout = httpx.Timeout(min(left, self.timeout))
             try:
                 if limits is None:
-                    response = self.client.post(
-                        f"{self.base_url}/chat/completions", json=body, headers=self.headers(chat=True),
-                        timeout=request_timeout,
-                    )
+                    status, reply = self._send(body, request_timeout, None)
                 else:
-                    response = run_by_deadline(
-                        functools.partial(self._read_until_stopped, body, request_timeout), limits.deadline, self.name
+                    status, reply = run_by_deadline(
+                        lambda _stop, t=request_timeout: self._send(body, t, limits), limits.deadline, self.name,
+                        "the stream" if self.stream else "the request",
                     )
             except ProviderError as exc:
                 exc.retries = retries
@@ -327,7 +438,6 @@ class OpenAICompatibleProvider:
             except httpx.HTTPError as exc:
                 raise ProviderError("offline", f"{self.name} unreachable: {type(exc).__name__}", retries) from exc
 
-            status = response.status_code
             if status == 429 or status >= 500:
                 delay = RETRY_DELAYS_SECONDS[retries] if retries < max_retries else None
                 if delay is not None and (limits is None or limits.remaining() > delay):
@@ -344,14 +454,10 @@ class OpenAICompatibleProvider:
                 raise ProviderError("unauthorized", f"{self.name} rejected the token (HTTP {status})", retries, status)
             if status >= 400:
                 raise ProviderError("http_error", f"{self.name} returned HTTP {status}", retries, status)
-            try:
-                data = response.json()
-                message = data["choices"][0]["message"]
-            except (ValueError, KeyError, IndexError, TypeError) as exc:
-                raise ProviderError("bad_response", f"{self.name} sent an unreadable reply", retries) from exc
-            routed, receipt = self._reply_metadata(data, response)
-            usage = data.get("usage") if isinstance(data.get("usage"), dict) else None
-            return ProviderReply(_content_text(message), routed, receipt, usage, retries)
+            if reply is None:
+                raise ProviderError("bad_response", f"{self.name} sent an unreadable reply", retries)
+            reply.retries = retries
+            return reply
 
 
 class MeterlessProvider(OpenAICompatibleProvider):
@@ -532,6 +638,7 @@ class Generator:
             transport=transport,
             max_retries=s.max_retries,
             sleep=sleep,
+            stream=s.model_stream,
         )
         self.nvidia = NvidiaProvider(
             base_url=s.nvidia_base_url or NVIDIA_DEFAULT_BASE_URL,
@@ -676,8 +783,12 @@ class Generator:
                 )
             return record
 
-        if self.sample_mode:
-            entry = self.cache.get(key)
+        # Recording resumes: an entry already recorded with Meterless is replayed, only misses are called.
+        reuse_recorded = self.record_cache and self.settings.record_reuse_existing
+        entry = self.cache.get(key) if self.sample_mode or reuse_recorded else None
+        if entry is not None and not self.sample_mode and entry.get("recorded_with") != self.meterless.name:
+            entry = None
+        if self.sample_mode or entry is not None:
             if entry is None:
                 attempt = log("cache", "cache_miss", model_routed=None, duration_ms=0.0, tokens=None, retries=0)
                 return GenerationResult(

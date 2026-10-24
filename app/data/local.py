@@ -319,6 +319,19 @@ class LocalDataLayer(DataLayer):
         self.log.write(outcome)
         return outcome
 
+    def execute(
+        self,
+        source: str | None,
+        sql: str,
+        limit: int | None = None,
+        timeout: float | None = None,
+    ) -> QueryOutcome:
+        """Run one statement through the guard and the engine without logging or replay.
+
+        Used by the Zetaris adapter's fallback, which logs the outcome itself under its own query id.
+        """
+        return self._run(source, sql, limit, timeout)
+
     def _cache_path(self, source: str | None, sql: str, limit: int | None) -> Path:
         key = json.dumps({"source": source, "sql": " ".join(sql.split()), "limit": limit}, sort_keys=True)
         return self._query_cache / f"{hashlib.sha256(key.encode()).hexdigest()}.json"

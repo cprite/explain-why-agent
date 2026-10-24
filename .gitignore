@@ -38,3 +38,4 @@ logs/*
 
 # Scanner DuckDB build files and spill directory
 .cache/
+browser-check.png

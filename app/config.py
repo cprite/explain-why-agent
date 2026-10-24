@@ -21,8 +21,17 @@ class Settings(BaseSettings):
     nvidia_api_key: str = ""
     nvidia_base_url: str = ""
     model_name: str = ""
+    # Data layer (architecture §3): zetaris (default; local when ZETARIS_URL is empty) or local.
+    # Sample mode always uses local.
+    data_layer: str = "zetaris"
     zetaris_url: str = ""
     zetaris_api_key: str = ""
+    zetaris_org_id: str = ""
+    # Login fallback when no API key is set or the key is refused: GET /auth/login with Basic auth.
+    zetaris_username: str = ""
+    zetaris_password: str = ""
+    # Pause before the one retry of a failed Zetaris call (connection error, timeout, 5xx).
+    zetaris_retry_delay_seconds: float = Field(default=1.0, ge=0.0, le=30.0)
     max_query_rows: int = Field(default=5000, ge=1)
     query_timeout_seconds: int = Field(default=30, ge=1)
     # DuckDB resource caps. Without them DuckDB takes 80 % of RAM and every core, so one runaway
@@ -50,7 +59,13 @@ class Settings(BaseSettings):
     model_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
     max_output_tokens: int = Field(default=4096, ge=1)
     max_retries: int = Field(default=3, ge=0, le=3)
+    # Stream Meterless replies (SSE). Nightshift's provider deadline bounds the time to the response
+    # headers, which a buffered request only gets once the whole reply is generated (Sprint 8b).
+    model_stream: bool = True
     record_cache: bool = False
+    # With RECORD_CACHE in live mode, replay an entry already recorded with Meterless instead of
+    # calling the model again; only misses are called and written.
+    record_reuse_existing: bool = True
     llm_cache_dir: str = "data/sample/llm_cache"
     # Recorded query results for sample mode: written with RECORD_CACHE in a live run, served in
     # sample mode so the agents see identical rows on every machine (ties in ORDER BY ... LIMIT

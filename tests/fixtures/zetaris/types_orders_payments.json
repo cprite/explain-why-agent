@@ -1,0 +1,95 @@
+{
+ "name": "types_orders_payments",
+ "recorded_with": "zetaris (live REST response)",
+ "recorded_at": "2026-10-24",
+ "request": {
+  "sql": "SELECT o.order_id, o.order_status, o.order_purchase_timestamp, o.order_delivered_customer_date,\n       o.order_estimated_delivery_date, p.payment_installments, p.payment_value\nFROM lightning.metastore.explain_why.olist_usl.orders o\nJOIN lightning.metastore.explain_why.olist_usl.order_payments p ON p.order_id = o.order_id\nWHERE o.order_delivered_customer_date IS NULL OR p.payment_value = 0\nORDER BY o.order_id, p.payment_sequential\nLIMIT 8",
+  "limit": 5001
+ },
+ "response": {
+  "headers": [
+   "order_id",
+   "order_status",
+   "order_purchase_timestamp",
+   "order_delivered_customer_date",
+   "order_estimated_delivery_date",
+   "payment_installments",
+   "payment_value"
+  ],
+  "data": [
+   [
+    "0010dedd556712d7bb69a19cb7bbd37a",
+    "unavailable",
+    "2017-10-21 19:32:06.0",
+    null,
+    "2017-11-03",
+    "1",
+    "111.12"
+   ],
+   [
+    "00a500bc03bc4ec968e574c2553bed4b",
+    "unavailable",
+    "2017-11-23 10:53:01.0",
+    null,
+    "2018-01-08",
+    "8",
+    "555.99"
+   ],
+   [
+    "00ae7a8b4936674ebb701d4a23719a79",
+    "canceled",
+    "2018-05-09 14:14:06.0",
+    null,
+    "2018-05-17",
+    "1",
+    "37.16"
+   ],
+   [
+    "00b1cb0320190ca0daa2c88b35206009",
+    "canceled",
+    "2018-08-28 15:26:39.0",
+    null,
+    "2018-09-12",
+    "1",
+    "0.00"
+   ],
+   [
+    "00daac8efd71674d62356c2a306d1e4c",
+    "unavailable",
+    "2017-11-21 19:20:25.0",
+    null,
+    "2017-12-12",
+    "1",
+    "67.97"
+   ],
+   [
+    "0148d3df00cebda592d4e5f966e300cc",
+    "canceled",
+    "2017-08-19 19:08:26.0",
+    null,
+    "2017-09-11",
+    "1",
+    "85.50"
+   ],
+   [
+    "021dac6e3120485db6a77474aa21b979",
+    "invoiced",
+    "2017-11-24 22:46:09.0",
+    null,
+    "2017-12-15",
+    "1",
+    "534.36"
+   ],
+   [
+    "02e723e8edb4a123d414f56cc9c4665e",
+    "canceled",
+    "2017-08-18 14:30:19.0",
+    null,
+    "2017-09-21",
+    "10",
+    "117.85"
+   ]
+  ],
+  "total": 8
+ }
+}
