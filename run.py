@@ -7,24 +7,19 @@ default; `--loop simple` (or `LOOP=simple`) runs the Sprint 2 loop in `app/loop.
 wins over the variable. Prints the result JSON on stdout. Exit code 0 when the result's status is success, 1 when the run
 ended in a structured error, 2 on bad arguments. `--save` also writes
 `output_examples/<run_id>.json`; nothing is written there otherwise. Traces go to
-`logs/trace-<run_id>.jsonl` and queries to `logs/queries-<run_id>.jsonl`.
+`logs/trace-<run_id>.jsonl`, the result to `logs/result-<run_id>.json` and queries to
+`logs/queries-<run_id>.jsonl`.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
-import uuid
-from collections.abc import Callable
-from datetime import UTC, datetime
 from pathlib import Path
 
 from app.config import REPO_ROOT, get_settings
-
-RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
-LOOPS = ("markovian", "simple")
+from app.runner import LOOPS, RUN_ID_RE, execute_run, new_run_id, select_loop
 
 
 def _error_payload(question: str, run_id: str, code: str, message: str, sample_mode: bool) -> dict:
@@ -37,14 +32,6 @@ def _error_payload(question: str, run_id: str, code: str, message: str, sample_m
         "sample_mode": sample_mode,
         "error": {"code": code, "message": message},
     }
-
-
-def _close_quietly(close: Callable[[], None]) -> None:
-    """Close the data layer; a failure to close is reported on stderr and never replaces the result."""
-    try:
-        close()
-    except Exception as exc:  # noqa: BLE001 - the run's result is already built
-        print(f"warning: closing the data layer failed: {type(exc).__name__}: {exc}", file=sys.stderr)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -60,42 +47,20 @@ def main(argv: list[str] | None = None) -> int:
     settings = get_settings()
     if args.sample:
         settings = settings.model_copy(update={"sample_mode": True})
-    run_id = args.run_id or f"run-{datetime.now(UTC):%Y%m%dT%H%M%SZ}-{uuid.uuid4().hex[:6]}"
+    run_id = args.run_id or new_run_id()
     if not RUN_ID_RE.match(run_id):
         payload = _error_payload(args.question, run_id, "bad_run_id",
                                  "run id must be 1-64 letters, digits, '.', '_' or '-'", settings.sample_mode)
         print(json.dumps(payload, indent=2))
         return 2
-    loop = args.loop or settings.loop.strip().lower()
-    if loop not in LOOPS:
-        payload = _error_payload(args.question, run_id, "bad_loop",
-                                 f"LOOP must be one of {', '.join(LOOPS)}, got {settings.loop!r}", settings.sample_mode)
-        print(json.dumps(payload, indent=2))
+    try:
+        loop = select_loop(settings, args.loop)
+    except ValueError as exc:
+        print(json.dumps(_error_payload(args.question, run_id, "bad_loop", str(exc), settings.sample_mode), indent=2))
         return 2
 
     try:
-        from app.data.local import LocalDataLayer
-        from app.llm.generator import Generator
-
-        data = LocalDataLayer(run_id=run_id, settings=settings)
-        try:
-            if loop == "simple":
-                from app.loop import run_investigation
-
-                result = run_investigation(
-                    args.question, run_id=run_id, generate=Generator(settings), data=data, settings=settings
-                )
-            else:
-                from app.engines.markovian.orchestrator import run_markovian
-
-                result = run_markovian(
-                    args.question, run_id=run_id, generate=Generator(settings), data=data, settings=settings
-                )
-        finally:
-            _close_quietly(data.close)
-        payload = result.model_dump(mode="json")
-        if payload.get("stop_reason") is None:  # the simple loop's output keeps its Sprint 2 shape
-            payload.pop("stop_reason", None)
+        payload = execute_run(args.question, run_id=run_id, settings=settings, loop=loop).model_dump(mode="json")
     except Exception as exc:  # noqa: BLE001 - the CLI always answers with JSON
         payload = _error_payload(args.question, run_id, "internal", f"{type(exc).__name__}: {exc}", settings.sample_mode)
 

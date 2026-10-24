@@ -16,7 +16,14 @@ import sys
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    model_serializer,
+    model_validator,
+)
 
 CauseType = Literal[
     "volume",
@@ -211,6 +218,14 @@ class Result(_Model):
     stop_reason: StopReason | None = Field(
         default=None, description="Why the Markovian orchestrator stopped; None for the simple loop."
     )
+
+    @model_serializer(mode="wrap")
+    def _drop_unset_stop_reason(self, handler):  # unannotated: a return type would change the JSON schema
+        # The simple loop has no stop reason; its output keeps the Sprint 2 shape (no `stop_reason` key).
+        data = handler(self)
+        if isinstance(data, dict) and data.get("stop_reason", ...) is None:
+            del data["stop_reason"]
+        return data
 
     @model_validator(mode="after")
     def _consistent(self) -> Result:

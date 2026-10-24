@@ -57,8 +57,8 @@ class Settings(BaseSettings):
     # otherwise pick different rows on different platforms and the model cache no longer matches).
     query_cache_dir: str = "data/sample/query_cache"
 
-    # Investigation loop for run.py: "markovian" (the chunked orchestrator, default) or "simple" (the
-    # Sprint 2 loop). Checked by run.py, so a bad value is reported rather than raised here.
+    # Investigation loop for run.py and the HTTP API: "markovian" (the chunked orchestrator, default) or "simple" (the
+    # Sprint 2 loop). Checked by app.runner.select_loop, so a bad value is reported rather than raised here.
     loop: str = "markovian"
 
     # Investigation loop caps (architecture §7).
@@ -72,6 +72,11 @@ class Settings(BaseSettings):
     alert_rel_change: float = Field(default=0.25, gt=0.0)
     alert_z: float = Field(default=3.5, gt=0.0)
     max_ingest_rows: int = Field(default=5000, ge=1)
+
+    # HTTP API (architecture §7): bind address, port, and the wall-clock cap on one run.
+    api_host: str = "0.0.0.0"
+    api_port: int = Field(default=8000, ge=1, le=65535)
+    api_run_timeout_seconds: float = Field(default=600, gt=0)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

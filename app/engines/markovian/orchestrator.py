@@ -37,6 +37,7 @@ append log is written to `logs/world-<run>.jsonl`.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import threading
 import time
@@ -767,6 +768,10 @@ class _Run:
             chunks_used=self.manager.chunks_started, max_chunks=self.config.max_chunks,
             tool_calls_used=self.budget.tool_calls_used,
         )
+        # As in the simple loop: the answer still reaches the caller if the result file cannot be
+        # written; `GET /runs/{id}` then reports the run as not found.
+        with contextlib.suppress(OSError):
+            self.trace.write_result(built.model_dump(mode="json"))
         return built
 
 

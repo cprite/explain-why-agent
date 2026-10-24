@@ -1,6 +1,6 @@
 """Plan check for the Markovian orchestrator (build-plan task 12): verify a run.py result and its trace.
 
-    python run.py "<question>" --sample --run-id ci-plan-check-i > result.json
+    python run.py "<question>" --sample --run-id ci-plan-check-j > result.json
     python scripts/check_markovian_run.py result.json [--max-seconds 600]
 
 Prints the elapsed seconds, chunks used / max_chunks, the stop_reason and the top-ranked cause, then
