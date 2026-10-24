@@ -9,6 +9,7 @@ cap with a structured error result.
 
 from __future__ import annotations
 
+import contextlib
 import time
 from pathlib import Path
 
@@ -88,6 +89,10 @@ def run_investigation(
                             "error": built.error.model_dump() if built.error else None},
             rounds_used=budget.rounds_used, tool_calls_used=budget.tool_calls_used,
         )
+        # The answer still reaches the caller if the result file cannot be written; `GET /runs/{id}`
+        # then reports the run as not found.
+        with contextlib.suppress(OSError):
+            trace.write_result(built.model_dump(mode="json"))
         return built
 
     def failure(code: str, message: str) -> Result:
