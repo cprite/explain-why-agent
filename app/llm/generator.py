@@ -20,7 +20,11 @@
 - Every provider call (and every cache lookup) is one line in `logs/trace-<run_id>.jsonl`.
 - Per-call limits: `generator.with_limits(deadline_seconds=..., max_retries=0)` returns a generate
   function whose calls end by the deadline (each HTTP request's timeout is cut to the time left, no
-  retry sleeps past it, no repair or fallback call once it has passed). The Markovian carryover
+  retry sleeps past it, no repair or fallback call once it has passed). httpx timeouts are per
+  phase (connect, each read), so a server that trickles its reply could still outlast them: a
+  bounded request therefore runs in a short-lived worker thread that reads the body chunk by chunk,
+  the caller stops waiting at the deadline (a `timeout` error), and the worker stops at its next
+  chunk or by its own read timeout, whichever comes first. The Markovian carryover
   cascade uses it for the compressor so a timed-out compression does not leave a call running.
 
 No exception escapes `generate`: every failure comes back as `GenerationResult(ok=False, error=...)`.
@@ -28,9 +32,11 @@ No exception escapes `generate`: every failure comes back as `GenerationResult(o
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 import re
+import threading
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
@@ -156,6 +162,36 @@ class CallLimits:
         return self.deadline - time.monotonic()
 
 
+CALL_THREAD_NAME = "generator-call"
+"""Name of the worker thread that runs one deadline-bounded HTTP request."""
+
+
+def run_by_deadline(work: Callable[[threading.Event], Any], deadline: float, name: str) -> Any:
+    """Run `work(stop)` in a worker thread and return its result, or raise `ProviderError("timeout")`
+    once the monotonic `deadline` passes (then `stop` is set so the worker ends at its next check).
+
+    Exceptions raised by `work` are re-raised here.
+    """
+    stop = threading.Event()
+    box: dict[str, Any] = {}
+
+    def target() -> None:
+        try:
+            box["value"] = work(stop)
+        except BaseException as exc:  # noqa: BLE001 - handed to the caller
+            box["error"] = exc
+
+    worker = threading.Thread(target=target, name=CALL_THREAD_NAME, daemon=True)
+    worker.start()
+    worker.join(max(0.0, deadline - time.monotonic()))
+    if worker.is_alive():
+        stop.set()
+        raise ProviderError("timeout", f"{name}: per-call deadline reached during the request")
+    if "error" in box:
+        raise box["error"]
+    return box["value"]
+
+
 class ProviderError(Exception):
     """A provider call failed. `code` decides whether the generator falls back."""
 
@@ -223,6 +259,25 @@ class OpenAICompatibleProvider:
         model = data.get("model")
         return (model if isinstance(model, str) else None), None
 
+    def _read_until_stopped(self, body: dict[str, Any], timeout: Any, stop: threading.Event) -> httpx.Response:
+        """POST and read the body chunk by chunk, giving up when `stop` is set (see `run_by_deadline`)."""
+        request = self.client.build_request(
+            "POST", f"{self.base_url}/chat/completions", json=body, headers=self.headers(chat=True), timeout=timeout
+        )
+        response = self.client.send(request, stream=True)
+        try:
+            chunks: list[bytes] = []
+            for chunk in response.iter_bytes():
+                if stop.is_set():
+                    raise ProviderError("timeout", f"{self.name}: per-call deadline reached while reading")
+                chunks.append(chunk)
+        finally:
+            response.close()
+        # The chunks are decoded already, so the encoding and length headers no longer describe them.
+        headers = [(k, v) for k, v in response.headers.multi_items()
+                   if k.lower() not in ("content-encoding", "content-length", "transfer-encoding")]
+        return httpx.Response(response.status_code, headers=headers, content=b"".join(chunks), request=request)
+
     def chat(
         self,
         messages: list[Message],
@@ -255,10 +310,18 @@ class OpenAICompatibleProvider:
                     raise ProviderError("timeout", f"{self.name}: per-call deadline reached", retries)
                 request_timeout = httpx.Timeout(min(left, self.timeout))
             try:
-                response = self.client.post(
-                    f"{self.base_url}/chat/completions", json=body, headers=self.headers(chat=True),
-                    timeout=request_timeout,
-                )
+                if limits is None:
+                    response = self.client.post(
+                        f"{self.base_url}/chat/completions", json=body, headers=self.headers(chat=True),
+                        timeout=request_timeout,
+                    )
+                else:
+                    response = run_by_deadline(
+                        functools.partial(self._read_until_stopped, body, request_timeout), limits.deadline, self.name
+                    )
+            except ProviderError as exc:
+                exc.retries = retries
+                raise
             except httpx.TimeoutException as exc:
                 raise ProviderError("timeout", f"{self.name} timed out: {type(exc).__name__}", retries) from exc
             except httpx.HTTPError as exc:
