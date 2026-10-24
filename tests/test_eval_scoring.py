@@ -163,9 +163,11 @@ def test_wrong_explanation_without_a_fitting_type_is_n_a() -> None:
 @pytest.mark.parametrize(
     ("window", "passed"),
     [
-        ("2018-07-25 to 2018-08-01", True),   # ends on the key's first day
+        ("2018-07-25 to 2018-08-02", True),   # end exclusive: shares 1 Aug, the key's first day
+        ("2018-07-25 to 2018-08-01", False),  # end exclusive: stops before 1 Aug, no shared day
         ("2018-08-31 to 2018-09-07", True),   # starts on the key's last day
         ("2018-07-01 to 2018-07-31", False),  # ends the day before
+        ("2018-08-01 to 2018-08-01", True),   # same date twice is one day
         ("2018-09-01 to 2018-09-30", False),  # starts the day after
         ("2018-08-15", True),                 # a single date inside
         ("from 2018-06-01 through 2018-12-31 (whole H2)", True),  # contains the key window
@@ -173,6 +175,21 @@ def test_wrong_explanation_without_a_fitting_type_is_n_a() -> None:
 )
 def test_window_edges(window: str, passed: bool) -> None:
     assert check_window(window, incident("incident-04"))["pass"] is passed
+
+
+def test_window_in_loop_format_is_end_exclusive() -> None:
+    """app/loop.py writes f"{plan.window.start} to {plan.window.end}" with an exclusive end
+    (app.schemas.Window); the preceding week as a baseline must not count as the incident week."""
+    from app.schemas import Window
+
+    key = incident("incident-02")  # 2018-05-28..2018-06-04
+    before = Window(start="2018-05-21", end="2018-05-28")
+    inside = Window(start="2018-05-28", end="2018-06-04")
+    assert check_window(f"{before.start} to {before.end}", key)["pass"] is False
+    assert check_window(f"{inside.start} to {inside.end}", key)["pass"] is True
+    row = score(make_result(causes=key["cause_types"][:1], segment="all",
+                            window=f"{before.start} to {before.end}"), key)
+    assert row["status"] == "not_found"
 
 
 @pytest.mark.parametrize("window", ["August 2018", "", "2018-08", "2018-02-30 to 2018-03-01", "24/11/2017"])

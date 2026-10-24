@@ -9,8 +9,10 @@ Checks for a determinable incident, each pass (True), fail (False) or n/a (None)
 - `cause_type`: the rank-1 cause's type is in the incident's `cause_types`; when the key lists more
   than one type, every listed type must appear among the causes.
 - `segment`: `change.segment` (a free string) names the incident's segment value.
-- `window`: the ISO dates in `change.window` (a free string) overlap `window_start`..`window_end`;
-  both ends are treated as inclusive, so windows touching on one day overlap.
+- `window`: the ISO dates in `change.window` (a free string) share at least one day with
+  `window_start`..`window_end` (key ends inclusive). The result window is half-open like
+  `app.schemas.Window` (the loop writes `<start> to <end>`, end exclusive); a single date, or the
+  same date twice, is one day.
 - `wrong_explanation`: the incident's wrong-explanation type appears in `ruled_out`; n/a when no
   cause type fits that explanation.
 
@@ -23,7 +25,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 
 from app.schemas import HYPOTHESIS_FAMILIES, Result
@@ -79,17 +81,19 @@ def parse_window(text: str) -> tuple[date, date] | None:
 
 
 def check_window(window_text: str | None, incident: dict[str, Any]) -> dict[str, Any]:
-    """Does the result's window string overlap the incident window (inclusive ends)?"""
+    """Does the result's window (end exclusive) share a day with the incident window (inclusive)?"""
     parsed = parse_window(window_text or "")
     if parsed is None:
         return _check(False, f"unparseable window: {window_text!r} (no valid ISO date)")
     start, end = parsed
     if end < start:
         return _check(False, f"window {window_text!r} ends before it starts")
+    # Half-open result window: its last day is the day before `end` (one day if start == end).
+    last = end - timedelta(days=1) if end > start else end
     key_start = date.fromisoformat(incident["window_start"])
     key_end = date.fromisoformat(incident["window_end"])
-    span = f"{start}..{end} vs key {key_start}..{key_end}"
-    if start <= key_end and key_start <= end:
+    span = f"{start}..{last} (end {end} exclusive) vs key {key_start}..{key_end}"
+    if start <= key_end and key_start <= last:
         return _check(True, f"overlaps: {span}")
     return _check(False, f"no overlap: {span}")
 

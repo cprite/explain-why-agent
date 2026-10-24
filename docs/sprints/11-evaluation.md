@@ -15,7 +15,10 @@ Build-plan task 15, issue #17. Nothing under `app/`, `run.py` or the recorded ca
     `national`, `marketplace-wide`, `multiple states` …); the marketing cohort by its channel
     (`paid_search`).
   - **window**: the first and last ISO date in `change.window` (a free string; one date = one day)
-    must overlap `window_start`..`window_end`, both ends inclusive, so touching on one day counts.
+    must share at least one day with `window_start`..`window_end` (key ends inclusive). The result
+    window is half-open, end exclusive, as `app.schemas.Window` defines it and `app/loop.py` writes
+    it (`<start> to <end>`): `2018-07-25 to 2018-08-01` does not reach a key starting 1 Aug,
+    `2018-07-25 to 2018-08-02` does. The same date twice counts as one day.
     No valid ISO date (`August 2018`, `2018-08`, `2018-02-30`) fails with `unparseable window: …`.
   - **wrong_explanation**: the incident's wrong-explanation type is in `ruled_out`; n/a when no
     `CauseType` fits it.
