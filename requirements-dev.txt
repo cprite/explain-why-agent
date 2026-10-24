@@ -1,0 +1,3 @@
+# Dev / CI only: the browser check (eval/browser_check.py). Not needed to run the app.
+-r requirements.txt
+playwright==1.63.0
