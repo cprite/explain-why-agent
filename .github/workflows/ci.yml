@@ -26,11 +26,13 @@ jobs:
       - name: "Plan check B: generator stub suite and example-result validation"
         run: python -m app.llm.check
       - name: "Plan check C: sample-mode run.py on the Day 1 question (cause, evidence, trace)"
+        # Pinned to the simple loop: the recorded Day 1 cache holds that loop's prompts (Sprint 8 note).
         env:
           SAMPLE_MODE: "true"
+          LOOP: simple
         run: |
           set -o pipefail
-          python run.py "Why did order volume spike on 24 November 2017?" --run-id ci-day1 | tee /tmp/result-ci-day1.json
+          python run.py "Why did order volume spike on 24 November 2017?" --run-id ci-day1 --loop simple | tee /tmp/result-ci-day1.json
           python scripts/check_result.py /tmp/result-ci-day1.json
           echo "--- logs/trace-ci-day1.jsonl (first 3 lines) ---"
           head -n 3 logs/trace-ci-day1.jsonl
@@ -64,3 +66,12 @@ jobs:
           grep "PLAN-CHECK" /tmp/markovian-plan-check.log
       - name: "Plan check H (task 11): Markovian carryover sample mode (recorded round, stub generator)"
         run: python -m app.engines.markovian.carryover --sample
+      - name: "Plan check I (task 12): Markovian orchestrator in sample mode (elapsed, chunks used / max_chunks, stop_reason, top cause)"
+        env:
+          SAMPLE_MODE: "true"
+        run: |
+          set -o pipefail
+          start=$(date +%s)
+          timeout 600 python run.py "Why did delivery lateness spike for deliveries completed the week of 28 May 2018?" --sample --run-id ci-plan-check-i | tee /tmp/result-ci-plan-check-i.json
+          echo "wall_clock_seconds: $(( $(date +%s) - start ))"
+          python scripts/check_markovian_run.py /tmp/result-ci-plan-check-i.json --max-seconds 600

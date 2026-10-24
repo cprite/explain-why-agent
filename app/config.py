@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     # otherwise pick different rows on different platforms and the model cache no longer matches).
     query_cache_dir: str = "data/sample/query_cache"
 
+    # Investigation loop for run.py: "markovian" (the chunked orchestrator, default) or "simple" (the
+    # Sprint 2 loop). Checked by run.py, so a bad value is reported rather than raised here.
+    loop: str = "markovian"
+
     # Investigation loop caps (architecture §7).
     max_agent_rounds: int = Field(default=6, ge=1)
     max_tool_calls: int = Field(default=20, ge=1)

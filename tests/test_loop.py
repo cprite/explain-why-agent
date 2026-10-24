@@ -259,6 +259,9 @@ def test_agents_never_reference_the_answer_key() -> None:
 def _run_cli(*args: str, sample: bool = True) -> subprocess.CompletedProcess[str]:
     env = {k: v for k, v in os.environ.items() if not k.startswith(("METERLESS_", "NVIDIA_", "MAX_"))}
     env["SAMPLE_MODE"] = "true" if sample else "false"
+    # These tests cover the simple loop, whose prompts the recorded Day 1 cache holds (run.py's default
+    # is the Markovian orchestrator since Sprint 8).
+    env["LOOP"] = "simple"
     return subprocess.run(
         [sys.executable, "run.py", *args], cwd=ROOT, env=env, capture_output=True, text=True, check=False,
         timeout=300,
