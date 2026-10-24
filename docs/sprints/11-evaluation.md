@@ -39,7 +39,7 @@ Build-plan task 15, issue #17. Nothing under `app/`, `run.py` or the recorded ca
   with run ids, trace files and query logs. Exit 0 whenever scoring finished; 2 on bad arguments.
 - Configuration in `.env.example`: `EVAL_QUESTION_TIMEOUT_SECONDS` (600), `EVAL_TOTAL_TIMEOUT_SECONDS`
   (3600). Read by the eval itself (not `app/config.py`, which this sprint does not touch).
-- CI plan check D: `python eval/run_eval.py --sample`, then the last line must match the score
+- CI plan check I: `python eval/run_eval.py --sample`, then the last line must match the score
   pattern. The score is reported, not gated.
 
 ## Left out
