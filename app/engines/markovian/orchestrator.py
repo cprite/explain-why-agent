@@ -266,7 +266,6 @@ class _Run:
         self.fallback_ids = FallbackIds()
         self.query_log = getattr(getattr(data, "log", None), "path", None)
         # Shared with the watching thread (read under `lock` when a timeout result is built).
-        self.plan: Plan | None = None
         self.change: Change | None = None
         self.observations: list[Observation] = []
         self.notes: list[str] = []
@@ -349,7 +348,7 @@ class _Run:
         self._enter("chunk 1 (plan)")
         planned = make_plan(self.ctx, self.question)
         if planned.plan is None:
-            state = self._open_chunk(self.question, builder.build(overview, cfg.chunk_budget_chars), "plan", None)
+            state = self._open_chunk(self.question, self._evidence(builder, overview), "plan", None)
             self._close_chunk(state, status="error")
             error = planned.error or {}
             self._fail(error.get("code", "planner_failed"), error.get("message", "no plan"))
@@ -360,7 +359,7 @@ class _Run:
             for h in plan.hypotheses
         }
         goal = self._goal(plan)
-        state = self._open_chunk(goal, builder.build(overview, cfg.chunk_budget_chars), "plan", None)
+        state = self._open_chunk(goal, self._evidence(builder, overview), "plan", None)
         self.trace.write(agent="Planner", action="delegate", target="Investigator", input_summary="change_check")
         checked = investigate(self.ctx, plan, None, "obs-0", context=state.chunk.text)
         state.queries = self._ingest(pipeline, plan, None, None, checked)
@@ -375,7 +374,6 @@ class _Run:
                 )
             elif checked.error:
                 self.notes.append(f"Change check failed: {checked.error}")
-            self.plan = plan
         hypotheses: list[Hypothesis] = list(plan.hypotheses)
         queue = list(hypotheses) if plan.change_is_real is not False else []
         no_hypotheses = not queue
@@ -412,7 +410,7 @@ class _Run:
             self._enter("the report")
             report_input = self.manager.build_input(
                 self.manager.chunks_started + 1, goal, carryover=self.carryover,
-                context=builder.build(Intent("report", question_id=question_id), cfg.chunk_budget_chars),
+                context=self._evidence(builder, Intent("report", question_id=question_id)),
             )
             self.trace.write(
                 agent=AGENT, action="delegate", target="Reporter", input_summary=f"{len(self.observations)} observations",
@@ -474,8 +472,8 @@ class _Run:
         """One chunk: investigate one hypothesis, ingest, critique hook, ranking, carryover."""
         cfg = self.config
         self._enter(f"chunk {self.manager.chunks_started + 1} ({hypothesis.id})")
-        investigate_payload = builder.build(Intent("investigate", hypothesis_id=entity_id), cfg.chunk_budget_chars)
-        overview_payload = builder.build(overview, cfg.chunk_budget_chars)
+        investigate_payload = self._evidence(builder, Intent("investigate", hypothesis_id=entity_id))
+        overview_payload = self._evidence(builder, overview)
         seen = {item["id"] for item in investigate_payload["items"]}
         context = {
             "items": [*investigate_payload["items"], *(i for i in overview_payload["items"] if i["id"] not in seen)],
@@ -555,6 +553,18 @@ class _Run:
         return [o.query_id for o in outcomes]
 
     # --- chunks and carryover ------------------------------------------------------------------
+
+    def _evidence(self, builder: ContextBuilder, intent: Intent) -> dict[str, Any]:
+        """The ContextBuilder payload for `intent`, with this run's id in selection reasons replaced.
+
+        Every edge in the per-run store is from this run, so "run <id>" carries no information, and
+        keeping it would make the prompts (and so the sample-mode cache keys) depend on the run id.
+        """
+        payload = builder.build(intent, self.config.chunk_budget_chars)
+        marker = f"run {self.run_id}"
+        for item in payload["items"]:
+            item["selection_reason"] = str(item.get("selection_reason", "")).replace(marker, "this run")
+        return payload
 
     def _goal(self, plan: Plan) -> str:
         return (f"Answer: {self.question} Metric: {plan.metric}; segment: {plan.segment}; window "

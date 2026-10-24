@@ -19,6 +19,7 @@ from app.config import Settings
 from app.data.local import LocalDataLayer
 from app.engines.markovian.config import MarkovianConfig
 from app.engines.markovian.orchestrator import CriticRequest, critic_hook, run_markovian
+from app.engines.world_model.context import Intent
 from app.llm.generator import GenerationResult, Generator
 from app.llm.stub import ScriptedModel
 from app.schemas import Result, Verdict
@@ -340,3 +341,18 @@ def test_a_critic_verdict_changes_the_ranking(tmp_path: Path) -> None:
     assert "H1" in {item["id"] for item in last["carryover_out"]["ruled_out"]}
     verdicts = [line for line in trace(tmp_path) if line["agent"] == "Critic"]
     assert len(verdicts) == 1 and verdicts[0]["verdict"] == "refuted"
+
+
+def test_selection_reasons_do_not_name_the_run_id(tmp_path: Path) -> None:
+    """The critique payload a Critic builds names the run; the orchestrator's evidence never does."""
+    reasons: list[str] = []
+
+    def critic(request: CriticRequest) -> Verdict | None:
+        payload = request.context_builder.build(Intent("critique", hypothesis_id=request.hypothesis_entity_id), 4000)
+        reasons.extend(item["selection_reason"] for item in payload["items"])
+        return None
+
+    stub = ScriptedModel()
+    run(tmp_path, stub, run_id="run-id-xyz", critic=critic)
+    assert any("run run-id-xyz" in reason for reason in reasons)  # the builder itself names the run
+    assert all("run-id-xyz" not in json.dumps(call["messages"]) for call in stub.calls)
