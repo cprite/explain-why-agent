@@ -94,7 +94,7 @@ in `app/engines/markovian/`. The orchestrator that uses them is task 12; the sim
   step 3 to fail (numbers only, empty text, short lines, nothing fits) and asserts the next step is
   used and the result is within budget; truncation is checked at budgets 200–5000 on 50,000 chars;
   36 parametrised cases × 3 round texts check the budget for every combination of state, generator behaviour and budget. Each case prints one line; CI runs the
-  file with `-s` ("Plan check D") and greps them. Output on the build machine:
+  file with `-s` ("Plan check G") and greps them. Output on the build machine:
 
   ```
   PLAN-CHECK step1 valid explicit state: step=explicit_state used_chars/budget_chars=207/600 tried=[explicit_state:ok]
@@ -110,7 +110,7 @@ in `app/engines/markovian/`. The orchestrator that uses them is task 12; the sim
   ```
 
   (27 lines in all; abridged here.)
-- Sample mode runs in CI ("Plan check E") and in a test; it exits non-zero if any case does not end
+- Sample mode runs in CI ("Plan check H") and in a test; it exits non-zero if any case does not end
   on its expected step or exceeds the budget.
 - Whole suite: `pytest -q` 214 passed; `ruff check .` clean.
 
