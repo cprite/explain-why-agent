@@ -580,7 +580,7 @@ def test_env_example_documents_the_zetaris_settings_without_values() -> None:
 def test_profile_goes_through_the_usl_without_a_query_id_or_log_line(tmp_path: Path) -> None:
     calls: list[httpx.Request] = []
     with layer(tmp_path, lambda r: ok(["v", "n"], [["MG", "12"], ["SP", "40"]]), calls=calls) as data:
-        result = data.profile('SELECT "customer_state" AS v, count(*) AS n FROM orders.customers GROUP BY 1', 51)
+        result = data.profile('SELECT customer_state AS v, count(*) AS n FROM orders.customers GROUP BY 1', 51)
         assert isinstance(result, QueryResult) and result.query_id == "profile"
         assert [row["v"] for row in result.rows] == ["MG", "SP"]
         assert "olist_usl.customers" in sql_of(calls[-1])

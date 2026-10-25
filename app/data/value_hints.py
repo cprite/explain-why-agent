@@ -84,15 +84,16 @@ def _format(stats: dict[str, Any], examples: list[str]) -> str:
 
 def _profile_table(data: DataLayer, fqn: str, columns: list[str]) -> dict[str, Any]:
     """Hints for the text `columns` of one table (`<source>.<table>`)."""
+    # Column names are plain identifiers (checked by the caller) and stay unquoted: a double-quoted
+    # name is a string literal in some SQL dialects behind the USL.
     parts = []
     for i, col in enumerate(columns):
-        quoted = f'"{col}"'
         parts += [
-            f"count(DISTINCT {quoted}) AS d{i}",
-            f"min(length({quoted})) AS s{i}",
-            f"max(length({quoted})) AS l{i}",
-            f"sum(CASE WHEN {quoted} <> lower({quoted}) THEN 1 ELSE 0 END) AS u{i}",
-            f"sum(CASE WHEN {quoted} <> upper({quoted}) THEN 1 ELSE 0 END) AS w{i}",
+            f"count(DISTINCT {col}) AS d{i}",
+            f"min(length({col})) AS s{i}",
+            f"max(length({col})) AS l{i}",
+            f"sum(CASE WHEN {col} <> lower({col}) THEN 1 ELSE 0 END) AS u{i}",
+            f"sum(CASE WHEN {col} <> upper({col}) THEN 1 ELSE 0 END) AS w{i}",
         ]
     outcome = data.profile(f"SELECT {', '.join(parts)} FROM {fqn}", 1)
     if not isinstance(outcome, QueryResult) or not outcome.rows:
@@ -106,7 +107,7 @@ def _profile_table(data: DataLayer, fqn: str, columns: list[str]) -> dict[str, A
             continue
         listed = stats["distinct"] <= MAX_LISTED_VALUES
         top = data.profile(
-            f'SELECT "{col}" AS v, count(*) AS n FROM {fqn} WHERE "{col}" IS NOT NULL '
+            f"SELECT {col} AS v, count(*) AS n FROM {fqn} WHERE {col} IS NOT NULL "
             f"GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT {PROFILE_ROW_LIMIT if listed else MAX_EXAMPLES}",
             PROFILE_ROW_LIMIT,
         )
