@@ -29,7 +29,14 @@ from app.engines.markovian.config import MarkovianConfig
 from app.engines.markovian.orchestrator import run_markovian
 from app.llm.generator import GenerationResult
 from app.llm.stub import ScriptedModel
-from app.schemas import CritiqueDraft, Hypothesis, ObservationDraft, Plan, Result, SqlProposal
+from app.schemas import (
+    CritiqueDraft,
+    Hypothesis,
+    ObservationDraft,
+    Plan,
+    Result,
+    SqlProposal,
+)
 from app.trace import TraceWriter
 
 DAY1 = "Why did order volume spike on 24 November 2017?"
