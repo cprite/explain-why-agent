@@ -10,13 +10,24 @@ Gaps found on main and fixed:
 
 - **Model attempt cap** (`app/llm/generator.py`). On main, one `generate` call could send 4 requests
   to Meterless (`MAX_RETRIES=3`) and 4 more to NVIDIA, and twice that with the JSON repair call.
-  `MAX_MODEL_ATTEMPTS = 3` now caps the HTTP requests of one `generate` call (one agent step).
-  Retries, the NVIDIA fallback and the repair call all count against it. When the fallback is
+  `MAX_MODEL_ATTEMPTS = 3` now caps the HTTP requests of one `generate` call. Retries, the NVIDIA fallback and the repair call all count against it. When the fallback is
   configured, Meterless leaves one of the three for it: two Meterless attempts (one retry after
   2 s), then NVIDIA. Without a fallback, Meterless may use all three (retries after 2 s and 4 s). If
   no attempt is left for a repair call, the result is `invalid_json` with a message naming the cap.
   `MAX_RETRIES` still applies on top (0–3). `with_limits` (the carryover compressor) is unchanged:
   no retries, deadline-bounded.
+- **The cap per agent step, including the Critic** (`app/agents/critic.py`, revision 3). The cap is
+  per `generate` call, and an agent step is one traced step such as a planning, a SQL write or a
+  critique. Every step but the Critic makes one `generate` call per model reply. The Critic asked
+  again on any bad reply, failed calls included, so a critique during an outage was two `generate`
+  calls. That is up to 6 HTTP requests: with Meterless and NVIDIA both answering 503, 2 Meterless and
+  1 NVIDIA, twice. Main allowed this too. The Critic now asks again only when a reply arrived but does
+  not validate as a `CritiqueDraft`. The real generator already validates and repairs replies, so this
+  happens only with a generate function that does not. A failed call (`ok` false) means the generator
+  has used the step's retries, fallback and repair call. The Critic then returns its fallback verdict
+  at once (`insufficient`, no follow-up tests, `critic_error` set, `retry_count` 0), so one critique
+  sends at most 3 requests. `MAX_REPLY_ATTEMPTS = 2` (decision D-0b1099) still bounds the
+  invalid-reply case.
 - **Trace lines for model calls** now carry `model`, `attempt` (requests sent so far in this step)
   and, on the fallback provider's line, `fallback_reason` (for example
   `retries_exhausted: meterless returned HTTP 503 after 1 retries`), next to the existing
@@ -110,6 +121,7 @@ All tests are under `tests/`. `tfh` is `test_failure_handling.py`.
 | Model 401 | `chat` → `ProviderError("unauthorized")`, no retry; not in `FALLBACK_CODES`, so no fallback: a structured `unauthorized` error (main documents "reported, not silently bypassed") | one `model_call` line, `status: unauthorized`, `attempt: 1` | — | `tfh::test_401_is_not_retried_and_not_bypassed`, `tfh::test_401_from_nvidia_as_primary_is_a_structured_error`, `test_generator.py::test_unauthorized_meterless_does_not_fall_back` |
 | Empty reply | `Generator.__call__`: `parse_json_reply` → "no JSON object" → one repair call → `invalid_json` | `model_call`, then `model_repair_call` | — | `tfh::test_empty_reply_is_repaired_once_then_a_structured_error` |
 | Invalid JSON | same; a repair with no attempt left is `invalid_json` naming the cap (new) | `model_call`, `model_repair_call` | — | `test_generator.py::test_invalid_json_triggers_exactly_one_repair`, `::test_second_invalid_reply_returns_structured_error`, `tfh::test_no_attempt_left_for_the_repair_call_is_a_structured_error` |
+| Critic's model call fails (any of the model failures above) | `app/agents/critic.py:Critic.__call__` (changed in revision 3): a failed `generate` result is not asked for again; the fallback verdict `insufficient` with `critic_error` = the error code; the orchestrator demotes the hypothesis without a revision chunk (Sprint 10b). A reply that does not validate as a `CritiqueDraft` is asked for once more (`MAX_REPLY_ATTEMPTS = 2`) | the generator's `model_call` lines (at most 3 per critique); the `critique` line with `critic_error`, `model_calls: 1` | — | `tfh::test_one_critique_sends_at_most_three_model_requests[nvidia-fallback/no-fallback]`, `test_critic.py::test_critic_failure_demotes_without_a_revision_and_names_the_critic[provider_error/invalid_reply]`, `::test_critic_cap_counts_critiques_each_up_to_two_model_calls` |
 | Cache miss in sample mode | `Generator._complete` (sample branch) → `{"code": "cache_miss", "message": CACHE_MISS_MESSAGE}`; the Planner's miss ends the run with that error (`app/loop.py`, orchestrator); `run.py` exits 1 with the JSON; `POST /run` answers 409 `cache_miss` | `model_call` with `provider: cache`, `status: cache_miss`; `finish` with the error | no queries (the Planner is first) | `tfh::test_sample_mode_cache_miss_is_the_structured_error[simple/markovian]`, `tfh::test_sample_mode_cache_miss_over_the_api`, `test_generator.py::test_cache_miss_returns_structured_error`, `test_api.py::test_sample_mode_cache_miss_is_409` |
 
 How an agent reports a failed model call: the Planner's or Reporter's error ends the run as a
@@ -120,7 +132,8 @@ raises, and both loops catch the rest as `internal`.
 Caps and timeouts (criterion 7, `tfh::test_retry_and_fallback_caps_are_fixed`,
 `tfh::test_every_external_call_keeps_its_timeout`):
 
-- `MAX_MODEL_ATTEMPTS = 3` per step
+- `MAX_MODEL_ATTEMPTS = 3` per `generate` call, and so per agent step: a Critic critique whose call
+  failed is not asked for again (revision 3)
 - `RETRY_DELAYS_SECONDS = (2, 4, 8)`, `MAX_RETRIES` 0–3
 - `MAX_SQL_REPAIRS = 1`
 - one Zetaris retry, `ZETARIS_RETRY_DELAY_SECONDS` 0–30
@@ -132,7 +145,7 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
 
 ## How it was tested
 
-- `tests/test_failure_handling.py`: 54 tests, one section per acceptance criterion, plus three for
+- `tests/test_failure_handling.py`: 56 tests, one section per acceptance criterion, plus three for
   the macOS prefix of `clean_clone_check.sh` (a fake `uname` and interpreter: Darwin arm64, Darwin
   x86_64 and an unknown answer, and Linux unchanged). Sample-mode tests
   use a `no_network` fixture that makes `socket.connect`, `connect_ex` and `getaddrinfo` raise for
@@ -152,8 +165,8 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
     streamed calls too.
   - `test_eval_run.py` compared incident-01 with the root `result.json`; that file (unchanged) is
     now `tests/fixtures/day1-sample-result.json` and the test reads it there.
-- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 715 passed after merging
-  origin/main 0ae9313 (54 of them in `test_failure_handling.py`; 702 at the first merge, against 650 on
+- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 717 passed after
+  revision 3 (715 after merging origin/main 0ae9313, 54 of them in `test_failure_handling.py`; 702 at the first merge, against 650 on
   origin/main 457cde2), about 6 minutes on the Pi.
 - Every step of the existing `test` job was rerun locally and passes: A, B, C, D (Zetaris and task 7),
   E, F, G, H, I (a live server on a spare port, including a `run_id_taken` answer for a reused id),
@@ -180,6 +193,18 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
   interpreter that reports `arm64`: the same three `[PASS]` lines, exit code 0, and every one of the
   eight commands logged as `arch -arm64 env -i … ARCHPREFERENCE=arm64 arch -arm64 …/py …`. On the
   real Linux path the output is unchanged. The fix itself is confirmed only by a run on the Mac.
+- Revision 3 (Critic cap): `tfh::test_one_critique_sends_at_most_three_model_requests` runs the real
+  Critic over the real generator and a MockTransport that answers 503 everywhere, with and without
+  the NVIDIA fallback. It fails on the previous Critic with 6 requests (the reviewer's count) and
+  passes now (at most 3, one `generate` call). Two Sprint 10b tests in `test_critic.py` change their
+  expected counts. In the `provider_error` case of
+  `test_critic_failure_demotes_without_a_revision_and_names_the_critic`, each critique is now 1
+  model call, not 2, so the run makes 4 Critic calls. The invalid-reply case still makes 8.
+  `test_critic_cap_counts_critiques_each_up_to_two_model_calls` now makes its first reply one that
+  does not validate, not a failed call, so it still measures the 2-call unit. Plan check N
+  (incident-06, -09, -10 and the no-change question) passes. The L eval prints the same
+  `Score: 0/10 (answered 1, no_cache 9, errors 0)`, and `clean_clone_check.sh` under `unshare -rn`
+  prints the same three `[PASS]` lines.
 
 ## Known limits
 
