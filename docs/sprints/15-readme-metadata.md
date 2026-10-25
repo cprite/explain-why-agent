@@ -14,9 +14,10 @@ purpose (see "Left out"). No code under `app/`, no prompt and no recorded cache 
   usage; Data; Limitations; Pre-existing components; Third-party code and licences.
   - **Quick start** is one fenced block tagged `bash readme-quickstart`: venv, `pip install -r
     requirements.txt`, then `SAMPLE_MODE=true python run.py "Why did order volume spike on 24
-    November 2017?" --loop simple --run-id quickstart`, then `ls -l` of the result, trace and query
-    log. `--loop simple` is needed: the Day 1 recording is for the simple loop, and under the default
-    Markovian loop the question gets `cache_miss` (checked on 25 Oct, exit 1, `cache_miss`).
+    November 2017?" --run-id quickstart` (default Markovian loop), then `ls -l` of the result, trace
+    and query log. Since Sprint 11c (main 912862e) this question replays stub-recorded replies on
+    both loops; the first version of this README used `--loop simple` for the live 23 Oct recording,
+    which no longer replays (see "Revision after review").
   - **Results** is three tables with a Source column; every number names the committed file it
     came from. The live evaluation score and the live run time are "not measured yet".
   - **Full mode** lists every variable name in `.env.example` (names only).
@@ -25,7 +26,8 @@ purpose (see "Left out"). No code under `app/`, no prompt and no recorded cache 
 - `metadata.json` at the repository root, in the issue's shape, with a few extra keys
   (`description`, `entrypoints.api_start`, `entrypoints.web`, `sample_mode.quickstart`,
   Zetaris `query_log`, `evidence` lists). `entrypoints.docker` is `null`. The NVIDIA models are the
-  two `model_routed` values of the live Nightshift recording in `data/sample/llm_cache/`.
+  two `model_routed` values of the 15 `"recorded_with": "meterless"` entries in
+  `data/sample/llm_cache/` (the live Day 1 run of 23 Oct, kept but no longer replayed).
 - `scripts/readme_quickstart.py`: prints the quick-start block, or with `--run` runs it with
   `bash -e -x -o pipefail` (each command echoed), with every `.env.example` variable removed from the
   environment and `SAMPLE_MODE=true`, then asserts a new `logs/result-*.json` (success,
@@ -49,21 +51,39 @@ purpose (see "Left out"). No code under `app/`, no prompt and no recorded cache 
   grep (`nvapi-`, `sk-`, `@gmail`, any email, token or receipt ids, IPv4 other than 127.0.0.1 and
   0.0.0.0, cloud hostnames) on both files.
 
-## Numbers measured for the README (25 Oct)
+## Numbers measured for the README (25 Oct, after merging main 912862e)
 
-Plan check J re-run on the branch (sample mode, the Markovian loop with the Critic, stub-recorded
-replies), the source of two Results rows:
+Measured with `python run.py "<question>" --sample --run-id <id> > /tmp/r.json` and
+`python scripts/check_markovian_run.py /tmp/r.json` (sample mode, the Markovian loop with the
+Critic, stub-recorded replies), the source of four Results rows.
+
+Plan check J question:
 
 ```
 question: Why did delivery lateness spike for deliveries completed the week of 28 May 2018?
-elapsed_seconds: 0.213
+elapsed_seconds: 0.205
 chunks: 5/8
 stop_reason: completed
 status: success; determinable: True; sample_mode: True
 top_cause: logistics_delay (confidence 0.75): Deliveries took longer after hand-off to the carrier: transit time rose in the window.
-token_report: {'standard_estimate': 7849, 'markovian_actual': 4153, 'saving_percent': 47.1}
-[PASS] 5/8 chunks, every chunk input within budget, stop_reason=completed, 0.213 s
+token_report: {'standard_estimate': 7948, 'markovian_actual': 4153, 'saving_percent': 47.7}
+[PASS] 5/8 chunks, every chunk input within budget, stop_reason=completed, 0.205 s
 ```
+
+Day 1 question (the quick-start command):
+
+```
+question: Why did order volume spike on 24 November 2017?
+elapsed_seconds: 0.214
+chunks: 6/8
+stop_reason: completed
+status: success; determinable: True; sample_mode: True
+top_cause: volume (confidence 0.75): The rise is broad: many more sellers than usual received orders.
+token_report: {'standard_estimate': 9939, 'markovian_actual': 5217, 'saving_percent': 47.5}
+```
+
+All 19 model-call lines of that trace read `provider: cache`, `recorded_with: stub`,
+`model_routed: scripted-stub`, `receipt_id: null`; ruled out: `single_seller`, `data_artefact`.
 
 The token report differs from the Sprint 8 note (5730 / 4043 / 29.4 %) because the Critic
 (Sprint 9) now adds a critique to each round, which the standard estimate counts as conversation
@@ -73,10 +93,11 @@ growth. The figures are character estimates (`ceil(chars / 4)`), not provider to
 
 - **Docker commands.** The section says "Docker: added in Sprint 16" and `entrypoints.docker` is
   `null`; Sprint 16 fills both in.
-- **Evaluation score.** No committed evaluation output exists, so the live score is "not measured
-  yet". The only committed figure is the sample-mode baseline (`Score: 0/10 (answered 1, no_cache 9,
-  errors 0)`, Sprint 11), shown as a baseline with its reason. A follow-up revision fills in the
-  real score.
+- **Evaluation score.** No committed evaluation output with a real model exists, so that score is
+  "not measured yet". The README shows the Sprint 11c sample-mode score (`Score: 5/10 (answered 5,
+  no_cache 5, errors 0)`, stub-recorded, labelled as plumbing, not a model); re-run here on the
+  merged branch with the same line. A follow-up revision fills in the real score from
+  `logs/eval-after-*.json` once the coordinator commits it.
 - **Scanner recall** is reported (1/8, from the Sprint 12 note) instead of "not measured yet": the
   issue's launch notes expected none to exist, but the Sprint 12 plan check measured it.
 - **Example inputs and outputs.** `input_examples/` is empty and `output_examples/` holds only the
@@ -101,6 +122,25 @@ growth. The figures are character estimates (`ceil(chars / 4)`), not provider to
   `tests/test_docs.py` pin the command for both cases (platform and sysctl mocked). The README quick
   start has a one-line troubleshooting note. The Mac path itself was not run here (Linux build
   machine); the PR's How to test step 1 includes `arch -x86_64 /bin/bash -c ...` as the proof.
+
+## Revision after review (25 Oct)
+
+The review ran the branch merged with main 912862e (Sprint 11c) and found the README's sample-mode
+claims stale: 11c re-recorded the stub cache and changed the prompts, so the Day 1 question now
+replays stub replies (causes `volume`, then on the simple loop also `price_discount`) on both
+loops, and the live Nemotron entries no longer replay. Main was merged into the branch (no
+conflicts; merge instead of rebase because the branch is already pushed and is never force-pushed),
+then:
+
+- Quick start drops `--loop simple` and says plainly that the replies are stub-recorded; the
+  Nemotron evidence is the 15 `recorded_with: meterless` cache entries, named in the Nightshift and
+  NVIDIA subsections, AI and model usage and Limitations.
+- Results cites the 11c sample-mode score and its per-incident outcome, and the run-time and
+  token rows are re-measured above; the 23 Oct token total stays, labelled as the live recording that
+  sample mode no longer replays. The 1.9 s Day 1 row was dropped (it timed that recording).
+- `tests/test_docs.py` gains a check that the README's sample-mode score is the "after"
+  cell of the note it cites and that the quick-start text does not claim Nemotron replies while the Day 1
+  replay is stub-recorded, so "the number appears in its source" also means "the row is current".
 
 ## Known limits
 
