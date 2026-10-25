@@ -96,49 +96,71 @@ def test_run_question_kills_a_question_at_its_timeout() -> None:
     assert time.monotonic() - started < 10
 
 
-def test_incident_01_through_the_eval_matches_the_recorded_day1_result(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+def direct_run(question: str, run_id: str, tmp_path: Path, loop: str) -> Result:
+    """The run.py wiring in this process: local data, the sample-mode generator, the given loop."""
+    from app.config import Settings
+    from app.data.local import LocalDataLayer
+    from app.engines.markovian.orchestrator import run_markovian
+    from app.llm.generator import Generator
+    from app.loop import run_investigation
+
+    settings = Settings(sample_mode=True, log_dir=str(tmp_path / "direct"))
+    run = run_investigation if loop == "simple" else run_markovian
+    with LocalDataLayer(run_id=run_id, settings=settings) as data:
+        return run(question, run_id=run_id, generate=Generator(settings), data=data, settings=settings)
+
+
+@pytest.mark.parametrize("loop", [None, "simple"])
+def test_incident_01_through_the_eval_matches_a_direct_run(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, loop: str | None
 ) -> None:
-    """The eval wiring gives the same incident-01 answer as run.py on main (committed result.json)."""
+    """The eval wiring gives the same incident-01 answer as a direct run on the same loop: the Markovian
+    orchestrator by default (as run.py, since Sprint 11c), the simple loop with --loop simple."""
     for key, value in sample_env(tmp_path).items():
         monkeypatch.setenv(key, value)
     monkeypatch.delenv("SAMPLE_MODE", raising=False)
-    result, error = run_eval.run_question(DAY1, "eval-day1-test", True, 120)
+    monkeypatch.delenv("LOOP", raising=False)
+    result, error = run_eval.run_question(DAY1, "eval-day1-test", True, 300, loop=loop)
     assert error is None, error
-    recorded = Result.model_validate_json((ROOT / "result.json").read_text(encoding="utf-8"))
-    assert result.model_dump(exclude=RUN_SPECIFIC) == recorded.model_dump(exclude=RUN_SPECIFIC)
+    direct = direct_run(DAY1, "eval-day1-test", tmp_path, loop or "markovian")
+    assert result.model_dump(exclude=RUN_SPECIFIC) == direct.model_dump(exclude=RUN_SPECIFIC)
+    assert result.causes and result.causes[0].type == "volume"
+    assert (result.stop_reason is not None) == (loop is None)  # only the orchestrator sets a stop reason
     assert (tmp_path / "logs" / "trace-eval-day1-test.jsonl").is_file()
-    assert run_eval.trace_tokens(result.log_file) > 0
+    assert run_eval.trace_routes(result.log_file) == ["stub:scripted-stub"]
 
 
 def test_cli_sample_run_prints_table_score_and_writes_json(tmp_path: Path) -> None:
     proc = subprocess.run(
         [sys.executable, str(ROOT / "eval" / "run_eval.py"), "--sample", "--only", "incident-01", "incident-04",
-         "incident-09", "--timeout", "120"],
-        capture_output=True, text=True, cwd=ROOT, env=sample_env(tmp_path), check=False, timeout=300,
+         "incident-09", "--timeout", "120", "--label", "after"],
+        capture_output=True, text=True, cwd=ROOT, env={k: v for k, v in sample_env(tmp_path).items() if k != "LOOP"},
+        check=False, timeout=300,
     )
     assert proc.returncode == 0, proc.stderr
     lines = proc.stdout.strip().splitlines()
-    assert lines[-1] == "Score: 0/3 (answered 1, no_cache 2, errors 0)"
-    assert any(line.startswith("incident-01  not_found") for line in lines)
+    assert lines[-1] == "Score: 2/3 (answered 2, no_cache 1, errors 0)"
+    assert "markovian loop" in lines[0]
+    assert any(line.startswith("incident-01  found") for line in lines)
     assert "cause_type_not_in_vocabulary: freight_cost (incident-04)" in proc.stdout
-    assert "rank-1 cause mix_shift not in ['volume']" in proc.stdout
+    assert "rank-1 volume" in proc.stdout
 
     reports = list((tmp_path / "logs").glob("eval-*.json"))
-    assert len(reports) == 1
+    assert len(reports) == 1 and reports[0].name.startswith("eval-after-")
     report = json.loads(reports[0].read_text(encoding="utf-8"))
-    assert report["sample_mode"] is True
+    assert report["sample_mode"] is True and report["loop"] == "markovian" and report["label"] == "after"
     assert report["score_line"] == lines[-1]
+    assert report["model_routes"] == ["stub:scripted-stub"]
     assert report["cause_type_not_in_vocabulary"] == {"incident-04": ["freight_cost"]}
     rows = {row["id"]: row for row in report["incidents"]}
     assert [rows[i]["status"] for i in ("incident-01", "incident-04", "incident-09")] == [
-        "not_found", "no_cache", "no_cache"]
+        "found", "no_cache", "found"]
     assert rows["incident-04"]["cause_type_not_in_vocabulary"] == ["freight_cost"]
     for row in rows.values():
         assert row["run_id"].startswith("eval-") and row["run_id"].endswith(row["id"])
         assert Path(row["trace_file"]).name == f"trace-{row['run_id']}.jsonl"
         assert Path(row["trace_file"]).is_file()
-    assert rows["incident-01"]["tokens"] > 0
+    assert rows["incident-01"]["tokens"] is None  # stub-recorded replies carry no token counts (Sprint 11c)
     assert rows["incident-01"]["checks"]["segment"]["pass"] is True
 
 

@@ -35,5 +35,6 @@ def test_eval_is_l_and_the_critic_step_is_n() -> None:
     by_letter: dict[str, list[str]] = {}
     for letter, rest in labels():
         by_letter.setdefault(letter, []).append(rest)
-    assert by_letter["L"] == [": evaluation against the answer key in sample mode (score reported, not gated)"]
+    assert by_letter["L"] == [
+        ": evaluation against the answer key in sample mode (score gated on the committed after score)"]
     assert by_letter["N"] == [" (tasks 13+14): Critic verdicts and the three branches in sample mode"]

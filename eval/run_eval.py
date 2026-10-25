@@ -1,15 +1,19 @@
 """Evaluation: run every answer-key question and score the result (architecture §9).
 
     python eval/run_eval.py [--sample] [--only incident-04 ...] [--timeout S] [--total-timeout S]
+                            [--loop markovian|simple] [--label before|after]
 
-Each question runs through the same code path as `run.py` (`LocalDataLayer` + `Generator` +
-`run_investigation`) in its own child process, so the per-question timeout really stops it; a
-crashed or timed-out question is recorded as an error and the run continues. The whole run is
-capped too: questions not started before the cap are recorded as `run_cap_reached`.
+Each question runs through the same code path as `run.py` (`LocalDataLayer` + `Generator` + the
+loop chosen by `--loop`, else `LOOP`: the Markovian orchestrator by default, as `run.py`; since
+Sprint 11c, before it the eval always ran the simple loop) in its own child process, so the
+per-question timeout really stops it; a crashed or timed-out question is recorded as an error and
+the run continues. The whole run is capped too: questions not started before the cap are recorded
+as `run_cap_reached`.
 
 Prints a per-incident table, the reasons behind every failed check, and a last line
 `Score: N/10 (answered A, no_cache M, errors E)`; writes the same as JSON to
-`logs/eval-<timestamp>.json` with each question's run id, trace and query log. Exit code 0 whenever
+`logs/eval-<timestamp>.json` (`logs/eval-<label>-<timestamp>.json` with `--label`) with each
+question's run id, trace, query log and the model routes its replies came from. Exit code 0 whenever
 scoring completed, whatever the score; 2 on bad arguments.
 
 Configuration (environment, with defaults): `EVAL_QUESTION_TIMEOUT_SECONDS` (600) and
@@ -19,6 +23,7 @@ Configuration (environment, with defaults): `EVAL_QUESTION_TIMEOUT_SECONDS` (600
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import subprocess
@@ -37,6 +42,7 @@ sys.path[:0] = [str(EVAL_DIR), str(REPO_ROOT)]
 from scoring import CHECKS, score, vocabulary_gaps
 
 from app.config import get_settings, resolve_path
+from app.runner import LOOPS, select_loop
 from app.schemas import HYPOTHESIS_FAMILIES, Result
 
 ANSWER_KEY = EVAL_DIR / "answer_key.json"
@@ -47,6 +53,7 @@ DEFAULT_TOTAL_TIMEOUT = 3600
 # (result or None, error or None) for one question; error is {"code", "message"}.
 Outcome = tuple[Result | None, dict[str, str] | None]
 Runner = Callable[[str, str, bool, float], Outcome]
+LABELS = ("before", "after")
 
 
 def env_seconds(name: str, default: int) -> int:
@@ -76,11 +83,13 @@ def load_incidents(
     return incidents
 
 
-def run_question(question: str, run_id: str, sample: bool, timeout: float) -> Outcome:
+def run_question(question: str, run_id: str, sample: bool, timeout: float, loop: str | None = None) -> Outcome:
     """Run one question in a child process (see `worker`); kill it after `timeout` seconds."""
     command = [sys.executable, str(Path(__file__).resolve()), "--worker", "--run-id", run_id, "--question", question]
     if sample:
         command.append("--sample")
+    if loop:
+        command += ["--loop", loop]
     try:
         proc = subprocess.run(command, capture_output=True, text=True, timeout=timeout, cwd=REPO_ROOT, check=False)
     except subprocess.TimeoutExpired:
@@ -94,17 +103,20 @@ def run_question(question: str, run_id: str, sample: bool, timeout: float) -> Ou
         return None, {"code": "bad_result", "message": f"{type(exc).__name__}: {str(exc)[:300]}"}
 
 
-def worker(question: str, run_id: str, sample: bool) -> int:
+def worker(question: str, run_id: str, sample: bool, loop: str | None = None) -> int:
     """Child process: the `run.py` wiring for one question; prints the Result JSON."""
     from app.data.local import LocalDataLayer
     from app.llm.generator import Generator
-    from app.loop import run_investigation
 
     settings = get_settings()
     if sample:
         settings = settings.model_copy(update={"sample_mode": True})
+    if select_loop(settings, loop) == "simple":
+        from app.loop import run_investigation as run
+    else:
+        from app.engines.markovian.orchestrator import run_markovian as run
     with LocalDataLayer(run_id=run_id, settings=settings) as data:
-        result = run_investigation(question, run_id=run_id, generate=Generator(settings), data=data, settings=settings)
+        result = run(question, run_id=run_id, generate=Generator(settings), data=data, settings=settings)
     print(result.model_dump_json(indent=2))
     return 0
 
@@ -126,6 +138,22 @@ def trace_tokens(log_file: str | None) -> int | None:
                 total += tokens["total_tokens"]
                 seen = True
     return total if seen else None
+
+
+def trace_routes(log_file: str | None) -> list[str]:
+    """The model routes behind a run's replies, `<recorded_with or provider>:<model_routed>`, sorted."""
+    if not log_file:
+        return []
+    path = resolve_path(log_file)
+    if not path.is_file():
+        return []
+    routes = set()
+    with path.open(encoding="utf-8") as handle:
+        for line in handle:
+            entry = json.loads(line) if line.strip() else {}
+            if entry.get("action") == "model_call" and entry.get("status") == "ok":
+                routes.add(f"{entry.get('recorded_with') or entry.get('provider')}:{entry.get('model_routed')}")
+    return sorted(routes)
 
 
 def evaluate(
@@ -156,7 +184,8 @@ def evaluate(
         if result is not None:
             row = score(result, incident)
             row.update(run_time_seconds=elapsed, tokens=trace_tokens(result.log_file),
-                       trace_file=result.log_file, query_log=result.query_log)
+                       trace_file=result.log_file, query_log=result.query_log,
+                       model_routes=trace_routes(result.log_file))
         else:
             row = {"id": incident["id"], "status": "error", "found": False, "checks": {}, "error": error,
                    "run_time_seconds": elapsed, "tokens": None, "trace_file": None, "query_log": None}
@@ -226,13 +255,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--only", nargs="+", metavar="ID", help="Only these incident ids, e.g. incident-04")
     parser.add_argument("--timeout", type=float, help="Seconds per question (default EVAL_QUESTION_TIMEOUT_SECONDS)")
     parser.add_argument("--total-timeout", type=float, help="Seconds for the whole run (default EVAL_TOTAL_TIMEOUT_SECONDS)")
+    parser.add_argument("--loop", choices=LOOPS, help="Investigation loop (default LOOP, else markovian, as run.py)")
+    parser.add_argument("--label", choices=LABELS, help="Name the report logs/eval-<label>-<timestamp>.json")
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--run-id", help=argparse.SUPPRESS)
     parser.add_argument("--question", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
 
     if args.worker:
-        return worker(args.question, args.run_id, args.sample)
+        return worker(args.question, args.run_id, args.sample, args.loop)
 
     try:
         question_timeout = args.timeout or env_seconds("EVAL_QUESTION_TIMEOUT_SECONDS", DEFAULT_QUESTION_TIMEOUT)
@@ -251,17 +282,24 @@ def main(argv: list[str] | None = None) -> int:
         incidents = [incident for incident in incidents if incident["id"] in args.only]
 
     settings = get_settings()
+    try:
+        loop = select_loop(settings, args.loop)
+    except ValueError as exc:
+        parser.error(str(exc))
     sample = args.sample or settings.sample_mode
     stamp = f"{datetime.now(UTC):%Y%m%dT%H%M%SZ}"
     started = time.perf_counter()
     rows = evaluate(incidents, sample=sample, question_timeout=question_timeout, total_timeout=total_timeout,
-                    run_prefix=f"eval-{stamp}")
+                    run_prefix=f"eval-{stamp}", runner=functools.partial(run_question, loop=loop))
     gaps = vocabulary_gaps(incidents)
     summary = summarise(rows)
 
     report = {
         "timestamp": stamp,
         "sample_mode": sample,
+        "loop": loop,
+        "label": args.label,
+        "model_routes": sorted({route for row in rows for route in row.get("model_routes", [])}),
         "question_timeout_seconds": question_timeout,
         "total_timeout_seconds": total_timeout,
         "run_time_seconds": round(time.perf_counter() - started, 3),
@@ -270,7 +308,8 @@ def main(argv: list[str] | None = None) -> int:
         "cause_type_not_in_vocabulary": gaps,
         "incidents": rows,
     }
-    out = resolve_path(settings.log_dir) / f"eval-{stamp}.json"
+    name = f"eval-{args.label}-{stamp}.json" if args.label else f"eval-{stamp}.json"
+    out = resolve_path(settings.log_dir) / name
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
@@ -278,7 +317,7 @@ def main(argv: list[str] | None = None) -> int:
         shown = out.relative_to(REPO_ROOT)
     except ValueError:
         shown = out
-    print(f"Evaluation, {'sample' if sample else 'live'} mode, {len(rows)} question(s); report: {shown}")
+    print(f"Evaluation, {'sample' if sample else 'live'} mode, {loop} loop, {len(rows)} question(s); report: {shown}")
     print()
     print(render(rows, gaps))
     return 0
