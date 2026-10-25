@@ -159,6 +159,11 @@ class Verdict(_Model):
     sample_too_small: bool = False
     attempt: int = Field(default=1, ge=1, description="1 for the first critique, 2 after the revision.")
     retry_count: int = Field(default=0, ge=0, description="Invalid replies retried before this verdict.")
+    critic_error: str | None = Field(
+        default=None,
+        description="Set when the Critic could not judge (its model call failed or its reply was invalid "
+        "after the retry): the error code. The verdict is then insufficient with no follow-up tests.",
+    )
 
 
 class Change(_Model):

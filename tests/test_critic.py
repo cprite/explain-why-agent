@@ -362,6 +362,175 @@ def test_critic_calls_never_exceed_max_chunks_even_with_report_follow_ups(tmp_pa
     assert 0 < len(critiques(tmp_path)) <= 5
 
 
+# --- Sprint 10b: the Critic's failure path, the reported branch, the cap's unit ----------------------------
+
+HYPOTHESES = ["H1", "H2", "H3", "H4"]
+"""The stub Planner's hypotheses for the lateness question, in priority order."""
+
+
+@pytest.mark.parametrize(
+    ("reply", "code"),
+    [
+        (GenerationResult(ok=False, error={"code": "provider_error", "message": "HTTP 503"}), "provider_error"),
+        # parsed, but fails CritiqueDraft validation (a check is missing)
+        (GenerationResult(ok=True, content="{}", parsed={**draft(), "checks": draft()["checks"][:4]}, provider="stub"),
+         "invalid_reply"),
+    ],
+)
+def test_critic_failure_demotes_without_a_revision_and_names_the_critic(
+        tmp_path: Path, reply: GenerationResult, code: str) -> None:
+    """Acceptance criterion 1: a Critic whose model call always fails costs no revision chunk."""
+    model = CriticScript(lambda hid, attempt: reply)
+    result = run(tmp_path, model)
+    # No revision chunk: the plan chunk and one round per hypothesis.
+    assert [(c["kind"], c["hypothesis_id"]) for c in chunks(tmp_path)] == [
+        ("plan", None), *(("round", hid) for hid in HYPOTHESES)]
+    assert not any(line["action"] == "request_revision" for line in trace(tmp_path))
+    # One critique per hypothesis, each the first call plus its one retry: 8 Critic model calls
+    # (on main the empty revision chunk asked for a second critique: 16).
+    lines = critiques(tmp_path)
+    assert [(line["hypothesis_id"], line["attempt"], line["critic_error"], line["model_calls"]) for line in lines] == [
+        (hid, 1, code, 2) for hid in HYPOTHESES]
+    assert len(model.critic_inputs) == 8
+    critic_calls = [c for c in model.calls if c["schema"] == "CritiqueDraft"]
+    assert len(critic_calls) == 8
+    # Every other model call is the same as in a run whose Critic answers once per hypothesis.
+    once = CriticScript(lambda hid, attempt: draft((0, 1, 1), contradicted=True))
+    run(tmp_path / "once", once)
+    assert len(model.calls) - len(critic_calls) == len(once.calls) - len(once.critic_inputs)
+    # Every hypothesis demoted; cannot be determined, and the answer blames the Critic, not the data.
+    final = branches(tmp_path)[-1]
+    assert final["branch"] == "cannot_be_determined"
+    assert final["numbers"]["demoted"] == HYPOTHESES and final["numbers"]["unconfirmed"] == []
+    assert result.status == "success" and result.determinable is False and result.causes == []
+    assert result.stop_reason == "completed"
+    failures = [item for item in result.limitations if item.startswith("Critic failure:")]
+    assert len(failures) == 4
+    assert failures[0].startswith(f"Critic failure: the Critic could not judge H1 (logistics_delay) ({code})")
+    assert not any(item.startswith("Unconfirmed:") or "Data that would decide it" in item
+                   for item in result.limitations)
+    expected_why = "the Critic could not judge " + ", ".join(f"{hid} ({code})" for hid in HYPOTHESES)
+    assert final["why"] == expected_why
+    # (the Reporter's own ruled-out entries, from the Investigator's readings, are still counted)
+    assert result.summary is not None
+    assert result.summary.startswith(f"Cannot be determined from the data: {expected_why} (4 tested, ")
+
+
+def test_one_critic_failure_among_refutations_is_named(tmp_path: Path) -> None:
+    down = GenerationResult(ok=False, error={"code": "timeout", "message": "no reply"})
+    model = CriticScript(lambda hid, attempt: down if hid == "H1" else draft((0, 1, 1), contradicted=True))
+    result = run(tmp_path, model)
+    assert [c["kind"] for c in chunks(tmp_path)] == ["plan", "round", "round", "round", "round"]
+    promotion = next(b for b in branches(tmp_path) if b["branch"] == "promotion")
+    assert promotion["numbers"]["from"] == "H1" and promotion["numbers"]["to"] == "H2"
+    assert result.determinable is False
+    assert result.summary == ("Cannot be determined from the data: the Critic could not judge H1 (timeout); the other "
+                              "tested explanations were refuted or left unconfirmed (4 tested, 3 ruled out).")
+
+
+def test_insufficient_with_follow_up_still_gets_its_revision(tmp_path: Path) -> None:
+    """The success path is unchanged: a Critic that asks for a test still gets the revision chunk."""
+    model = CriticScript(lambda hid, attempt: draft((2, 1, 1), follow_up=["split by state"]) if hid == "H1"
+                         else draft((0, 1, 1), contradicted=True))
+    run(tmp_path, model)
+    assert [(c["kind"], c["hypothesis_id"]) for c in chunks(tmp_path)][:3] == [
+        ("plan", None), ("round", "H1"), ("revision", "H1")]
+    assert all(line["critic_error"] is None and line["model_calls"] == 1 for line in critiques(tmp_path))
+
+
+class ReportsOnly(ScriptedModel):
+    """The stub, with every Reporter cause moved to hypothesis `to` (or no cause, determinable false)."""
+
+    def __init__(self, to: str | None) -> None:
+        super().__init__()
+        self.to = to
+
+    def __call__(self, messages: Any, *, schema: Any = None, role: str = "default", run_id: Any = None) -> Any:
+        result = super().__call__(messages, schema=schema, role=role, run_id=run_id)
+        if schema is not None and schema.__name__ == "ReportDraft" and result.ok:
+            reply = json.loads(result.content)
+            if self.to is None:
+                reply = {**reply, "determinable": False, "causes": []}
+            else:
+                reply = {**reply, "causes": [{**c, "hypothesis_id": self.to} for c in reply["causes"]]}
+            return GenerationResult(ok=True, content=json.dumps(reply), parsed=reply, provider="stub")
+        return result
+
+
+@pytest.mark.parametrize("to", [None, "H2"], ids=["reporter-undeterminable", "reporter-cause-for-another"])
+def test_supported_but_not_reported_trace_and_summary_agree(tmp_path: Path, to: str | None) -> None:
+    """Acceptance criterion 2: the Critic supports H1 (the stub's rule), the Reporter does not report it."""
+    result = run(tmp_path, ReportsOnly(to))
+    assert next((line["hypothesis_id"], line["verdict"]) for line in critiques(tmp_path)) == ("H1", "supported")
+    final = branches(tmp_path)[-1]
+    why = "the Reporter did not report the supported explanation (H1)"
+    assert final["branch"] == "cannot_be_determined" and final["why"] == why
+    assert final["numbers"]["supported"] == ["H1"]
+    assert result.determinable is False and result.causes == []
+    assert result.summary is not None and result.summary.startswith(f"Cannot be determined from the data: {why} (")
+
+
+def test_reporter_undeterminable_with_a_supported_cause_is_explained(tmp_path: Path,
+                                                                      monkeypatch: pytest.MonkeyPatch) -> None:
+    """The case behind the PR #28 note: the Reporter keeps the supported cause but calls the answer not
+    determinable. The branch line used to say "the Critic supported the leading explanation" while the
+    summary said nothing was supported."""
+    from app.engines.markovian import orchestrator
+
+    real = orchestrator.report
+
+    def undeterminable(*args: Any, **kwargs: Any) -> Any:
+        outcome = real(*args, **kwargs)
+        assert outcome.causes and outcome.cause_hypotheses == ["H1"]
+        outcome.determinable = False
+        return outcome
+
+    monkeypatch.setattr(orchestrator, "report", undeterminable)
+    result = run(tmp_path, ScriptedModel())
+    final = branches(tmp_path)[-1]
+    why = "the Reporter did not report the supported explanation (H1)"
+    assert final["branch"] == "cannot_be_determined" and final["why"] == why
+    assert result.determinable is False and result.causes == []
+    assert result.summary is not None and why in result.summary
+
+
+def test_critic_cap_counts_critiques_each_up_to_two_model_calls(tmp_path: Path) -> None:
+    """Acceptance criterion 3: `max_chunks` caps Critic calls (critiques); one critique is up to
+    MAX_REPLY_ATTEMPTS = 2 model calls (an invalid first reply and its retry)."""
+    from app.agents.critic import MAX_REPLY_ATTEMPTS
+    from app.engines.markovian.orchestrator import _Run
+
+    assert MAX_REPLY_ATTEMPTS == 2
+    seen: dict[tuple[str, int], int] = {}
+    bad = GenerationResult(ok=False, error={"code": "invalid_json", "message": "not JSON"})
+
+    def first_invalid(hid: str, attempt: int) -> Any:
+        seen[(hid, attempt)] = seen.get((hid, attempt), 0) + 1
+        return bad if seen[(hid, attempt)] == 1 else draft((0, 1, 1), contradicted=True)
+
+    model = CriticScript(first_invalid)
+    run(tmp_path, model, cfg=config(max_chunks=4))  # plan + 3 rounds
+    lines = critiques(tmp_path)
+    assert [line["critic_call"] for line in lines] == [1, 2, 3]  # counted per critique ...
+    assert all(line["model_calls"] == 2 and line["max_critic_calls"] == 4 for line in lines)
+    assert len(model.critic_inputs) == 6  # ... while the model saw two calls for each
+
+    # At the cap the hook is not called at all, and the note names the unit.
+    settings = settings_for(tmp_path / "cap")
+    called: list[CriticRequest] = []
+    with LocalDataLayer(run_id="cap", log_dir=tmp_path / "cap", settings=settings) as data:
+        the_run = _Run("Why?", run_id="cap", generate=ScriptedModel(), data=data, settings=settings,
+                       config=config(max_chunks=3), log_dir=tmp_path / "cap", sample_mode=False,
+                       critic=lambda request: called.append(request), world_db_path=":memory:")
+        request = critic_request(tmp_path, ScriptedModel())
+        the_run.critic_calls = 3
+        verdict = the_run._critique(WorldStore(":memory:"), request.context_builder, request.plan,
+                                    request.hypothesis, request.hypothesis_entity_id, request.observation, "chunk")
+    assert verdict is None and called == [] and the_run.critic_calls == 3
+    assert the_run.notes == [("H1 was not critiqued: 3 Critic calls (MARKOVIAN_MAX_CHUNKS; each up to 2 model calls) "
+                             "were made.")]
+
+
 # --- branches (acceptance criteria 4-6) ---------------------------------------------------------------
 
 
@@ -468,7 +637,7 @@ def test_no_op_critic_keeps_the_sprint_8_behaviour(tmp_path: Path) -> None:
     assert start["critic"] == "off"
 
 
-# --- sample mode: the plan check L questions replay the committed cache ----------------------------------
+# --- sample mode: the plan check N questions replay the committed cache ----------------------------------
 
 
 def replay(tmp_path: Path, question: str, run_id: str) -> Result:
