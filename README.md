@@ -24,20 +24,29 @@ The agents, queries and loop all run; only each model reply comes from the cache
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
-SAMPLE_MODE=true python run.py "Why did order volume spike on 24 November 2017?" --loop simple --run-id quickstart
+SAMPLE_MODE=true python run.py "Why did order volume spike on 24 November 2017?" --run-id quickstart
 ls -l logs/result-quickstart.json logs/trace-quickstart.jsonl logs/queries-quickstart.jsonl
 ```
 
 - The result JSON is printed on stdout and saved as `logs/result-quickstart.json`. It holds the
   change, the ranked causes with evidence, what was ruled out, the limitations and `"sample_mode": true`.
+  With the committed cache the answer is `volume` (a broad rise across sellers), with `single_seller`
+  and `data_artefact` ruled out.
 - The trace is `logs/trace-quickstart.jsonl`, one line per agent action and per model call. Each
-  model-call line shows the provider (`cache`), the Nightshift route requested, the Nemotron model
-  that answered when it was recorded (`model_routed`) and its receipt id.
+  model-call line shows the provider (`cache`), the route requested, the model that produced the
+  recorded reply (`model_routed`), how it was recorded (`recorded_with`) and the receipt id.
+- **These replies are not a model's.** Since Sprint 11c the replies this question replays were
+  recorded from the deterministic stand-in in `app/llm/stub.py`: every model-call line reads
+  `recorded_with: stub`, `model_routed: scripted-stub`, `receipt_id: null`. The run shows the agents,
+  the Markovian loop, the queries and the trace working end to end, not Nemotron's reasoning. The
+  live Nightshift replies on Nemotron are the 15 cache entries marked `"recorded_with": "meterless"`
+  (see [NVIDIA](#nvidia)); the prompts changed after they were recorded, so they no longer replay,
+  until the question is re-recorded through Nightshift.
 - The query log is `logs/queries-quickstart.jsonl`: every SQL statement with its source, adapter,
   duration and row count.
-- `--loop simple` is needed for this question. Its recording comes from a live Nightshift run of
-  the simple loop, while the default Markovian loop sends different prompts and gets `cache_miss`
-  for it. [Usage](#usage) lists the questions recorded for the Markovian loop.
+- The command uses the default Markovian loop with the Critic. The same question also replays on the
+  Sprint 2 simple loop (`--loop simple`, stub-recorded as well). [Usage](#usage) lists the other
+  questions that have recordings.
 - On Apple Silicon, if you see `incompatible architecture (have arm64, need x86_64)`, your shell
   runs under Rosetta: run the commands from a native terminal or prefix them with `arch -arm64`.
 - CI runs exactly this block from a fresh checkout with an empty `.env` (job `readme-quickstart`,
@@ -139,14 +148,14 @@ per-incident table and a `Score:` line; the report goes to `logs/eval-<timestamp
 
 | Question | Command | What it shows |
 |---|---|---|
-| Why did order volume spike on 24 November 2017? | `SAMPLE_MODE=true python run.py "<question>" --loop simple` | Simple loop; replies recorded live through Nightshift on Nemotron |
+| Why did order volume spike on 24 November 2017? | `SAMPLE_MODE=true python run.py "<question>"` | Markovian loop with the Critic: the breadth test supports a broad volume rise (also replays with `--loop simple`) |
 | Why did delivery lateness spike for deliveries completed the week of 28 May 2018? | `SAMPLE_MODE=true python run.py "<question>"` | Markovian loop with the Critic: chunks, carryover, token report |
 | Why did review scores for watches/gifts (relogios_presentes) fall in 2018-01? | `SAMPLE_MODE=true python run.py "<question>"` | The Critic refutes the leading explanation and promotes the next one |
 
-The Markovian replies for the second and third questions (and for the two "cannot be determined"
-questions that CI's plan check N runs) are recorded from the deterministic stand-in model in
-`app/llm/stub.py`, marked `"recorded_with": "stub"` in each cache file. They show the loop's
-mechanics, not a model's reasoning.
+Every reply these questions replay (and those of the two "cannot be determined" questions that
+CI's plan check N runs, incident-09 and incident-10) is recorded from the deterministic stand-in
+model in `app/llm/stub.py`, marked `"recorded_with": "stub"` in each cache file. They show the loop's
+mechanics, not a model's reasoning. Any other question gives `cache_miss` in sample mode.
 
 Where the files are:
 
@@ -225,27 +234,33 @@ Investigator and Reporter without the engines or the Critic.
 
 Every number below comes from the committed file in its Source column; `tests/test_docs.py` checks
 that each number appears in that file. Where no committed measurement exists the row says
-"not measured yet". A follow-up revision fills in the evaluation score from the committed
-evaluation output.
+"not measured yet". The sample-mode score replays the scripted stand-in model, so it shows that the
+loop, the queries and the scoring work, not how well a model explains; the score with a real model
+is the coordinator's recorded run (`logs/eval-after-*.json`), not committed yet.
 
 | Measure | Value | Source |
 |---|---|---|
-| Evaluation score (answer key, live or with recorded replies for every question) | not measured yet | none committed |
-| Evaluation score, sample-mode baseline (simple loop; nine questions had no recorded replies) | `Score: 0/10 (answered 1, no_cache 9, errors 0)` | `docs/sprints/11-evaluation.md` |
+| Evaluation score (answer key, live or with model-recorded replies for every question) | not measured yet | none committed |
+| Evaluation score, sample mode (Markovian loop, stub-recorded replies: measures the plumbing, not a model) | `Score: 5/10 (answered 5, no_cache 5, errors 0)` | `docs/sprints/11c-prompt-tuning.md` |
 | Scanner recall (planted incident flagged on its metric, segment and window) | 1/8 | `docs/sprints/12-anomaly-scanner.md` |
 | Scanner: rank of the one planted incident it flags (incident-06) | overall rank 37 of 206 | `docs/sprints/12-anomaly-scanner.md` |
-| Run time, sample mode, Day 1 question (simple loop, includes the child process start) | 1.9 s | `docs/sprints/11-evaluation.md` |
-| Run time, sample mode, Markovian loop (plan check J question, stub-recorded replies) | 0.213 s | `docs/sprints/15-readme-metadata.md` |
+| Run time, sample mode, Day 1 question (quick-start command, Markovian loop, stub-recorded replies) | 0.214 s | `docs/sprints/15-readme-metadata.md` |
+| Run time, sample mode, Markovian loop (plan check J question, stub-recorded replies) | 0.205 s | `docs/sprints/15-readme-metadata.md` |
 | Run time, live (Nightshift and Zetaris) | not measured yet | none committed |
-| Tokens of the recorded Day 1 run (model usage summed from the trace) | 129113 | `docs/sprints/11-evaluation.md` |
-| Markovian token report, plan check J (standard estimate vs Markovian actual, saving) | 7849 vs 4153, 47.1 % | `docs/sprints/15-readme-metadata.md` |
+| Tokens of the live Day 1 run through Nightshift, the `recorded_with: meterless` cache entries (simple loop, model usage summed from the trace; sample mode no longer replays this recording) | 129113 | `docs/sprints/11-evaluation.md` |
+| Markovian token report, Day 1 quick-start run (standard estimate vs Markovian actual, saving) | 9939 vs 5217, 47.5 % | `docs/sprints/15-readme-metadata.md` |
+| Markovian token report, plan check J (standard estimate vs Markovian actual, saving) | 7948 vs 4153, 47.7 % | `docs/sprints/15-readme-metadata.md` |
 
-Per incident, evaluation baseline in sample mode (simple loop):
+Per incident, evaluation in sample mode (Markovian loop, stub-recorded replies):
 
 | Incident | Result | Source |
 |---|---|---|
-| incident-01 | not_found: cause type FAIL (rank-1 cause mix_shift), segment, window and wrong explanation PASS | `docs/sprints/11-evaluation.md` |
-| incident-02..10 | no_cache (no recorded replies for the simple loop) | `docs/sprints/11-evaluation.md` |
+| incident-01 | found: cause type, segment, window and wrong explanation PASS | `docs/sprints/11c-prompt-tuning.md` |
+| incident-02 | found | `docs/sprints/11c-prompt-tuning.md` |
+| incident-06 | found | `docs/sprints/11c-prompt-tuning.md` |
+| incident-09 | found | `docs/sprints/11c-prompt-tuning.md` |
+| incident-10 | found | `docs/sprints/11c-prompt-tuning.md` |
+| incident-03, -04, -05, -07, -08 | no_cache (no recording) | `docs/sprints/11c-prompt-tuning.md` |
 
 The Markovian loop with the Critic in sample mode (CI plan check N, stub-recorded replies):
 
@@ -336,18 +351,25 @@ CI steps too: `pytest -q -s tests/test_world_context.py::test_plan_check_task9_c
   8 s; a refused token is reported, not hidden behind the fallback.
 - **Receipts and route in the trace.** Each reply's `meterless.routed_model` and receipt id are
   written to the trace line of that call (`model_requested`, `model_routed`, `receipt_id`) and to
-  the cache entry when recording. The committed Day 1 recording in `data/sample/llm_cache/` keeps
-  them for every call.
+  the cache entry when recording. The 15 cache entries in `data/sample/llm_cache/` marked
+  `"recorded_with": "meterless"` (the live run of the Day 1 question on 23 Oct) keep them for every
+  call, for example the Planner's reply in
+  `data/sample/llm_cache/c3826ed22b2b5f2efd8c1f79897585acd2548933f67c3949090fd1a611092f56.json`
+  (`model_requested: meterless/deep`, routed model and receipt id). The prompts changed in
+  Sprint 11c, so these entries no longer replay; the questions sample mode replays today are
+  stub-recorded until they are re-recorded through Nightshift.
 
 ### NVIDIA
 
 - **Nemotron through Nightshift for every agent call.** Nightshift has NVIDIA in its Providers tab
-  and routes the `meterless/*` modes to Nemotron models. The models that answered the recorded
-  Day 1 run, as Nightshift reported them: `nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b` and
+  and routes the `meterless/*` modes to Nemotron models. The models that answered the live Day 1
+  run of 23 Oct (the `"recorded_with": "meterless"` cache entries), as Nightshift reported them: `nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b` and
   `nvidia/nvidia/nemotron-3.5-lightning-30b-a3b`.
 - **Where the model id per request is shown.** The `model_routed` field of every `model_call` line in
-  `logs/trace-<run_id>.jsonl` (also in sample mode, copied from the recording), the same field in
-  each `data/sample/llm_cache/*.json` entry, and the `sponsors` record in `metadata.json`.
+  `logs/trace-<run_id>.jsonl` (in sample mode, copied from the recording: `scripted-stub` for the
+  stub-recorded replies the committed questions replay today), the same field in each
+  `data/sample/llm_cache/*.json` entry marked `"recorded_with": "meterless"`, and the `sponsors`
+  record in `metadata.json`.
 - An optional direct NVIDIA fallback (`NVIDIA_API_KEY`, `NVIDIA_MODEL`) sits behind the same
   interface, used only when Nightshift is unreachable.
 
@@ -367,8 +389,10 @@ is optional under the 22 Oct rule change, so the project does not depend on it.
   with a reason per item, and every verdict is stored with edges to the observations it relied on.
 - The Markovian engine bounds the whole investigation (chunks, budgets, timeouts) and reports its
   own token saving against a growing conversation.
-- Every model call carries Nightshift's route and receipt into the trace, so the Nemotron use is
-  visible per call, including in sample mode.
+- Every live model call carries Nightshift's route and receipt into the trace and into the
+  recorded cache entry, so the Nemotron use is visible per call; sample mode copies the recorded
+  route and says how each reply was recorded (`recorded_with`), so a stand-in reply is never shown
+  as a model's.
 
 ## Zetaris USL: reflection
 
@@ -420,9 +444,11 @@ is what an analyst needs to trust the answer.
   trace (provider `cache`, `recorded_with` per call). A question with no recording returns a
   structured `cache_miss` error ("this question needs a model key"), never a made-up answer.
 - **Recordings.** Each cache entry says how it was recorded: `"recorded_with": "meterless"` for the
-  live Nightshift run of the Day 1 question (with routed model and receipt), `"stub"` for replies
-  from the deterministic stand-in in `app/llm/stub.py`. Recording uses `RECORD_CACHE=true` on a
-  live run.
+  15 replies of the live Nightshift run of the Day 1 question on 23 Oct (with routed model and
+  receipt; kept, but no longer replayed since the Sprint 11c prompt changes), `"stub"` for replies
+  from the deterministic stand-in in `app/llm/stub.py`. Every question sample mode replays today,
+  the Day 1 question included, is stub-recorded until it is re-recorded through Nightshift.
+  Recording uses `RECORD_CACHE=true` on a live run.
 - **No hand-written outputs or logs.** Results, traces and query logs are written by the code.
   The one hand-written file is `output_examples/example-result.json`, an example of the result
   schema used by the schema tests; it is not a run output.
@@ -453,13 +479,17 @@ is what an analyst needs to trust the answer.
 
 - **One run at a time.** The API holds one lock for runs and scans (`busy` otherwise) and assumes
   a single uvicorn worker. It has no authentication; set `API_HOST=127.0.0.1` where that matters.
-- **Sample mode answers only recorded questions.** The Day 1 question replays only with
-  `--loop simple`. The Markovian recordings are from the stand-in model, not a live model. Explaining
-  a scanner card in sample mode gives `cache_miss`.
-- **The evaluation is not yet measured on recorded or live answers.** It scores the simple loop, and
-  in sample mode only the Day 1 question has replies; its recorded answer ranks a mix shift first
-  rather than the Black Friday volume rise. `freight_cost` (incident-04) is not in the cause
-  vocabulary, so that incident cannot be found yet.
+- **Sample mode answers only recorded questions, and those replies are the stand-in model's.** Every
+  question with a recording (the Day 1 question, incident-02, -06, -09, -10 and the 21 September
+  no-change question) replays stub-recorded replies, not a live model's. The live Nemotron recording
+  of 23 Oct is kept in the cache but no longer replays since the Sprint 11c prompt changes; until the
+  questions are re-recorded through Nightshift, sample mode shows the mechanics, not the model.
+  Explaining a scanner card in sample mode gives `cache_miss`.
+- **The evaluation is not yet measured with a real model.** The sample-mode score replays the stand-in
+  model on the Markovian loop for the five questions it has recordings for; the real before/after
+  score through Nightshift is the coordinator's recorded run after Sprint 11c. The prompts were tuned
+  against the same ten incidents they are scored on, so that score will be an optimistic estimate.
+  `freight_cost` (incident-04) is not in the cause vocabulary, so that incident cannot be found yet.
 - **Sample size and sampling artefacts.** The sample is drawn around the incident windows, so
   absolute counts and sums are not comparable across months. The scanner therefore scans counts as
   shares and sums as per-order means, cannot scan whole-shop volume, and most of its top ten are

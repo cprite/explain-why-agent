@@ -44,13 +44,15 @@
       "role": "primary AI provider",
       "required": true,
       "code": ["app/llm/generator.py"],
-      "evidence": ["data/sample/llm_cache/"]
+      "evidence": ["data/sample/llm_cache/"],
+      "evidence_note": "cache entries with \"recorded_with\": \"meterless\" (live Day 1 run, routed model and receipt per call); the questions sample mode replays today are stub-recorded"
     },
     {
       "sponsor": "NVIDIA",
       "models": ["nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b", "nvidia/nvidia/nemotron-3.5-lightning-30b-a3b"],
       "via": "Meterless Nightshift",
-      "evidence": ["data/sample/llm_cache/"]
+      "evidence": ["data/sample/llm_cache/"],
+      "evidence_note": "cache entries with \"recorded_with\": \"meterless\" (live Day 1 run, routed model and receipt per call); the questions sample mode replays today are stub-recorded"
     },
     {
       "sponsor": "Cursor",
