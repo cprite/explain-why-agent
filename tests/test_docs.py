@@ -11,7 +11,10 @@ from __future__ import annotations
 import ast
 import importlib.util
 import json
+import os
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -392,6 +395,40 @@ def test_not_measured_rows_for_the_live_score_and_live_run_time() -> None:
     text = section("Results")
     assert re.search(r"^\| Evaluation score \(answer key, live[^|]*\| not measured yet \|", text, re.MULTILINE)
     assert re.search(r"^\| Run time, live[^|]*\| not measured yet \|", text, re.MULTILINE)
+
+
+
+def test_sample_mode_score_is_the_after_score_of_the_note_it_cites() -> None:
+    """The row must be current, not only present: its value is the "after" cell of the sample-mode
+    row in the cited note (the baseline cell of a superseded note fails here)."""
+    row = next(ln for ln in section("Results").splitlines() if ln.startswith("| Evaluation score, sample mode"))
+    cells = [c.strip() for c in row.strip("|").split("|")]
+    value, source = cells[1], cells[2].strip("`")
+    note = (REPO_ROOT / source).read_text(encoding="utf-8")
+    note_row = next(ln for ln in note.splitlines() if ln.startswith("| Sample mode"))
+    assert value == note_row.strip().strip("|").split("|")[-1].strip()
+
+
+def test_quickstart_text_matches_what_the_day1_replay_actually_returns() -> None:
+    """Run the quick-start question in sample mode and check the README's provenance claims against
+    the trace: every recorded_with value is named, and the rank-1 cause is the one it states."""
+    run_line = next(ln for ln in _load_quickstart().extract_block(readme()).splitlines() if "python run.py" in ln)
+    question = re.search(r'run\.py "([^"]+)"', run_line).group(1)
+    loop = ["--loop", m.group(1)] if (m := re.search(r"--loop (\w+)", run_line)) else []
+    run_id = "test-docs-quickstart"
+    env = {**os.environ, "SAMPLE_MODE": "true"}
+    out = subprocess.run([sys.executable, "run.py", question, *loop, "--run-id", run_id], cwd=REPO_ROOT, env=env,
+                         capture_output=True, text=True, timeout=300, check=True).stdout
+    result = json.loads(out)
+    trace = (REPO_ROOT / "logs" / f"trace-{run_id}.jsonl").read_text(encoding="utf-8").splitlines()
+    recorded = {json.loads(ln).get("recorded_with") for ln in trace if '"model_routed"' in ln}
+    text = section("Quick start (sample mode)")
+    assert recorded
+    for how in recorded:
+        assert f"recorded_with: {how}" in text, f"the trace has recorded_with={how}; the Quick start does not say so"
+    if "meterless" not in recorded:
+        assert "not a model's" in text
+    assert f"`{result['causes'][0]['type']}`" in text
 
 
 # --- 5. Meterless test command --------------------------------------------------------------------
