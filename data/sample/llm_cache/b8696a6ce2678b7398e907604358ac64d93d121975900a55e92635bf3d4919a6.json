@@ -1,0 +1,23 @@
+{
+  "key": "b8696a6ce2678b7398e907604358ac64d93d121975900a55e92635bf3d4919a6",
+  "role": "investigator",
+  "schema": "ObservationDraft",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are the Investigator. You ran a query to test a hypothesis (or the change check). Read the rows\nin the INPUT and record what they show.\n\n- `finding`: one sentence with the actual numbers from the rows, the window and the baseline.\n- `value` and `baseline`: the measure in the window and in the baseline, copied from the rows.\n- `effect`: value / baseline - 1 when both exist, otherwise empty.\n- `supports`: true if the rows support the hypothesis, false if they refute it, empty if they cannot\n  tell. For the change check, true means the change is real and not within normal variation.\n\nReport only what the rows show. Do not add numbers that are not in the rows."
+    },
+    {
+      "role": "user",
+      "content": "INPUT:\n{\"columns\":[\"value\",\"baseline\",\"spread\",\"n\",\"n_baseline\"],\"plan\":{\"baseline_window\":{\"end\":\"2017-11-24\",\"start\":\"2017-11-17\"},\"metric\":\"daily order count (distinct orders by purchase date)\",\"question\":\"Why did order volume spike on 24 November 2017?\",\"segment\":\"all\",\"window\":{\"end\":\"2017-11-25\",\"start\":\"2017-11-24\"}},\"rows\":[{\"baseline\":136.571,\"n\":1176,\"n_baseline\":956,\"spread\":125.757,\"value\":1176.0}],\"rows_returned\":1,\"sql\":\"WITH d AS (SELECT CAST(o.order_purchase_timestamp AS DATE) AS day, count(DISTINCT o.order_id) AS m FROM orders.orders o  WHERE o.order_purchase_timestamp >= DATE '2017-11-17' AND o.order_purchase_timestamp < DATE '2017-11-25' GROUP BY 1) SELECT round(avg(m) FILTER (WHERE day >= DATE '2017-11-24'), 4) AS value, round(avg(m) FILTER (WHERE day < DATE '2017-11-24'), 4) AS baseline, round(stddev_samp(m) FILTER (WHERE day < DATE '2017-11-24'), 4) AS spread, sum(m) FILTER (WHERE day >= DATE '2017-11-24') AS n, sum(m) FILTER (WHERE day < DATE '2017-11-24') AS n_baseline FROM d\",\"task\":{\"id\":null,\"kind\":\"change_check\",\"statement\":\"The daily order count (distinct orders by purchase date) for all changed in the window against the baseline.\",\"test\":{\"description\":\"Orders per day in the window against the baseline average.\",\"sources\":[\"orders\"]}},\"truncated\":false}"
+    }
+  ],
+  "reply": "{\"finding\": \"Orders per day: 1176.0 in the window against 136.571 in the baseline (+761.1%).\", \"value\": 1176.0, \"baseline\": 136.571, \"effect\": 7.6109, \"supports\": true}",
+  "provider": "stub",
+  "model_requested": null,
+  "model_routed": "scripted-stub",
+  "receipt_id": null,
+  "usage": null,
+  "recorded_with": "stub",
+  "recorded_at": null
+}
