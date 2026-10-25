@@ -148,11 +148,14 @@ def test_zetaris_reflection_answers_the_three_questions() -> None:
         assert f"**{question}" in text
 
 
-def test_docker_section_says_sprint_16_and_metadata_has_no_docker_entrypoint() -> None:
+def test_docker_section_gives_build_run_and_curl_and_metadata_names_them() -> None:
     text = section("Docker")
-    assert "Docker: added in Sprint 16" in text
-    assert "docker run" not in text and "docker build" not in text
-    assert json.loads(METADATA.read_text(encoding="utf-8"))["entrypoints"]["docker"] is None
+    for command in ("docker build -t explain-why-agent .", "docker run --rm -p 8000:8000 -e SAMPLE_MODE=true",
+                    "-d @input_examples/example_1.json", "host.docker.internal"):
+        assert command in text
+    assert (REPO_ROOT / "Dockerfile").is_file()
+    docker = json.loads(METADATA.read_text(encoding="utf-8"))["entrypoints"]["docker"]
+    assert docker.startswith("docker build -t explain-why-agent .") and "-e SAMPLE_MODE=true" in docker
 
 
 # --- 2. quick start block ------------------------------------------------------------------------

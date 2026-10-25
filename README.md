@@ -54,8 +54,27 @@ ls -l logs/result-quickstart.json logs/trace-quickstart.jsonl logs/queries-quick
 
 ## Docker
 
-Docker: added in Sprint 16. There is no `Dockerfile` yet, so this section has no commands, and
-`metadata.json` has `"docker": null`. Use the [quick start](#quick-start-sample-mode) above.
+The `Dockerfile` (python:3.11-slim, CPU only) installs everything at build time; the container
+starts the API with `python -m app.api` on 0.0.0.0:8000 and installs or downloads nothing.
+
+```bash
+docker build -t explain-why-agent .
+docker run --rm -p 8000:8000 -e SAMPLE_MODE=true explain-why-agent
+```
+
+In a second terminal, from the repository root:
+
+```bash
+curl -s -X POST http://localhost:8000/run -H "Content-Type: application/json" -d @input_examples/example_1.json
+```
+
+The answer is the result JSON (`"status": "success"`, `"sample_mode": true`, rank-1 cause `volume`);
+the web page is at http://localhost:8000/. CI builds and runs the image on every push (job
+`docker-check`, "Plan check P": the three example inputs, HTTP 200 and a schema-valid result each,
+and example 1 again with `--network none`). For full mode pass the settings at run time with
+`--env-file .env`; Nightshift and Zetaris run outside the container, so use the `host.docker.internal`
+variants of `METERLESS_BASE_URL` and `ZETARIS_URL` given in `.env.example` (on Linux add
+`--add-host=host.docker.internal:host-gateway`). No secret is baked into the image.
 
 ## Full mode
 
@@ -159,10 +178,15 @@ mechanics, not a model's reasoning. Any other question gives `cache_miss` in sam
 
 Where the files are:
 
-- `input_examples/`: empty for now; the three example input files are added in Sprint 16.
-- `output_examples/`: `output_examples/example-result.json` is a hand-written example of the result
-  schema from Sprint 2, not a run output. `python run.py ... --save` writes real outputs here;
-  Sprint 16 commits them for the three examples.
+- `input_examples/example_{1,2,3}.json`: `POST /run` bodies (sample mode) for the Day 1 question
+  (incident-01), the review-score dip (incident-06, the Critic refutes delivery delay) and a question
+  that cannot be determined (incident-09). Questions are copied verbatim from `eval/answer_key.json`.
+- `output_examples/example_<N>.json` and `example_<N>.trace.jsonl`: the result and trace the app wrote
+  for each, in sample mode with the Markovian loop; `example_<N>.meta.json` says how many replayed cache
+  entries were recorded with the stub and how many with Nightshift (today all are stub). One command
+  regenerates all of them without network: `python scripts/make_examples.py` (an unchanged cache
+  leaves the files as they are). `output_examples/example-result.json` is a hand-written example of
+  the result schema from Sprint 2, used by the schema tests, not a run output.
 - `logs/`: every run writes `trace-<run_id>.jsonl`, `queries-<run_id>.jsonl` and
   `result-<run_id>.json`; Markovian runs also write `markovian-<run_id>.jsonl` (per chunk: carryover
   and token counts) and `world-<run_id>.jsonl` (the World Model append log). Nothing in `logs/` is
@@ -506,7 +530,7 @@ is what an analyst needs to trust the answer.
   out, and the run is capped by `MARKOVIAN_RUN_TIMEOUT_S`.
 - **Cut from the build plan:** the live trace on the web page and `GET /runs/{id}/events` (the page
   offers the trace as a download), trend lines on the board tiles, and H-MEM (each run is one
-  self-contained investigation). Docker comes in Sprint 16.
+  self-contained investigation). The Docker image is not pushed to a registry; build it locally.
 - Reusing a `--run-id` appends to that run's trace and query log.
 
 ## Pre-existing components
