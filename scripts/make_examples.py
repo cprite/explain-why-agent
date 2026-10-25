@@ -17,8 +17,8 @@ Markovian loop and run id `example_N`, and the script copies what the app wrote:
   separate file.
 
 No network: sample mode replays `data/sample/llm_cache` and reads `data/sample`. Every variable
-named in `.env.example` is dropped from this process's environment first, so a local `.env` or
-shell setting cannot change the outputs. A file whose new content differs from the committed one
+named in `.env.example`, every `Settings` field and every `MARKOVIAN_*` variable is dropped from
+this process's environment first, so a local `.env` or shell setting cannot change the outputs. A file whose new content differs from the committed one
 only in run-specific fields (timestamps, durations) is left as it is, so a rerun on an unchanged
 cache leaves `git status` clean. Exit 0 when all three runs ended in a success result, 1 otherwise
 (the files are still written, so a cache miss shows up in the outputs rather than as a crash).
@@ -37,6 +37,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.config import REPO_ROOT, Settings, resolve_path
+from app.engines.markovian.config import ENV_PREFIX as MARKOVIAN_ENV_PREFIX
 
 ANSWER_KEY = REPO_ROOT / "eval" / "answer_key.json"
 LOOP = "markovian"
@@ -135,10 +136,16 @@ def meta(number: int, incident: str, shows: str, result: dict, calls: list[dict]
 
 
 def clean_environment() -> None:
-    """Drop every variable named in .env.example (commented or not) from this process's environment."""
+    """Drop every variable the app reads from this process's environment.
+
+    That is every name in .env.example (commented or not), every `Settings` field (pydantic-settings
+    matches them in any case, e.g. QUERY_CACHE_DIR) and every MARKOVIAN_* variable.
+    """
     names = set(ENV_NAME.findall((REPO_ROOT / ".env.example").read_text(encoding="utf-8")))
-    for name in names:
-        os.environ.pop(name, None)
+    names |= {field.upper() for field in Settings.model_fields}
+    for key in list(os.environ):
+        if key.upper() in names or key.startswith(MARKOVIAN_ENV_PREFIX):
+            del os.environ[key]
 
 
 def run_example(number: int, incident: str, shows: str, out_dir: Path, input_dir: Path, log_dir: str) -> bool:

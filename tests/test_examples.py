@@ -11,6 +11,7 @@ from __future__ import annotations
 import fnmatch
 import importlib.util
 import json
+import os
 import re
 import subprocess
 import sys
@@ -143,18 +144,39 @@ def _normalised(path: Path, log_dir: Path | None = None) -> str:
     return MAKE.normalised_text(text, jsonl=path.suffix == ".jsonl")
 
 
+# Shell values that would change the outputs if make_examples.py let them through.
+HOSTILE_ENV = {
+    "QUERY_CACHE_DIR": "/nonexistent/query_cache",
+    "loop": "simple",
+    "SAMPLE_MODE": "false",
+    "MARKOVIAN_MAX_CHUNKS": "1",
+}
+
+
 def test_make_examples_regenerates_the_committed_outputs(tmp_path: Path) -> None:
     out, inputs, logs = tmp_path / "out", tmp_path / "in", tmp_path / "logs"
     proc = subprocess.run(
         [sys.executable, "scripts/make_examples.py", "--out-dir", str(out), "--input-dir", str(inputs),
          "--log-dir", str(logs)],
         cwd=REPO_ROOT, capture_output=True, text=True, timeout=600, check=False,
+        env={**os.environ, **HOSTILE_ENV},
     )
     assert proc.returncode == 0, proc.stdout + proc.stderr
     for n in NUMBERS:
         assert _normalised(inputs / f"example_{n}.json") == _normalised(INPUTS / f"example_{n}.json")
         for name in (f"example_{n}.json", f"example_{n}.trace.jsonl", f"example_{n}.meta.json"):
             assert _normalised(out / name, logs) == _normalised(OUTPUTS / name), f"{name} differs: rerun make_examples.py"
+
+
+def test_clean_environment_drops_every_settings_field_and_markovian_variable(monkeypatch) -> None:
+    # A copy, so the test process's own environment is left as it was.
+    env = {**os.environ, **HOSTILE_ENV, "query_cache_dir": "/x", "METERLESS_BASE_URL": "http://x",
+           "UNRELATED_VARIABLE": "kept"}
+    monkeypatch.setattr(os, "environ", env)
+    MAKE.clean_environment()
+    assert not {"QUERY_CACHE_DIR", "loop", "query_cache_dir", "SAMPLE_MODE", "MARKOVIAN_MAX_CHUNKS",
+                "METERLESS_BASE_URL"} & set(os.environ)
+    assert os.environ["UNRELATED_VARIABLE"] == "kept"
 
 
 def test_write_if_changed_keeps_a_file_that_differs_only_in_timings(tmp_path: Path) -> None:
