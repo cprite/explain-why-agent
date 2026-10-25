@@ -1,0 +1,19 @@
+# Kept out of the image: version control, local environments and secrets, run output and caches.
+# data/sample/ and eval/answer_key.json are needed at run time and stay in.
+.git
+.github
+.venv
+venv
+.env
+.cache/
+logs/*
+!logs/.gitkeep
+__pycache__
+**/__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+.mypy_cache
+browser-check.png
+/result.json
+/result-*.json
