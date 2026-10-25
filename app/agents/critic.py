@@ -20,7 +20,9 @@ the explanation 0-3 on three points. The verdict is decided here, not by the mod
   (the orchestrator then ends the run as "cannot be determined").
 
 An invalid reply (a failed call or one that does not validate) is asked for once more; a second
-invalid reply gives `insufficient`. The Critic never raises.
+invalid reply gives `insufficient` with no follow-up tests and `critic_error` set to the error code
+(the orchestrator then demotes the hypothesis without a revision chunk). One critique is therefore
+up to `MAX_REPLY_ATTEMPTS` (2) model calls. The Critic never raises.
 """
 
 from __future__ import annotations
@@ -215,4 +217,5 @@ class Critic:
             follow_up_tests=[],
             attempt=request.attempt,
             retry_count=MAX_REPLY_ATTEMPTS - 1,
+            critic_error=problem,
         )

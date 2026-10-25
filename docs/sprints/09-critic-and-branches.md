@@ -159,9 +159,11 @@ Every branch decision is one `Orchestrator` / `branch` trace line with `branch`,
     against 8.7k–12k before; `token_report` 7849 / 4153 / 47.1 % against 5730 / 4043 / 29.4 %. The
     largest chunk input is 5236 chars of the 12000 budget.
 
-## Plan check L (new CI step)
+## Plan check N (new CI step)
 
-L was the next free letter (J is on main, K is taken by PR #24). `scripts/check_critic_run.py
+Added as L, the next free letter then (J is on main, K is taken by PR #24). The eval step (PR #20)
+was also L, so Sprint 10b relabelled this one N (M is taken by PR #30); see
+`docs/sprints/10b-critic-failure-path.md`. `scripts/check_critic_run.py
 --question <incident>` prints the question string from the answer key, so CI does not retype it.
 `scripts/check_critic_run.py RESULT --expect …` prints the run (status, summary, change, causes,
 ruled out, limitations, one line per Critic call and per branch) and fails when the expectation does
@@ -205,7 +207,7 @@ sampled stretches of the sample, about 100 orders a day.
 
 ## Left out
 
-- **Real-model caches.** Every new entry is a stub recording, so plan checks J and L show the
+- **Real-model caches.** Every new entry is a stub recording, so plan checks J and N show the
   mechanics (verdict rule, revision, branches, trace), not a model's critique. The stub's Critic
   marks concentration, date basis and data artefact `not_checked`; a real model fills them from
   the evidence.
@@ -239,7 +241,7 @@ sampled stretches of the sample, about 100 orders a day.
   - **trace**: one entry per Critic call with checks, scores, verdict, follow-up tests and the
     queries that answered them; one per branch decision with its numbers; verdicts in the World Model
     log with `judges` / `relies_on` edges by the Critic; the no-op critic keeps Sprint 8's behaviour;
-  - **sample mode**: the four plan check L questions replay the committed cache, every call a hit;
+  - **sample mode**: the four plan check N questions replay the committed cache, every call a hit;
   - **Sprint 8 review fixes**: `max_tool_calls` before a round and inside one; a reply trickled one
     byte every 50 ms (about 3.5 s in all) against a 0.5 s deadline returns `timeout` in under 0.9 s,
     and the request thread is gone within a second; a fast bounded reply still parses;

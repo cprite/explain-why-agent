@@ -67,6 +67,11 @@ Gaps found on main and fixed:
   pinned whether or not `env` passes it on. Any other answer leaves the prefix as before. Linux and CI
   are unchanged (the prefix there is still `env -i PATH=… HOME=… PYTHONUTF8=1 SAMPLE_MODE=true`).
   `CLEAN_CLONE_PRINT_PREFIX=1` prints the prefix and exits, for the tests.
+- **Second merge of origin/main (0ae9313, Sprint 10b).** The only conflict was in `ci.yml`: main's
+  Plan check N steps and the `clean-clone` job are both kept. Main's new `tests/test_ci_labels.py`
+  allows each plan check letter on only one step, so the two setup steps of the `clean-clone` job are
+  now named "Clean clone (for plan check M): …". The run step is the one step left named "Plan check M
+  (task 20)", and the commands are unchanged.
 - **Plan check M** (`.github/workflows/ci.yml`, job `clean-clone`). The branch is checked out into a
   fresh directory (`clean-clone/`) and given an empty `.env`. The venv is created inside the tree by
   a `python:3.11-slim` container, with the network on for pip only. The run step then runs

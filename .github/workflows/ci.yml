@@ -121,7 +121,8 @@ jobs:
           echo "--- $(ls logs/eval-*.json) ---"
           python -c "import json,glob; r=json.load(open(sorted(glob.glob('logs/eval-*.json'))[-1])); print({i['id']: (i['status'], i['run_id']) for i in r['incidents']})"
 
-      - name: "Plan check L (tasks 13+14): Critic verdicts and the three branches in sample mode"
+      - name: "Plan check N (tasks 13+14): Critic verdicts and the three branches in sample mode"
+        # Was a second "Plan check L" (PR #28); N since Sprint 10b (L is the eval step, M is PR #30's).
         # Questions are read from eval/answer_key.json (incident-06, -09, -10), not retyped. The fourth is a
         # day of normal order volume (21 Sep 2017: 111 orders against 106.9 a day, spread 17.7).
         env:
@@ -129,16 +130,16 @@ jobs:
         run: |
           set -o pipefail
           echo "--- (a) incident-06: the Critic judges every hypothesis; delivery delay is refuted ---"
-          python run.py "$(python scripts/check_critic_run.py --question incident-06)" --sample --run-id ci-plan-check-l-06 > /tmp/result-l-06.json
-          python scripts/check_critic_run.py /tmp/result-l-06.json --expect refuted:logistics_delay
+          python run.py "$(python scripts/check_critic_run.py --question incident-06)" --sample --run-id ci-plan-check-n-06 > /tmp/result-n-06.json
+          python scripts/check_critic_run.py /tmp/result-n-06.json --expect refuted:logistics_delay
           for id in 09 10; do
             echo "--- (b) incident-$id: cannot be determined, no cause ---"
-            python run.py "$(python scripts/check_critic_run.py --question incident-$id)" --sample --run-id ci-plan-check-l-$id > /tmp/result-l-$id.json
-            python scripts/check_critic_run.py /tmp/result-l-$id.json --expect undeterminable
+            python run.py "$(python scripts/check_critic_run.py --question incident-$id)" --sample --run-id ci-plan-check-n-$id > /tmp/result-n-$id.json
+            python scripts/check_critic_run.py /tmp/result-n-$id.json --expect undeterminable
           done
           echo "--- (c) a change within normal variation: significant false, no causes ---"
-          python run.py "Why did order volume rise on 21 September 2017?" --sample --run-id ci-plan-check-l-no-change > /tmp/result-l-no-change.json
-          python scripts/check_critic_run.py /tmp/result-l-no-change.json --expect no-change
+          python run.py "Why did order volume rise on 21 September 2017?" --sample --run-id ci-plan-check-n-no-change > /tmp/result-n-no-change.json
+          python scripts/check_critic_run.py /tmp/result-n-no-change.json --expect no-change
 
   clean-clone:
     # Plan check M (task 20): the branch checked out into a fresh directory, an empty .env, the venv inside
@@ -146,11 +147,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: "Plan check M (task 20): check out the branch into a fresh directory"
+      - name: "Clean clone (for plan check M): check out the branch into a fresh directory"
         uses: actions/checkout@v4
         with:
           path: clean-clone
-      - name: "Plan check M: empty .env and a venv inside the tree (python:3.11-slim, network on for pip only)"
+      - name: "Clean clone (for plan check M): empty .env and a venv inside the tree (python:3.11-slim, network on for pip only)"
         working-directory: clean-clone
         run: |
           : > .env
