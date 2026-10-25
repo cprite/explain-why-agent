@@ -157,6 +157,13 @@ class Verdict(_Model):
     query_ids: list[str] = Field(default_factory=list, description="Queries behind that evidence.")
     sample_size: int | None = Field(default=None, description="Records behind the change in the window.")
     sample_too_small: bool = False
+    sample_basis: Literal["window", "window_and_baseline", "not_applied"] | None = Field(
+        default=None,
+        description="What the sample-size rule counted: the window's records; the window and the baseline "
+        "together (the records fell, so few in the window is the finding); or nothing (they fell and the "
+        "baseline count is unknown).",
+    )
+    sample_counted: int | None = Field(default=None, description="The records the sample-size rule counted.")
     attempt: int = Field(default=1, ge=1, description="1 for the first critique, 2 after the revision.")
     retry_count: int = Field(default=0, ge=0, description="Invalid replies retried before this verdict.")
     critic_error: str | None = Field(
