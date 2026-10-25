@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import ipaddress
 import json
+import shutil
 import socket
 import subprocess
 from pathlib import Path
@@ -615,27 +616,105 @@ def test_every_external_call_keeps_its_timeout(tmp_path: Path) -> None:
     assert calls and all("with_timeout" in line for line in calls)
 
 
+def _fake_tool(path: Path, body: str) -> str:
+    path.write_text(f"#!/bin/sh\n{body}\n")
+    path.chmod(0o755)
+    return str(path)
+
+
+def _sysctl_body(answer: str | None, log: Path) -> str:
+    """A fake sysctl that logs each call; answer None: the key is missing (Intel Mac), exit 1."""
+    if answer is None:
+        return f"echo \"$0\" >> {log}\necho 'unknown oid' >&2\nexit 1"
+    return f'echo "$0" >> {log}\n[ "$*" = "-n hw.optional.arm64" ] && echo {answer}'
+
+
+def _clean_clone_run(tmp_path: Path, uname: str, extra_env: dict[str, str], machine: str,
+                     path_dirs: str = "/usr/bin:/bin") -> list[str]:
+    bin_dir = tmp_path / "bin"
+    _fake_tool(bin_dir / "uname", f"echo {uname}")
+    _fake_tool(bin_dir / "fakepy", f"echo {machine}")
+    env = {"PATH": f"{bin_dir}:{path_dirs}" if path_dirs else str(bin_dir), "HOME": str(tmp_path),
+           "TMPDIR": str(tmp_path), "PYTHON": str(bin_dir / "fakepy"), "CLEAN_CLONE_PRINT_PREFIX": "1",
+           **extra_env}
+    bash = shutil.which("bash")
+    assert bash
+    done = subprocess.run([bash, str(ROOT / "scripts" / "clean_clone_check.sh")], env=env,
+                          capture_output=True, text=True, timeout=30, check=True)
+    return done.stdout.splitlines()
+
+
 def _clean_clone_prefix(tmp_path: Path, uname: str, sysctl: str | None, machine: str = "x86_64") -> list[str]:
     """The command prefix clean_clone_check.sh builds, with a fake `uname`, `sysctl` and interpreter.
 
-    sysctl None: the key is missing (Intel Mac): no output, exit 1. The fake interpreter reports
-    `machine`, x86_64 by default as from an Intel shell under Rosetta; the script must ignore it.
+    The fake sysctl is injected through CLEAN_CLONE_SYSCTL, so no test can reach the real one (on an
+    Apple Silicon Mac it prints 1). sysctl None: the key is missing (Intel Mac). The fake interpreter
+    reports `machine`, x86_64 by default as from an Intel shell under Rosetta; the script must ignore it.
     """
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(parents=True)
-    (bin_dir / "uname").write_text(f"#!/bin/sh\necho {uname}\n")
-    (bin_dir / "fakepy").write_text(f"#!/bin/sh\necho {machine}\n")
-    if sysctl is None:
-        (bin_dir / "sysctl").write_text("#!/bin/sh\necho 'unknown oid' >&2\nexit 1\n")
+    log = tmp_path / "sysctl.log"
+    # Tripwires print 1, so a fallback to any other sysctl would flip the Intel cases to arm64.
+    tripwire = _sysctl_body("1", log)
+    extra = {"CLEAN_CLONE_SYSCTL": _fake_tool(tmp_path / "injected-sysctl", _sysctl_body(sysctl, log)),
+             "CLEAN_CLONE_SYSCTL_FALLBACK": _fake_tool(tmp_path / "fallback-sysctl", tripwire)}
+    _fake_tool(bin_dir / "sysctl", tripwire)
+    prefix = _clean_clone_run(tmp_path, uname, extra, machine)
+    called = log.read_text().split() if log.exists() else []
+    assert set(called) <= {extra["CLEAN_CLONE_SYSCTL"]}
+    return prefix
+
+
+def _clean_clone_fallback_prefix(tmp_path: Path, on_path: str | None | bool, fallback: str | None
+                                 ) -> tuple[list[str], list[str]]:
+    """The prefix with CLEAN_CLONE_SYSCTL unset: `sysctl` from PATH, then the fallback path.
+
+    on_path False: no sysctl on PATH (PATH holds only the fake bin directory and the tools the
+    script needs); otherwise the PATH sysctl answers on_path. The fallback, set through
+    CLEAN_CLONE_SYSCTL_FALLBACK in place of /usr/sbin/sysctl, answers `fallback`.
+    Returns the prefix and the sysctl binaries called, in order.
+    """
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(parents=True)
+    log = tmp_path / "sysctl.log"
+    for tool in ("dirname", "mktemp", "rm"):
+        found = shutil.which(tool)
+        assert found
+        (bin_dir / tool).symlink_to(found)
+    if on_path is not False:
+        _fake_tool(bin_dir / "sysctl", _sysctl_body(on_path, log))
+    sbin = tmp_path / "usr-sbin"
+    sbin.mkdir()
+    extra = {"CLEAN_CLONE_SYSCTL_FALLBACK": _fake_tool(sbin / "sysctl", _sysctl_body(fallback, log))}
+    prefix = _clean_clone_run(tmp_path, "Darwin", extra, "x86_64", path_dirs="")
+    called = log.read_text().split() if log.exists() else []
+    return prefix, [str(Path(c).parent.name) for c in called]
+
+
+@pytest.mark.parametrize(("on_path", "fallback", "arm64", "called"), [
+    (False, "1", True, ["usr-sbin"]),
+    (None, "1", True, ["bin", "usr-sbin"]),
+    (None, "0", False, ["bin", "usr-sbin"]),
+    (None, None, False, ["bin", "usr-sbin"]),
+    ("1", "0", True, ["bin"]),
+    ("0", "1", False, ["bin"]),
+], ids=["not-on-path", "path-fails-fallback-1", "path-fails-fallback-0", "both-missing",
+        "path-1-no-fallback", "path-0-no-fallback"])
+def test_clean_clone_check_sysctl_fallback(tmp_path: Path, on_path: str | None | bool,
+                                            fallback: str | None, arm64: bool, called: list[str]) -> None:
+    # Real hardware (CLEAN_CLONE_SYSCTL unset): `sysctl` from PATH; if it is missing or fails, the
+    # fallback path (/usr/sbin/sysctl, here a fake through CLEAN_CLONE_SYSCTL_FALLBACK).
+    prefix, seen = _clean_clone_fallback_prefix(tmp_path, on_path, fallback)
+    assert seen == called
+    if arm64:
+        assert prefix[:2] == ["arch", "-arm64"] and prefix[-3:] == ["ARCHPREFERENCE=arm64", "arch", "-arm64"]
     else:
-        (bin_dir / "sysctl").write_text(f'#!/bin/sh\n[ "$*" = "-n hw.optional.arm64" ] && echo {sysctl}\n')
-    for tool in bin_dir.iterdir():
-        tool.chmod(0o755)
-    env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "HOME": str(tmp_path), "TMPDIR": str(tmp_path),
-           "PYTHON": str(bin_dir / "fakepy"), "CLEAN_CLONE_PRINT_PREFIX": "1"}
-    done = subprocess.run(["bash", str(ROOT / "scripts" / "clean_clone_check.sh")], env=env,
-                          capture_output=True, text=True, timeout=30, check=True)
-    return done.stdout.splitlines()
+        assert prefix[:2] == ["env", "-i"] and "arch" not in prefix
+
+
+def test_clean_clone_check_fallback_defaults_to_usr_sbin() -> None:
+    script = (ROOT / "scripts" / "clean_clone_check.sh").read_text()
+    assert '"${CLEAN_CLONE_SYSCTL_FALLBACK:-/usr/sbin/sysctl}" -n hw.optional.arm64' in script
 
 
 @pytest.mark.parametrize("machine", ["x86_64", "arm64"])

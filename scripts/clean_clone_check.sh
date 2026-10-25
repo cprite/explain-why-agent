@@ -39,9 +39,15 @@ CLEAN_ENV=(env -i PATH="$PATH" HOME="${HOME:-/tmp}" PYTHONUTF8=1 SAMPLE_MODE=tru
 # (an Intel bash first in PATH, under Rosetta), and a universal2 Python started from it comes up as
 # x86_64 too, while the venv's wheels are arm64. On Apple Silicon (`sysctl -n hw.optional.arm64` is 1,
 # also under Rosetta) every command runs as `arch -arm64 env -i ... ARCHPREFERENCE=arm64 arch -arm64`.
-# Elsewhere (Intel Mac, no answer, Linux) there is no prefix.
+# Elsewhere (Intel Mac, no answer, Linux) there is no prefix. For tests only: CLEAN_CLONE_SYSCTL names
+# the one sysctl to ask (no fallback then), CLEAN_CLONE_SYSCTL_FALLBACK replaces /usr/sbin/sysctl.
 if [ "$(uname -s)" = Darwin ]; then
-  HW_ARM64="$( (sysctl -n hw.optional.arm64 || /usr/sbin/sysctl -n hw.optional.arm64) 2>/dev/null)"
+  if [ -n "${CLEAN_CLONE_SYSCTL:-}" ]; then
+    HW_ARM64="$("$CLEAN_CLONE_SYSCTL" -n hw.optional.arm64 2>/dev/null)"
+  else
+    HW_ARM64="$( (sysctl -n hw.optional.arm64 ||
+      "${CLEAN_CLONE_SYSCTL_FALLBACK:-/usr/sbin/sysctl}" -n hw.optional.arm64) 2>/dev/null)"
+  fi
   if [ "$HW_ARM64" = 1 ]; then
     CLEAN_ENV=(arch -arm64 env -i PATH="$PATH" HOME="${HOME:-/tmp}" PYTHONUTF8=1 SAMPLE_MODE=true
       ARCHPREFERENCE=arm64 arch -arm64)

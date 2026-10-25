@@ -154,11 +154,20 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
 
 ## How it was tested
 
-- `tests/test_failure_handling.py`: 59 tests, one section per acceptance criterion, plus six for
-  the macOS prefix of `clean_clone_check.sh` (revision 4: a fake `uname`, `sysctl` and interpreter;
+- `tests/test_failure_handling.py`: 66 tests, one section per acceptance criterion, plus thirteen
+  for the macOS prefix of `clean_clone_check.sh` (revision 4: a fake `uname`, `sysctl` and interpreter;
   `sysctl` prints 1 with the interpreter reporting x86_64 or arm64 -> `arch -arm64` prefix; `sysctl`
   prints 0 or the key is missing -> no prefix; Linux unchanged; the script never calls
-  `platform.machine()` or `uname -m`). Sample-mode tests
+  `platform.machine()` or `uname -m`). Revision 6: the fake `sysctl` is injected through
+  `CLEAN_CLONE_SYSCTL` (the script then asks only that one), and the `/usr/sbin/sysctl` fallback path
+  can be replaced through `CLEAN_CLONE_SYSCTL_FALLBACK`. Before this, the "key missing" fake exited
+  1 and the script fell back to the real `/usr/sbin/sysctl`, which prints 1 on an Apple Silicon Mac,
+  so that test failed there (it passed on Linux). Every other `sysctl` the tests can reach is a
+  tripwire that prints 1 and logs its call, and the tests assert that none was called. Six
+  `test_clean_clone_check_sysctl_fallback` cases cover the fallback itself, with `CLEAN_CLONE_SYSCTL`
+  unset and a fake `/usr/sbin`: no `sysctl` on PATH, or it fails -> the fallback is asked (answer 1
+  -> arm64, 0 or missing -> no prefix); the PATH `sysctl` answers -> the fallback is not asked.
+  With both variables unset, the script behaves as before on real hardware. Sample-mode tests
   use a `no_network` fixture that makes `socket.connect`, `connect_ex` and `getaddrinfo` raise for
   any non-loopback address, and they assert it blocked nothing. The end-to-end runs (Day 1 on the
   simple loop, the plan check J question on the default loop) run both with an empty environment
@@ -181,8 +190,8 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
   keeps 11c's `threshold` in `judge` and this sprint's rule that a failed call is not asked for again.
   `tests/test_eval_run.py` is main's version. The Day 1 line of the clean-clone check now reports
   top cause `volume` (11c's prompts and stub caches), where it was `mix_shift` before.
-- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 775 passed after
-  merging Sprint 11c (720 after revision 4, 717 after revision 3, 715 after merging origin/main 0ae9313, 54 of them in `test_failure_handling.py`; 702 at the first merge, against 650 on
+- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 782 passed after
+  revision 6 (the injectable `sysctl`; 775 after merging Sprint 11c, 720 after revision 4, 717 after revision 3, 715 after merging origin/main 0ae9313, 54 of them in `test_failure_handling.py`; 702 at the first merge, against 650 on
   origin/main 457cde2), about 6 minutes on the Pi.
 - Every step of the existing `test` job was rerun locally and passes: A, B, C, D (Zetaris and task 7),
   E, F, G, H, I (a live server on a spare port, including a `run_id_taken` answer for a reused id),
