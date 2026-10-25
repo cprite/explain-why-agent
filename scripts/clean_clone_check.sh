@@ -35,6 +35,23 @@ with_timeout() {  # with_timeout SECONDS COMMAND...: run COMMAND, kill it after 
 # Prefix for every command: an empty environment with sample mode on.
 CLEAN_ENV=(env -i PATH="$PATH" HOME="${HOME:-/tmp}" PYTHONUTF8=1 SAMPLE_MODE=true)
 
+# macOS: a universal2 Python started under `env -i` can come up as x86_64 (Rosetta) while the venv's
+# wheels are arm64. Pin the CPU the interpreter reports when started normally: `arch` before `env -i`
+# and again right before the interpreter, with ARCHPREFERENCE passed through. Linux is unchanged.
+if [ "$(uname -s)" = Darwin ]; then
+  PY_ARCH="$("$PY" -c 'import platform; print(platform.machine())' 2>/dev/null)"
+  case "$PY_ARCH" in
+    arm64 | x86_64)
+      CLEAN_ENV=(arch "-$PY_ARCH" env -i PATH="$PATH" HOME="${HOME:-/tmp}" PYTHONUTF8=1 SAMPLE_MODE=true
+        ARCHPREFERENCE="$PY_ARCH" arch "-$PY_ARCH")
+      ;;
+  esac
+fi
+if [ "${CLEAN_CLONE_PRINT_PREFIX:-}" = 1 ]; then  # for tests: print the prefix, one word per line
+  printf '%s\n' "${CLEAN_ENV[@]}"
+  exit 0
+fi
+
 # summarise QUESTION RESULT.json EXIT_CODE EXPECT CHECKER_EXIT: print the line, exit 0 if it meets EXPECT
 summarise() {
   with_timeout 60 "${CLEAN_ENV[@]}" "$PY" - "$@" <<'EOF'

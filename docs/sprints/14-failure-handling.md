@@ -57,6 +57,16 @@ Gaps found on main and fixed:
   The script prints one line per question and exits 1 if any check fails. Every command runs under a
   timeout (`CLEAN_CLONE_TIMEOUT_SECONDS`, default 300 s per run), enforced by `timeout`, `gtimeout`
   or `perl -e alarm` on a Mac without coreutils.
+- **macOS fix after the owner's Mac test (revision 2).** On an Apple Silicon Mac with a universal2
+  Python 3.14, all three runs crashed at import: under `env -i` the venv's interpreter started as
+  x86_64 (Rosetta) while the installed wheels (`pydantic_core`) are arm64. `pytest` in the same venv
+  passed, so the venv was fine. On Darwin the script now asks the interpreter for its CPU as it starts
+  normally (`"$PY" -c 'import platform; print(platform.machine())'`, without `env -i`) and, for
+  `arm64` or `x86_64`, runs every command as `arch -<cpu> env -i … ARCHPREFERENCE=<cpu> arch -<cpu>
+  python …`: `arch` before `env -i` as asked, and again right before the interpreter, so the CPU is
+  pinned whether or not `env` passes it on. Any other answer leaves the prefix as before. Linux and CI
+  are unchanged (the prefix there is still `env -i PATH=… HOME=… PYTHONUTF8=1 SAMPLE_MODE=true`).
+  `CLEAN_CLONE_PRINT_PREFIX=1` prints the prefix and exits, for the tests.
 - **Plan check M** (`.github/workflows/ci.yml`, job `clean-clone`). The branch is checked out into a
   fresh directory (`clean-clone/`) and given an empty `.env`. The venv is created inside the tree by
   a `python:3.11-slim` container, with the network on for pip only. The run step then runs
@@ -117,7 +127,9 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
 
 ## How it was tested
 
-- `tests/test_failure_handling.py`: 51 tests, one section per acceptance criterion. Sample-mode tests
+- `tests/test_failure_handling.py`: 54 tests, one section per acceptance criterion, plus three for
+  the macOS prefix of `clean_clone_check.sh` (a fake `uname` and interpreter: Darwin arm64, Darwin
+  x86_64 and an unknown answer, and Linux unchanged). Sample-mode tests
   use a `no_network` fixture that makes `socket.connect`, `connect_ex` and `getaddrinfo` raise for
   any non-loopback address, and they assert it blocked nothing. The end-to-end runs (Day 1 on the
   simple loop, the plan check J question on the default loop) run both with an empty environment
@@ -135,8 +147,8 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
     streamed calls too.
   - `test_eval_run.py` compared incident-01 with the root `result.json`; that file (unchanged) is
     now `tests/fixtures/day1-sample-result.json` and the test reads it there.
-- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 702 passed
-  (650 on origin/main 457cde2: 51 in `test_failure_handling.py`, 1 new streaming test), about
+- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 705 passed
+  (650 on origin/main 457cde2: 54 in `test_failure_handling.py`, 1 new streaming test), about
   5 minutes on the Pi.
 - Every step of the existing `test` job was rerun locally and passes: A, B, C, D (Zetaris and task 7),
   E, F, G, H, I (a live server on a spare port, including a `run_id_taken` answer for a reused id),
@@ -158,6 +170,11 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
 
   Exit code 0, 6 s. With `CLEAN_CLONE_TIMEOUT_SECONDS=0.05` every line is `[FAIL] … (exit 124,
   timed out)`, and the script exits 1.
+- Revision 2 (macOS prefix): the Pi has no Mac, so the Darwin branch was run end to end with a fake
+  `uname` (prints `Darwin`), a fake `arch` (logs its arguments and runs the rest) and a wrapper
+  interpreter that reports `arm64`: the same three `[PASS]` lines, exit code 0, and every one of the
+  eight commands logged as `arch -arm64 env -i … ARCHPREFERENCE=arm64 arch -arm64 …/py …`. On the
+  real Linux path the output is unchanged. The fix itself is confirmed only by a run on the Mac.
 
 ## Known limits
 
