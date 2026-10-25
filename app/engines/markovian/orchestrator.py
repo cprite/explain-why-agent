@@ -26,8 +26,9 @@ the generator are injected; this module makes no HTTP call itself.
   critique, each up to `MAX_REPLY_ATTEMPTS` = 2 model calls) are capped at `max_chunks` per run.
 - Branches (each one an `Orchestrator` / `branch` trace line with why and the numbers used):
   `no_significant_change` (|observed - baseline| within `CHANGE_VARIATION_THRESHOLD` spreads, or no
-  spread and the change check reads not real: the run ends after chunk 1, determinable with no
-  causes); `promotion` (the leader is refuted or demoted: the next in the Planner's order leads);
+  trusted spread, the change check reads not real and the change is within the relative rule of
+  `app.change_rules`: the run ends after chunk 1, determinable with no causes); `promotion` (the
+  leader is refuted or demoted: the next in the Planner's order leads);
   `cannot_be_determined` (no hypothesis supported, the Critic flagged the sample as smaller than
   `CRITIC_MIN_SAMPLE_SIZE`, or the cap reached without a supported leader: no causes, the refuted in
   `ruled_out`, the rest listed as unconfirmed in `limitations`) or `determined`.
@@ -67,6 +68,7 @@ from app.agents.critic import MAX_REPLY_ATTEMPTS, Critic
 from app.agents.investigator import InvestigationOutcome, investigate
 from app.agents.planner import make_plan
 from app.agents.reporter import ReportOutcome, report
+from app.change_rules import relative_change, relative_floor, trusted_spread
 from app.config import Settings, get_settings, resolve_path
 from app.data.layer import DataLayer, QueryError, QueryOutcome, QueryResult, SourceInfo
 from app.engines.markovian.carryover import (
@@ -506,9 +508,14 @@ class _Run:
             self._finish("no_hypotheses", status="success", determinable=True, summary=summary,
                          limitations=[summary])
             return
-        self._branch("significant_change" if significant else "change_not_decided",
-                     "the change is outside normal variation" if significant
-                     else "the change check gave no reading; the hypotheses are tested", **numbers)
+        if significant:
+            why = "the change is outside normal variation"
+        elif numbers.get("decided_by") == "relative_change":
+            why = (f"no trusted spread, and the change ({numbers['relative_change']:.0%} of the baseline) is larger "
+                   f"than {numbers['relative_floor']:.0%}; the hypotheses are tested")
+        else:
+            why = "the change check gave no reading; the hypotheses are tested"
+        self._branch("significant_change" if significant else "change_not_decided", why, **numbers)
         self._close_chunk(state)
         queue = list(hypotheses)
         self.leader = hypotheses[0].id if hypotheses else None
@@ -763,7 +770,8 @@ class _Run:
             scores=verdict.scores.model_dump() if verdict.scores else None, total_score=verdict.total_score,
             follow_up_tests=verdict.follow_up_tests, follow_up_results=answered or [],
             observation_ids=verdict.observation_ids, query_ids=verdict.query_ids, sample_size=verdict.sample_size,
-            sample_too_small=verdict.sample_too_small, critic_call=self.critic_calls,
+            sample_too_small=verdict.sample_too_small, sample_basis=verdict.sample_basis,
+            sample_counted=verdict.sample_counted, critic_call=self.critic_calls,
             max_critic_calls=self.config.max_chunks, model_calls=verdict.retry_count + 1,
             critic_error=verdict.critic_error, world_model_id=verdict_id,
         )
@@ -821,19 +829,26 @@ class _Run:
     # --- branches and the answer ---------------------------------------------------------------
 
     def _significance(self, obs: Observation, row: dict[str, Any] | None) -> tuple[bool | None, dict[str, Any]]:
-        """Is the change outside normal variation? With a spread from the change check's row:
-        |observed - baseline| > CHANGE_VARIATION_THRESHOLD x spread. Without one: the Investigator's reading."""
+        """Is the change outside normal variation? With a trusted spread (`app.change_rules`):
+        |observed - baseline| > CHANGE_VARIATION_THRESHOLD x spread. Without one: the Investigator's
+        reading, except that a change larger than the relative rule is never read as no change (None:
+        the hypotheses are tested)."""
         threshold = self.settings.change_variation_threshold
-        spread = (row or {}).get("spread")
-        spread = float(spread) if isinstance(spread, (int, float)) and not isinstance(spread, bool) else None
+        row = row or {}
+        spread, notes = trusted_spread(obs.value, obs.baseline, row.get("spread"), row.get("n"))
         numbers: dict[str, Any] = {"observed": obs.value, "baseline": obs.baseline, "spread": spread,
-                                   "threshold": threshold, "n": (row or {}).get("n")}
-        if spread and spread > 0 and isinstance(obs.value, (int, float)) and isinstance(obs.baseline, (int, float)):
+                                   "threshold": threshold, "n": row.get("n"), **notes}
+        if spread and isinstance(obs.value, (int, float)) and isinstance(obs.baseline, (int, float)):
             difference = abs(obs.value - obs.baseline)
             numbers.update(difference=round(difference, 6), spreads=round(difference / spread, 3),
                            decided_by="spread")
             return difference > threshold * spread, numbers
         numbers["decided_by"] = "investigator_reading"
+        relative = relative_change(obs.value, obs.baseline)
+        if obs.supports is not True and relative is not None and relative > relative_floor(threshold):
+            numbers.update(relative_change=round(relative, 4), relative_floor=relative_floor(threshold),
+                           decided_by="relative_change")
+            return None, numbers
         return obs.supports, numbers
 
     def _no_change_summary(self, plan: Plan, numbers: dict[str, Any]) -> str:
@@ -888,9 +903,12 @@ class _Run:
                       if v.critic_error and self.status.get(hid) != "supported"]
             if self.sample_flag is not None:
                 flag = self.sample_flag
-                why = (f"the Critic flagged the sample as too small ({flag.sample_size} records in the window, "
+                where = ("in the window and the baseline together" if flag.sample_basis == "window_and_baseline"
+                         else "in the window")
+                counted = flag.sample_counted if flag.sample_counted is not None else flag.sample_size
+                why = (f"the Critic flagged the sample as too small ({counted} records {where}, "
                        f"minimum {self.settings.critic_min_sample_size})")
-                limitations.append(f"Sample too small: {flag.sample_size} records behind the change in the window "
+                limitations.append(f"Sample too small: {counted} records behind the change {where} "
                                    f"(CRITIC_MIN_SAMPLE_SIZE={self.settings.critic_min_sample_size}); more records "
                                    "for this segment, or a longer window, would decide it.")
             elif not supported and failed:

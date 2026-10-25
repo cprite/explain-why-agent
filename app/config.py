@@ -91,9 +91,10 @@ class Settings(BaseSettings):
     # Branches and the Critic (architecture §4, Sprint 9). A change is within normal variation when
     # |observed - baseline| <= CHANGE_VARIATION_THRESHOLD x spread (the measure's standard deviation
     # across baseline periods as long as the window); the run then ends with significant=false.
+    # Without a trusted spread, threshold x 10 % of the baseline is the relative rule (app.change_rules).
     change_variation_threshold: float = Field(default=2.0, gt=0.0)
-    # Fewer records than this behind the change in the window: the Critic flags the sample as too
-    # small and the run ends with determinable=false.
+    # Fewer records than this behind the change in the window (window plus baseline when the change is
+    # a fall in records): the Critic flags the sample as too small and the run ends with determinable=false.
     critic_min_sample_size: int = Field(default=30, ge=1)
 
     # HTTP API (architecture §7): bind address, port, and the wall-clock cap on one run.
