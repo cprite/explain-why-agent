@@ -27,7 +27,8 @@ the generator are injected; this module makes no HTTP call itself.
 - Branches (each one an `Orchestrator` / `branch` trace line with why and the numbers used):
   `no_significant_change` (|observed - baseline| within `CHANGE_VARIATION_THRESHOLD` spreads, or no
   trusted spread, the change check reads not real and the change is within the relative rule of
-  `app.change_rules`: the run ends after chunk 1, determinable with no causes); `promotion` (the leader is refuted or demoted: the next in the Planner's order leads);
+  `app.change_rules`: the run ends after chunk 1, determinable with no causes); `promotion` (the
+  leader is refuted or demoted: the next in the Planner's order leads);
   `cannot_be_determined` (no hypothesis supported, the Critic flagged the sample as smaller than
   `CRITIC_MIN_SAMPLE_SIZE`, or the cap reached without a supported leader: no causes, the refuted in
   `ruled_out`, the rest listed as unconfirmed in `limitations`) or `determined`.
