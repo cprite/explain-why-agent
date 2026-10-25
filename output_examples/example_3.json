@@ -1,0 +1,50 @@
+{
+  "run_id": "example_3",
+  "status": "success",
+  "question": "Why did seller 1430239a858e7682bbc43b20758af153's review scores drop in early December 2017?",
+  "change": {
+    "metric": "average review score of reviewed orders, by order purchase date",
+    "segment": "seller 1430239a858e7682bbc43b20758af153",
+    "window": "2017-12-01 to 2017-12-16",
+    "baseline": 3.0,
+    "observed": 1.6667,
+    "significant": true
+  },
+  "determinable": false,
+  "causes": [],
+  "ruled_out": [],
+  "limitations": [
+    "No tested explanation is supported by the data.",
+    "Unconfirmed: H1 (logistics_delay) Sample too small: 3 records in the window (minimum 30). Too few records to tell a cause from noise: 3 records behind the change in the window, fewer than 30. Data that would decide it: more records for this segment.",
+    "Sample too small: 3 records behind the change in the window (CRITIC_MIN_SAMPLE_SIZE=30); more records for this segment, or a longer window, would decide it.",
+    "Not tested after the Critic flagged the sample as too small: H2, H3, H4.",
+    "Sample mode: model replies come from the recorded per-call cache and data from the local DuckDB sample; agents, queries and the loop run for real."
+  ],
+  "agents": [
+    {
+      "name": "Planner",
+      "role": "Turns the question into metric, window, baseline and hypotheses; checks the change is real"
+    },
+    {
+      "name": "Investigator",
+      "role": "Tests one hypothesis at a time with SQL against the data layer"
+    },
+    {
+      "name": "Reporter",
+      "role": "Ranks the supported causes with their evidence and lists what was ruled out"
+    }
+  ],
+  "trace_id": "example_3",
+  "log_file": "logs/trace-example_3.jsonl",
+  "query_log": "logs/queries-example_3.jsonl",
+  "token_report": {
+    "standard_estimate": 1228,
+    "markovian_actual": 1022,
+    "saving_percent": 16.8
+  },
+  "execution_time_seconds": 0.149,
+  "sample_mode": true,
+  "error": null,
+  "stop_reason": "completed",
+  "summary": "Cannot be determined from the data: the Critic flagged the sample as too small (3 records in the window, minimum 30) (1 tested, 0 ruled out)."
+}

@@ -1,0 +1,112 @@
+{
+  "run_id": "example_1",
+  "status": "success",
+  "question": "Why did order volume spike on 24 November 2017?",
+  "change": {
+    "metric": "daily order count (distinct orders by purchase date)",
+    "segment": "all",
+    "window": "2017-11-24 to 2017-11-25",
+    "baseline": 136.571,
+    "observed": 1176.0,
+    "significant": true,
+    "spread": 125.7575
+  },
+  "determinable": true,
+  "causes": [
+    {
+      "rank": 1,
+      "type": "volume",
+      "summary": "The rise is broad: many more sellers than usual received orders.",
+      "confidence": 0.75,
+      "statements": [
+        {
+          "text": "Distinct sellers with orders per day: 383.0 in the window against 90.0 in the baseline (+325.6%).",
+          "kind": "measured",
+          "query_ids": [
+            "q002"
+          ]
+        },
+        {
+          "text": "Orders per day: 1176.0 in the window against 136.571 in the baseline (+761.1%).",
+          "kind": "measured",
+          "query_ids": [
+            "q001"
+          ]
+        },
+        {
+          "text": "The measurements are consistent with: The rise is broad: many more sellers than usual received orders.",
+          "kind": "inferred",
+          "query_ids": [
+            "q002",
+            "q001"
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "observation_id": "obs-1",
+          "source": "orders",
+          "query_id": "q002",
+          "finding": "Distinct sellers with orders per day: 383.0 in the window against 90.0 in the baseline (+325.6%)."
+        },
+        {
+          "observation_id": "obs-0",
+          "source": "orders",
+          "query_id": "q001",
+          "finding": "Orders per day: 1176.0 in the window against 136.571 in the baseline (+761.1%)."
+        }
+      ],
+      "next_checks": [
+        "Check whether a promotion or campaign ran in the window."
+      ]
+    }
+  ],
+  "ruled_out": [
+    {
+      "type": "single_seller",
+      "why": "H3: The measure did not move as the explanation predicts: Largest single seller's share of orders: 0.0638 in the window against 0.0357 in the baseline (+78.7%).",
+      "evidence": [
+        "q005"
+      ]
+    },
+    {
+      "type": "data_artefact",
+      "why": "H4: The measure did not move as the explanation predicts: Duplicate order rows: 0 in the window against 0 in the baseline.",
+      "evidence": [
+        "q006"
+      ]
+    }
+  ],
+  "limitations": [
+    "Only order, seller and price measures were tested; promotions and campaigns are not recorded in the data.",
+    "Unconfirmed: H2 (price_discount) The effect (18%) is too small to explain the change on its own: Average item price: 111.752 in the window against 135.523 in the baseline (-17.5%). Data that would decide it: Split the price_discount measure by state, category and seller to see whether one segment carries it.",
+    "Sample mode: model replies come from the recorded per-call cache and data from the local DuckDB sample; agents, queries and the loop run for real."
+  ],
+  "agents": [
+    {
+      "name": "Planner",
+      "role": "Turns the question into metric, window, baseline and hypotheses; checks the change is real"
+    },
+    {
+      "name": "Investigator",
+      "role": "Tests one hypothesis at a time with SQL against the data layer"
+    },
+    {
+      "name": "Reporter",
+      "role": "Ranks the supported causes with their evidence and lists what was ruled out"
+    }
+  ],
+  "trace_id": "example_1",
+  "log_file": "logs/trace-example_1.jsonl",
+  "query_log": "logs/queries-example_1.jsonl",
+  "token_report": {
+    "standard_estimate": 9939,
+    "markovian_actual": 5217,
+    "saving_percent": 47.5
+  },
+  "execution_time_seconds": 0.705,
+  "sample_mode": true,
+  "error": null,
+  "stop_reason": "completed",
+  "summary": "Most likely cause (volume): The rise is broad: many more sellers than usual received orders."
+}

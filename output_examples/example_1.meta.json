@@ -1,0 +1,24 @@
+{
+  "example": 1,
+  "input": "input_examples/example_1.json",
+  "answer_key_id": "incident-01",
+  "shows": "Day 1: the order-volume spike on 24 November 2017, ranked causes with evidence",
+  "loop": "markovian",
+  "sample_mode": true,
+  "status": "success",
+  "error_code": null,
+  "model_calls": 19,
+  "cache_entries": {
+    "stub": 19,
+    "meterless": 0,
+    "other": 0
+  },
+  "models_requested": [
+    "meterless/deep",
+    "meterless/fast"
+  ],
+  "models_routed": [
+    "scripted-stub"
+  ],
+  "note": "Every replayed reply was recorded from the deterministic stand-in model (app/llm/stub.py): this output shows the agent logic, not a model's answer."
+}

@@ -1,0 +1,24 @@
+{
+  "example": 3,
+  "input": "input_examples/example_3.json",
+  "answer_key_id": "incident-09",
+  "shows": "cannot be determined: too few reviews behind the drop, so no cause is asserted",
+  "loop": "markovian",
+  "sample_mode": true,
+  "status": "success",
+  "error_code": null,
+  "model_calls": 7,
+  "cache_entries": {
+    "stub": 7,
+    "meterless": 0,
+    "other": 0
+  },
+  "models_requested": [
+    "meterless/deep",
+    "meterless/fast"
+  ],
+  "models_routed": [
+    "scripted-stub"
+  ],
+  "note": "Every replayed reply was recorded from the deterministic stand-in model (app/llm/stub.py): this output shows the agent logic, not a model's answer."
+}
