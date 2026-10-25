@@ -344,6 +344,30 @@ def test_every_generate_call_gets_its_own_three_attempts(tmp_path: Path) -> None
     assert len(rec.requests) == 6
 
 
+@pytest.mark.parametrize("fallback", [True, False], ids=["nvidia-fallback", "no-fallback"])
+def test_one_critique_sends_at_most_three_model_requests(tmp_path: Path, fallback: bool) -> None:
+    """The Critic is one agent step: with every provider answering 503 it falls back after one
+    generate call (the generator's retries and fallback), not a second one (PR #30 review)."""
+    from test_critic import critic_request
+
+    from app.agents.critic import Critic
+
+    rec = Recorder({"127.0.0.1": [httpx.Response(503) for _ in range(10)],
+                    "nvidia.test": [httpx.Response(503) for _ in range(10)]})
+    gen = make_generator(tmp_path, rec, **({} if fallback else {"nvidia_api_key": ""}))
+    calls: list[str] = []
+
+    def generate(messages: Any, *, schema: Any = None, role: str = "default", run_id: Any = None) -> Any:
+        calls.append(role)
+        return gen(messages, schema=schema, role=role, run_id=run_id)
+
+    verdict = Critic()(critic_request(tmp_path, generate))
+    assert len(rec.requests) <= MAX_MODEL_ATTEMPTS == 3
+    assert calls == ["critic"]
+    assert verdict.verdict == "insufficient" and verdict.follow_up_tests == []
+    assert verdict.critic_error == "retries_exhausted" and verdict.retry_count == 0
+
+
 # --- Criterion 3: Zetaris down, the run completes on the local adapter ------------------------------
 
 

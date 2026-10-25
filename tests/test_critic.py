@@ -197,7 +197,8 @@ def test_small_sample_is_flagged_and_insufficient(tmp_path: Path) -> None:
 
 
 def test_invalid_reply_is_retried_once_then_insufficient(tmp_path: Path) -> None:
-    bad = GenerationResult(ok=False, error={"code": "invalid_json", "message": "not JSON"})
+    # parsed, but fails CritiqueDraft validation (a failed call, ok false, is not retried)
+    bad = GenerationResult(ok=True, content="{}", parsed={**draft(), "checks": draft()["checks"][:4]}, provider="stub")
     missing_check = {**draft(), "checks": draft()["checks"][:4]}  # parsed but fails CritiqueDraft validation
     generate = fixed(bad, missing_check, draft())
     verdict = Critic()(critic_request(tmp_path, generate))
@@ -386,14 +387,15 @@ def test_critic_failure_demotes_without_a_revision_and_names_the_critic(
     assert [(c["kind"], c["hypothesis_id"]) for c in chunks(tmp_path)] == [
         ("plan", None), *(("round", hid) for hid in HYPOTHESES)]
     assert not any(line["action"] == "request_revision" for line in trace(tmp_path))
-    # One critique per hypothesis, each the first call plus its one retry: 8 Critic model calls
-    # (on main the empty revision chunk asked for a second critique: 16).
+    # One critique per hypothesis. An invalid reply is asked for once more (2 generate calls); a failed
+    # call is not, as the generator has already used the step's retries and fallback (1 call).
+    calls = 1 if code == "provider_error" else 2
     lines = critiques(tmp_path)
     assert [(line["hypothesis_id"], line["attempt"], line["critic_error"], line["model_calls"]) for line in lines] == [
-        (hid, 1, code, 2) for hid in HYPOTHESES]
-    assert len(model.critic_inputs) == 8
+        (hid, 1, code, calls) for hid in HYPOTHESES]
+    assert len(model.critic_inputs) == 4 * calls
     critic_calls = [c for c in model.calls if c["schema"] == "CritiqueDraft"]
-    assert len(critic_calls) == 8
+    assert len(critic_calls) == 4 * calls
     # Every other model call is the same as in a run whose Critic answers once per hypothesis.
     once = CriticScript(lambda hid, attempt: draft((0, 1, 1), contradicted=True))
     run(tmp_path / "once", once)
@@ -496,13 +498,14 @@ def test_reporter_undeterminable_with_a_supported_cause_is_explained(tmp_path: P
 
 def test_critic_cap_counts_critiques_each_up_to_two_model_calls(tmp_path: Path) -> None:
     """Acceptance criterion 3: `max_chunks` caps Critic calls (critiques); one critique is up to
-    MAX_REPLY_ATTEMPTS = 2 model calls (an invalid first reply and its retry)."""
+    MAX_REPLY_ATTEMPTS = 2 generate calls (an invalid first reply and its retry)."""
     from app.agents.critic import MAX_REPLY_ATTEMPTS
     from app.engines.markovian.orchestrator import _Run
 
     assert MAX_REPLY_ATTEMPTS == 2
     seen: dict[tuple[str, int], int] = {}
-    bad = GenerationResult(ok=False, error={"code": "invalid_json", "message": "not JSON"})
+    # parsed, but fails CritiqueDraft validation (a failed call, ok false, is not retried)
+    bad = GenerationResult(ok=True, content="{}", parsed={**draft(), "checks": draft()["checks"][:4]}, provider="stub")
 
     def first_invalid(hid: str, attempt: int) -> Any:
         seen[(hid, attempt)] = seen.get((hid, attempt), 0) + 1
