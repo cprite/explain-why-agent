@@ -68,7 +68,7 @@ Gaps found on main and fixed:
   The script prints one line per question and exits 1 if any check fails. Every command runs under a
   timeout (`CLEAN_CLONE_TIMEOUT_SECONDS`, default 300 s per run), enforced by `timeout`, `gtimeout`
   or `perl -e alarm` on a Mac without coreutils.
-- **macOS fix after the owner's Mac test (revision 2).** On an Apple Silicon Mac with a universal2
+- **macOS fix after the owner's Mac test (revision 2, replaced in revision 4).** On an Apple Silicon Mac with a universal2
   Python 3.14, all three runs crashed at import: under `env -i` the venv's interpreter started as
   x86_64 (Rosetta) while the installed wheels (`pydantic_core`) are arm64. `pytest` in the same venv
   passed, so the venv was fine. On Darwin the script now asks the interpreter for its CPU as it starts
@@ -78,6 +78,15 @@ Gaps found on main and fixed:
   pinned whether or not `env` passes it on. Any other answer leaves the prefix as before. Linux and CI
   are unchanged (the prefix there is still `env -i PATH=… HOME=… PYTHONUTF8=1 SAMPLE_MODE=true`).
   `CLEAN_CLONE_PRINT_PREFIX=1` prints the prefix and exits, for the tests.
+- **macOS fix, revision 4: the CPU from the hardware.** Revision 2 still failed on the owner's Mac.
+  His PATH has `/usr/local/bin` before `/bin`, so `#!/usr/bin/env bash` starts an Intel bash (old
+  Homebrew, under Rosetta). A universal2 Python started from an x86_64 process comes up as x86_64,
+  so the revision 2 probe printed `x86_64`, the prefix forced Intel, and every run failed with
+  `pydantic_core` "have arm64, need x86_64". The script no longer asks the process: on Darwin, if
+  `sysctl -n hw.optional.arm64` prints `1` (Apple Silicon; it reports the hardware under Rosetta
+  too), every command runs as `arch -arm64 env -i … ARCHPREFERENCE=arm64 arch -arm64 python …`;
+  otherwise (Intel Mac, key missing, no answer) there is no prefix. `platform.machine()` and
+  `uname -m` are not used. Linux and CI are unchanged.
 - **Second merge of origin/main (0ae9313, Sprint 10b).** The only conflict was in `ci.yml`: main's
   Plan check N steps and the `clean-clone` job are both kept. Main's new `tests/test_ci_labels.py`
   allows each plan check letter on only one step, so the two setup steps of the `clean-clone` job are
@@ -145,9 +154,11 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
 
 ## How it was tested
 
-- `tests/test_failure_handling.py`: 56 tests, one section per acceptance criterion, plus three for
-  the macOS prefix of `clean_clone_check.sh` (a fake `uname` and interpreter: Darwin arm64, Darwin
-  x86_64 and an unknown answer, and Linux unchanged). Sample-mode tests
+- `tests/test_failure_handling.py`: 59 tests, one section per acceptance criterion, plus six for
+  the macOS prefix of `clean_clone_check.sh` (revision 4: a fake `uname`, `sysctl` and interpreter;
+  `sysctl` prints 1 with the interpreter reporting x86_64 or arm64 -> `arch -arm64` prefix; `sysctl`
+  prints 0 or the key is missing -> no prefix; Linux unchanged; the script never calls
+  `platform.machine()` or `uname -m`). Sample-mode tests
   use a `no_network` fixture that makes `socket.connect`, `connect_ex` and `getaddrinfo` raise for
   any non-loopback address, and they assert it blocked nothing. The end-to-end runs (Day 1 on the
   simple loop, the plan check J question on the default loop) run both with an empty environment
@@ -165,8 +176,8 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
     streamed calls too.
   - `test_eval_run.py` compared incident-01 with the root `result.json`; that file (unchanged) is
     now `tests/fixtures/day1-sample-result.json` and the test reads it there.
-- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 717 passed after
-  revision 3 (715 after merging origin/main 0ae9313, 54 of them in `test_failure_handling.py`; 702 at the first merge, against 650 on
+- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 720 passed after
+  revision 4 (717 after revision 3, 715 after merging origin/main 0ae9313, 54 of them in `test_failure_handling.py`; 702 at the first merge, against 650 on
   origin/main 457cde2), about 6 minutes on the Pi.
 - Every step of the existing `test` job was rerun locally and passes: A, B, C, D (Zetaris and task 7),
   E, F, G, H, I (a live server on a spare port, including a `run_id_taken` answer for a reused id),
@@ -205,6 +216,12 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
   (incident-06, -09, -10 and the no-change question) passes. The L eval prints the same
   `Score: 0/10 (answered 1, no_cache 9, errors 0)`, and `clean_clone_check.sh` under `unshare -rn`
   prints the same three `[PASS]` lines.
+- Revision 4 (CPU from the hardware): the Darwin branch was run end to end on the Pi with a fake
+  `uname` (`Darwin`), a fake `sysctl` (`hw.optional.arm64` = 1) and a fake `arch` that logs its
+  arguments and runs the rest, under `unshare -rn`: the same three `[PASS]` lines, exit code 0,
+  and all eight commands logged as `arch -arm64 env -i … ARCHPREFERENCE=arm64 arch -arm64 …`, none
+  with x86_64. The real Linux path prints the same lines. The fix is confirmed only by a run on the
+  Mac, including `arch -x86_64 /bin/bash scripts/clean_clone_check.sh` (an explicitly Intel shell).
 
 ## Known limits
 
@@ -226,6 +243,10 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
   the check was not worth pulling one onto a shared daemon. The same script was run offline with
   `unshare -rn` instead, as above. The CI log of the `clean-clone` job is the evidence for the
   Docker variant.
+- `scripts/readme_quickstart.py --run` runs the README block through `bash`, so on a Mac whose
+  first `bash` in PATH is an Intel build it fails the same way (`pydantic_core` "have arm64, need
+  x86_64"). Revision 4 fixes only `clean_clone_check.sh`, as asked; running the quick start from a
+  native shell (or `arch -arm64 bash`) avoids it.
 - The Zetaris fallback note is added by `app/runner.py`, so it appears for `run.py` and
   `POST /run`, the two entry points. A caller that runs `run_investigation` or `run_markovian`
   directly gets only the trace and query-log lines.
