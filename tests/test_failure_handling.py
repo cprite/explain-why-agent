@@ -615,12 +615,20 @@ def test_every_external_call_keeps_its_timeout(tmp_path: Path) -> None:
     assert calls and all("with_timeout" in line for line in calls)
 
 
-def _clean_clone_prefix(tmp_path: Path, uname: str, machine: str) -> list[str]:
-    """The command prefix clean_clone_check.sh builds, with a fake `uname` and a fake interpreter."""
+def _clean_clone_prefix(tmp_path: Path, uname: str, sysctl: str | None, machine: str = "x86_64") -> list[str]:
+    """The command prefix clean_clone_check.sh builds, with a fake `uname`, `sysctl` and interpreter.
+
+    sysctl None: the key is missing (Intel Mac): no output, exit 1. The fake interpreter reports
+    `machine`, x86_64 by default as from an Intel shell under Rosetta; the script must ignore it.
+    """
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(parents=True)
     (bin_dir / "uname").write_text(f"#!/bin/sh\necho {uname}\n")
     (bin_dir / "fakepy").write_text(f"#!/bin/sh\necho {machine}\n")
+    if sysctl is None:
+        (bin_dir / "sysctl").write_text("#!/bin/sh\necho 'unknown oid' >&2\nexit 1\n")
+    else:
+        (bin_dir / "sysctl").write_text(f'#!/bin/sh\n[ "$*" = "-n hw.optional.arm64" ] && echo {sysctl}\n')
     for tool in bin_dir.iterdir():
         tool.chmod(0o755)
     env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "HOME": str(tmp_path), "TMPDIR": str(tmp_path),
@@ -630,22 +638,33 @@ def _clean_clone_prefix(tmp_path: Path, uname: str, machine: str) -> list[str]:
     return done.stdout.splitlines()
 
 
-def test_clean_clone_check_pins_the_interpreter_arch_on_darwin(tmp_path: Path) -> None:
-    prefix = _clean_clone_prefix(tmp_path, "Darwin", "arm64")
+@pytest.mark.parametrize("machine", ["x86_64", "arm64"])
+def test_clean_clone_check_pins_arm64_from_the_hardware_on_apple_silicon(tmp_path: Path, machine: str) -> None:
+    # The owner's Mac: the script's own bash runs as x86_64, so the interpreter reports x86_64; the
+    # hardware (sysctl hw.optional.arm64 = 1) decides, never the process.
+    prefix = _clean_clone_prefix(tmp_path, "Darwin", "1", machine=machine)
     assert prefix[:4] == ["arch", "-arm64", "env", "-i"]
     assert prefix[-3:] == ["ARCHPREFERENCE=arm64", "arch", "-arm64"]
     assert "SAMPLE_MODE=true" in prefix and f"HOME={tmp_path}" in prefix
+    assert not any("x86_64" in word for word in prefix)
 
 
-def test_clean_clone_check_prefix_on_intel_mac_and_unknown_arch(tmp_path: Path) -> None:
-    intel = _clean_clone_prefix(tmp_path / "intel", "Darwin", "x86_64")
-    assert intel[:2] == ["arch", "-x86_64"] and intel[-3:] == ["ARCHPREFERENCE=x86_64", "arch", "-x86_64"]
-    unknown = _clean_clone_prefix(tmp_path / "unknown", "Darwin", "")
-    assert unknown[:2] == ["env", "-i"] and "arch" not in unknown
+@pytest.mark.parametrize("sysctl", ["0", None], ids=["sysctl-0", "sysctl-missing"])
+def test_clean_clone_check_no_prefix_on_intel_mac(tmp_path: Path, sysctl: str | None) -> None:
+    prefix = _clean_clone_prefix(tmp_path, "Darwin", sysctl, machine="arm64")
+    assert prefix[:2] == ["env", "-i"] and "arch" not in prefix
+    assert not any(word.startswith("ARCHPREFERENCE") for word in prefix)
+
+
+def test_clean_clone_check_never_asks_the_process_for_its_arch() -> None:
+    script = (ROOT / "scripts" / "clean_clone_check.sh").read_text()
+    code = [line for line in script.splitlines() if not line.lstrip().startswith("#")]
+    assert not any("platform.machine" in line or "uname -m" in line for line in code)
+    assert any("sysctl -n hw.optional.arm64" in line for line in code)
 
 
 def test_clean_clone_check_prefix_unchanged_on_linux(tmp_path: Path) -> None:
-    prefix = _clean_clone_prefix(tmp_path, "Linux", "arm64")
+    prefix = _clean_clone_prefix(tmp_path, "Linux", "1", machine="arm64")
     assert prefix[:2] == ["env", "-i"]
     assert "arch" not in prefix and not any(word.startswith("ARCHPREFERENCE") for word in prefix)
     assert prefix[-1] == "SAMPLE_MODE=true"

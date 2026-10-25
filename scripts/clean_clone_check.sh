@@ -35,17 +35,17 @@ with_timeout() {  # with_timeout SECONDS COMMAND...: run COMMAND, kill it after 
 # Prefix for every command: an empty environment with sample mode on.
 CLEAN_ENV=(env -i PATH="$PATH" HOME="${HOME:-/tmp}" PYTHONUTF8=1 SAMPLE_MODE=true)
 
-# macOS: a universal2 Python started under `env -i` can come up as x86_64 (Rosetta) while the venv's
-# wheels are arm64. Pin the CPU the interpreter reports when started normally: `arch` before `env -i`
-# and again right before the interpreter, with ARCHPREFERENCE passed through. Linux is unchanged.
+# macOS: decide the CPU from the hardware, never from this process. This shell may itself run as x86_64
+# (an Intel bash first in PATH, under Rosetta), and a universal2 Python started from it comes up as
+# x86_64 too, while the venv's wheels are arm64. On Apple Silicon (`sysctl -n hw.optional.arm64` is 1,
+# also under Rosetta) every command runs as `arch -arm64 env -i ... ARCHPREFERENCE=arm64 arch -arm64`.
+# Elsewhere (Intel Mac, no answer, Linux) there is no prefix.
 if [ "$(uname -s)" = Darwin ]; then
-  PY_ARCH="$("$PY" -c 'import platform; print(platform.machine())' 2>/dev/null)"
-  case "$PY_ARCH" in
-    arm64 | x86_64)
-      CLEAN_ENV=(arch "-$PY_ARCH" env -i PATH="$PATH" HOME="${HOME:-/tmp}" PYTHONUTF8=1 SAMPLE_MODE=true
-        ARCHPREFERENCE="$PY_ARCH" arch "-$PY_ARCH")
-      ;;
-  esac
+  HW_ARM64="$( (sysctl -n hw.optional.arm64 || /usr/sbin/sysctl -n hw.optional.arm64) 2>/dev/null)"
+  if [ "$HW_ARM64" = 1 ]; then
+    CLEAN_ENV=(arch -arm64 env -i PATH="$PATH" HOME="${HOME:-/tmp}" PYTHONUTF8=1 SAMPLE_MODE=true
+      ARCHPREFERENCE=arm64 arch -arm64)
+  fi
 fi
 if [ "${CLEAN_CLONE_PRINT_PREFIX:-}" = 1 ]; then  # for tests: print the prefix, one word per line
   printf '%s\n' "${CLEAN_ENV[@]}"
