@@ -23,14 +23,15 @@ Since Sprint 9 it also answers three more generic shapes and the Critic:
   contradicted; an effect of 30 % or more is supported (8 of 9); a smaller effect is insufficient
   (5 of 9) with one timing follow-up test (the same measure on the second half of the window), and
   supported on the second critique only if that follow-up shows 30 % or more. Fewer records behind
-  the change than `min_sample_size` (the change check's `n` column) fails the sample-size check.
+  the change than `min_sample_size` (the change check's `n` column) fails the sample-size check,
+  unless the change is a fall in records (`app.change_rules.records_fell`).
 
 Since Sprint 11d it answers the empty-result retry generically: the stored-values check lists the
 values of the first column the query compared with a literal, and the rewrite returns the query
 unchanged, so a filter that matched nothing ends as "Filter matched no records".
 
 Every change check also returns `spread` (the standard deviation of the measure across baseline
-periods as long as the window) and `n` (records in the window).
+periods as long as the window), `n` (records in the window) and `n_baseline` (records in the baseline).
 
 It reads the date from the question (any "<day> <Month> <year>", ISO date, "<Month> <year>" or
 "YYYY-MM"). It knows nothing about the planted incidents. Its replies are what a model would return; the agents, queries and loop around it run
@@ -48,6 +49,7 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 
 from app.agents.base import parse_input
+from app.change_rules import records_fell
 from app.llm.generator import GenerationResult, Message
 
 STUB_MODEL = "scripted-stub"
@@ -105,7 +107,7 @@ SQL_TEMPLATES: dict[str, str] = {
     "change_check": _daily("count(DISTINCT o.order_id)", "").replace(
         " AS baseline FROM d",
         " AS baseline, round(stddev_samp(m) FILTER (WHERE day < DATE '{w0}'), 4) AS spread, "
-        "sum(m) FILTER (WHERE day >= DATE '{w0}') AS n FROM d",
+        "sum(m) FILTER (WHERE day >= DATE '{w0}') AS n, sum(m) FILTER (WHERE day < DATE '{w0}') AS n_baseline FROM d",
     ),
     "volume": _daily("count(DISTINCT i.seller_id)", "JOIN orders.order_items i ON i.order_id = o.order_id"),
     "price_discount": (
@@ -160,7 +162,8 @@ LATENESS_SQL_TEMPLATES: dict[str, str] = {
         f" AS baseline, (SELECT round(stddev_samp(m), 4) FROM (SELECT avg(CASE WHEN {LATE} THEN 1.0 ELSE 0.0 END) "
         f"AS m FROM orders.orders o WHERE {LATENESS_FILTER} AND NOT ({IN_WINDOW}) GROUP BY "
         "floor(date_diff('day', DATE '{b0}', CAST(o.order_delivered_customer_date AS DATE)) / {wd}))) AS spread, "
-        f"count(*) FILTER (WHERE {IN_WINDOW}) AS n FROM orders.orders o ",
+        f"count(*) FILTER (WHERE {IN_WINDOW}) AS n, count(*) FILTER (WHERE NOT ({IN_WINDOW})) AS n_baseline "
+        "FROM orders.orders o ",
     ),
     "logistics_delay": _window_avg(
         "date_diff('hour', o.order_delivered_carrier_date, o.order_delivered_customer_date) / 24.0",
@@ -278,7 +281,7 @@ REVIEW_SQL_TEMPLATES: dict[str, str] = {
     "change_check": (
         REVIEWS + f"SELECT round(avg(score) FILTER (WHERE {R_WIN}), 4) AS value, "
         f"round(avg(score) FILTER (WHERE NOT ({R_WIN})), 4) AS baseline, {_spread('r', 'score')}, "
-        f"count(*) FILTER (WHERE {R_WIN}) AS n FROM r"
+        f"count(*) FILTER (WHERE {R_WIN}) AS n, count(*) FILTER (WHERE NOT ({R_WIN})) AS n_baseline FROM r"
     ),
     "logistics_delay": _r_avg("date_diff('hour', ts, delivered) / 24.0", "delivered IS NOT NULL"),
     "product_quality": _r_avg("score", "CAST(delivered AS DATE) <= CAST(estimated AS DATE)"),
@@ -355,7 +358,7 @@ ORDER_VALUE_SQL_TEMPLATES: dict[str, str] = {
     "change_check": (
         ORDER_VALUES + f"SELECT round(avg(v) FILTER (WHERE {A_WIN}), 4) AS value, "
         f"round(avg(v) FILTER (WHERE NOT ({A_WIN})), 4) AS baseline, {_spread('a', 'v')}, "
-        f"count(v) FILTER (WHERE {A_WIN}) AS n FROM a"
+        f"count(v) FILTER (WHERE {A_WIN}) AS n, count(v) FILTER (WHERE NOT ({A_WIN})) AS n_baseline FROM a"
     ),
     "price_discount": _a_avg("price"),
     "mix_shift": _a_avg("k"),
@@ -435,6 +438,14 @@ def _shape(metric: str) -> str:
     if is_order_value(metric):
         return "order_value"
     return "orders"
+
+
+def _window_days(window: Any) -> int:
+    """Days in a plan window ({start, end}, end exclusive); 0 when it cannot be read."""
+    try:
+        return (date.fromisoformat(window["end"]) - date.fromisoformat(window["start"])).days
+    except (TypeError, KeyError, ValueError):
+        return 0
 
 
 def _is_follow_up(task: dict[str, Any]) -> bool:
@@ -707,8 +718,16 @@ class ScriptedModel:
         minimum = int(data.get("min_sample_size") or 0)
         ids = ([obs["id"]] if obs else []) + [f["id"] for f in follow_up]
         effect = abs(obs.get("effect") or 0.0) if obs else 0.0
+        plan = data.get("plan") or {}
+        change = data.get("change") or {}
+        fell = records_fell(n, row.get("n_baseline"), _window_days(plan.get("window")),
+                            _window_days(plan.get("baseline_window")), threshold=2.0,
+                            observed=change.get("value"), baseline=change.get("baseline"))
         if n is None:
             sample = ("not_checked", "The change check reports no record count.")
+        elif n < minimum and fell:
+            sample = ("passed", (f"{n} records in the window: the change is a fall in records, so few records "
+                                "in the window are the finding, not a weak sample."))
         elif n < minimum:
             sample = ("failed", f"{n} records behind the change in the window, fewer than {minimum}.")
         else:

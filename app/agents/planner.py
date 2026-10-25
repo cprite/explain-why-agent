@@ -1,9 +1,10 @@
 """Planner: question + source schemas -> investigation plan (architecture §4).
 
 The model proposes metric, segment, window, baseline window, the change check and 2-4 hypotheses
-from the families in architecture §4; the code renumbers hypotheses by priority so ids are stable.
-With `ctx.ground_filters` the sources carry the stored text values and the prompt has the value note
-(`prompts/value_hints_note.md`, Sprint 11d).
+from the families in architecture §4, guided by `HYPOTHESIS_CHECKLIST` (the standard families for each
+kind of metric, with the breadth test for `volume`); the code renumbers hypotheses by priority so ids
+are stable. With `ctx.ground_filters` the sources carry the stored text values and the prompt has the
+value note (`prompts/value_hints_note.md`, Sprint 11d).
 """
 
 from __future__ import annotations
@@ -16,6 +17,31 @@ from app.schemas import HYPOTHESIS_FAMILIES, Plan
 
 AGENT = "Planner"
 ROLE = "planner"
+
+HYPOTHESIS_CHECKLIST: tuple[dict[str, str], ...] = (
+    {
+        "metric_kind": "count or revenue (orders, items, sales, payments, revenue)",
+        "standard_families": "volume, single_seller, price_discount, data_artefact",
+        "volume_test": "Breadth: distinct sellers, categories and customer states active per day in the window "
+        "against the baseline, and the share of them whose count rose (or fell) the same way. A broad change "
+        "moves most segments together; one segment carrying it points to single_seller or mix_shift instead.",
+    },
+    {
+        "metric_kind": "share or rate (late share, share of a payment type, conversion)",
+        "standard_families": "logistics_delay or mix_shift (what moves the numerator), volume (the denominator), "
+        "single_seller, data_artefact",
+        "volume_test": "The denominator per day (deliveries, orders) in the window against the baseline, and "
+        "the number of segments whose share rose.",
+    },
+    {
+        "metric_kind": "average per record (order value, price, freight, review score)",
+        "standard_families": "price_discount, mix_shift, single_seller, logistics_delay or product_quality, "
+        "data_artefact",
+        "volume_test": "Records per day and the number of segments active, to see whether the average moved "
+        "everywhere or only where the mix changed.",
+    },
+)
+"""Standard hypothesis families per kind of metric (architecture §4), sent to the Planner with each plan."""
 
 
 @dataclass
@@ -32,6 +58,7 @@ def make_plan(ctx: AgentContext, question: str) -> PlanOutcome:
         "question": question,
         "sources": ctx.source_schemas(),
         "hypothesis_families": list(HYPOTHESIS_FAMILIES),
+        "hypothesis_checklist": list(HYPOTHESIS_CHECKLIST),
     }
     prompt = load_prompt("planner")
     if ctx.ground_filters:

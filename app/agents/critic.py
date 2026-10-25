@@ -17,7 +17,8 @@ the explanation 0-3 on three points. The verdict is decided here, not by the mod
 - `contradicted` -> refuted, with the reason;
 - otherwise a total of 7 or more of 9 -> supported, less -> insufficient with the follow-up tests;
 - a reported sample size below `CRITIC_MIN_SAMPLE_SIZE` -> insufficient with `sample_too_small`
-  (the orchestrator then ends the run as "cannot be determined").
+  (the orchestrator then ends the run as "cannot be determined"). When the records behind the measure
+  fell in the window, the rule counts the window and the baseline together (`sample_rule`).
 
 An invalid reply (a failed call or one that does not validate) is asked for once more; a second
 invalid reply gives `insufficient` with no follow-up tests and `critic_error` set to the error code
@@ -27,12 +28,14 @@ up to `MAX_REPLY_ATTEMPTS` (2) model calls. The Critic never raises.
 
 from __future__ import annotations
 
+from datetime import date
 from typing import TYPE_CHECKING, Any
 
 from pydantic import ValidationError
 
 from app.agents.base import build_messages
 from app.agents.prompts import load_prompt
+from app.change_rules import number, records_fell
 from app.config import Settings, get_settings
 from app.engines.world_model.context import Intent
 from app.schemas import (
@@ -135,18 +138,53 @@ def _known_ids(payload: dict[str, Any], request: CriticRequest) -> dict[str, str
     return known
 
 
+def _days(start: str, end: str) -> int:
+    try:
+        return (date.fromisoformat(end) - date.fromisoformat(start)).days
+    except ValueError:
+        return 0
+
+
+def sample_rule(sample_size: int | None, request: CriticRequest, *, threshold: float) -> tuple[str | None, int | None]:
+    """What the sample-size rule counts: (`sample_basis`, records counted).
+
+    When the records behind the measure fell in the window (`app.change_rules.records_fell`, from the
+    change check's `n` and `n_baseline`, or a measure that dropped to zero), few records in the window
+    are the finding, not a weak sample: the rule counts the window and the baseline together, or is not
+    applied when the baseline count is unknown. Otherwise it counts the window's records.
+    """
+    if sample_size is None:
+        return None, None
+    row = request.change_row or {}
+    change = request.change
+    plan = request.plan
+    fell = records_fell(
+        row.get("n"), row.get("n_baseline"), _days(plan.window.start, plan.window.end),
+        _days(plan.baseline_window.start, plan.baseline_window.end), threshold=threshold,
+        observed=change.value if change else None, baseline=change.baseline if change else None,
+    )
+    if not fell:
+        return "window", sample_size
+    n_baseline = number(row.get("n_baseline"))
+    if n_baseline is None:
+        return "not_applied", None
+    return "window_and_baseline", sample_size + int(n_baseline)
+
+
 def judge(
     draft: CritiqueDraft,
     request: CriticRequest,
     payload: dict[str, Any],
     *,
     min_sample_size: int,
+    threshold: float = 2.0,
     retry_count: int = 0,
 ) -> Verdict:
     """Turn the model's critique into a verdict by the fixed rule in the module docstring."""
     hypothesis = request.hypothesis
     total = draft.scores.total
-    too_small = draft.sample_size is not None and draft.sample_size < min_sample_size
+    basis, counted = sample_rule(draft.sample_size, request, threshold=threshold)
+    too_small = counted is not None and counted < min_sample_size
     if draft.contradicted:
         verdict = "refuted"
     elif too_small:
@@ -155,7 +193,8 @@ def judge(
         verdict = "supported" if total >= SUPPORTED_MIN_SCORE else "insufficient"
     reason = draft.reason.strip() or f"critique total {total}/9"
     if too_small:
-        reason = f"Sample too small: {draft.sample_size} records in the window (minimum {min_sample_size}). {reason}"
+        where = "in the window and the baseline together" if basis == "window_and_baseline" else "in the window"
+        reason = f"Sample too small: {counted} records {where} (minimum {min_sample_size}). {reason}"
     follow_up = [t.strip() for t in draft.follow_up_tests if t.strip()] if verdict == "insufficient" else []
     if verdict == "insufficient" and not follow_up and not too_small:
         follow_up = [f"Repeat the test with more evidence: {hypothesis.test.description}"]
@@ -177,6 +216,8 @@ def judge(
         query_ids=query_ids,
         sample_size=draft.sample_size,
         sample_too_small=too_small,
+        sample_basis=basis,
+        sample_counted=counted,
         attempt=request.attempt,
         retry_count=retry_count,
     )
@@ -188,6 +229,7 @@ class Critic:
     def __init__(self, settings: Settings | None = None, *, min_sample_size: int | None = None) -> None:
         settings = settings or get_settings()
         self.min_sample_size = min_sample_size if min_sample_size is not None else settings.critic_min_sample_size
+        self.threshold = settings.change_variation_threshold
         self.last_problem = ""
         """The detail of the last invalid reply (for the trace; not part of the verdict)."""
 
@@ -206,7 +248,8 @@ class Critic:
                     problem = "invalid_reply"
                     self.last_problem = validation_summary(exc)
                     continue
-                return judge(draft, request, payload, min_sample_size=self.min_sample_size, retry_count=attempt)
+                return judge(draft, request, payload, min_sample_size=self.min_sample_size,
+                             threshold=self.threshold, retry_count=attempt)
             error = reply.error or {}
             problem = str(error.get("code", "error"))
             self.last_problem = str(error.get("message", ""))
