@@ -93,6 +93,14 @@ growth. The figures are character estimates (`ceil(chars / 4)`), not provider to
 - Every command in the README was run once on the build machine in sample mode; the live commands
   (`scripts/live_check.py`, `scripts/zetaris_setup.py`, `scripts/zetaris_parity.py`) were checked
   only for their flags, as this session has no credentials.
+- Apple Silicon (owner's review, 25 Oct): on a Mac whose `PATH` bash is an Intel (Rosetta) build, a
+  universal python started from that shell runs as x86_64 and `run.py` fails with pydantic_core
+  `incompatible architecture (have arm64, need x86_64)`. `scripts/readme_quickstart.py --run` now
+  runs the block as `arch -arm64 /bin/bash` when `platform.system()` is Darwin and
+  `sysctl -n hw.optional.arm64` is 1; elsewhere the command is unchanged. Unit tests in
+  `tests/test_docs.py` pin the command for both cases (platform and sysctl mocked). The README quick
+  start has a one-line troubleshooting note. The Mac path itself was not run here (Linux build
+  machine); the PR's How to test step 1 includes `arch -x86_64 /bin/bash -c ...` as the proof.
 
 ## Known limits
 
