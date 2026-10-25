@@ -5,7 +5,8 @@ stored in the data. The query matched nothing, and the Critic then reported "the
 (0 records)". This sprint does two things: it shows the agents the stored values, and it treats an
 empty result as an empty filter, not as a small sample. It stays out of Sprint 11c's areas (#35:
 change-check spread, Planner hypothesis checklist, the sample-size rule on a drop to zero).
-`app/agents/critic.py` and `planner.md` are not touched.
+`app/agents/critic.py` and `planner.md` are not touched; `planner.py` has both 11c's checklist and
+this sprint's value note.
 
 ## Real-run evidence (25 Oct, main 0ae9313, `DATA_LAYER=local`)
 
@@ -103,16 +104,19 @@ valid.
   map names.
 - None of the recorded stub questions hits an empty result, so their runs are unchanged apart from
   the prompts.
-- The Markovian stub entries were re-recorded with
-  `python scripts/record_stub_cache.py "<question>" --record-queries --run-id record-stub` for 5
-  questions:
-  - the Plan check J question;
-  - the incident-06, -09 and -10 questions;
-  - "Why did order volume rise on 21 September 2017?".
+- After Sprint 11c (#37) landed, main was merged into this branch. The Planner keeps both 11c's
+  `hypothesis_checklist` payload and the value note. Neither branch's stub entries matched the
+  combined prompts, so every `recorded_with: stub` entry was removed and re-recorded with
+  `python scripts/record_stub_cache.py "<question>" --record-queries --run-id record-stub` for the
+  questions CI replays, as in 11c:
+  - Markovian: incident-01, -02 (Plan check J), -06, -09, -10, and "Why did order volume rise on
+    21 September 2017?";
+  - simple loop (`--loop simple`): the Day 1 question (plan checks C and I).
 
-  That is 61 entries, as before, all `recorded_with: stub`. The 61 old stub entries were removed
-  (some keys are unchanged). The 15 `recorded_with: meterless` entries are untouched. No new
-  query-row files were needed. The coordinator re-records the real caches after merge.
+  That gives 87 stub entries: 56 have the same key and content as on main, 30 dead keys were removed
+  and 31 are new. The 15 `recorded_with: meterless` entries are untouched. 11 query-row files were
+  added (rows of the incident-01 and -02 Markovian queries that were not yet recorded; they hold the
+  same rows DuckDB returns). The coordinator re-records the real caches after merge.
 
 ## Tests
 
@@ -150,9 +154,11 @@ valid.
 - `tests/test_data_zetaris.py` (2 new tests, `httpx.MockTransport`): Zetaris `profile` goes through
   the USL with no query id and no log line, rejects a write, and falls back to local profiling on a
   503.
-- Whole suite: `pytest -q`. Plan checks C, J, L (`Score: 0/10 (answered 1, no_cache 9, errors 0)`,
-  as on main) and N (all four `[PASS]`) were run locally in sample mode with the same outcomes as
-  main.
+- `tests/test_prompts.py`: the three new prompts have a `Does:` / `Must not:` header (dropped
+  before the model sees it) and are in the prompt-size registry with their size when added.
+- Whole suite after merging main: `pytest -q` (748 passed). Plan checks C, J, L
+  (`Score: 5/10 (answered 5, no_cache 5, errors 0)`, as on main) and N (all four `[PASS]`) were run
+  locally in sample mode with the same outcomes as main.
 
 ## Known limits
 
