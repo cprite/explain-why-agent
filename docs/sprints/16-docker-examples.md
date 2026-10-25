@@ -53,8 +53,9 @@ under `app/`, no prompt and no recorded cache changed, so every committed cache 
   the agent logic, not a model's answer. The counts live in a separate file because `Result` forbids
   extra fields and the outputs must stay what the app wrote.
 - `scripts/make_examples.py`: one command regenerates all three inputs, outputs, traces and meta
-  files, in sample mode, with no network. It first drops every variable named in `.env.example` from
-  its environment (so a local `.env` or shell setting cannot change the outputs) and deletes its own
+  files, in sample mode, with no network. It first drops from its environment every variable named in
+  `.env.example`, every `Settings` field name (e.g. `QUERY_CACHE_DIR`, in any case) and every
+  `MARKOVIAN_*` variable (so a local `.env` or shell setting cannot change the outputs) and deletes its own
   `logs/*-example_N.*` files from earlier runs (a reused run id would append to the old trace). A file
   whose new content differs only in timestamps and durations is left untouched, so on an unchanged
   cache `git status` stays clean. After the coordinator commits the re-recorded Nightshift caches,
@@ -72,14 +73,15 @@ under `app/`, no prompt and no recorded cache changed, so every committed cache 
 
 ## How it was tested
 
-- `tests/test_examples.py` (43 tests, run by CI's `pytest -q` step): the three triples and meta files
+- `tests/test_examples.py` (44 tests, run by CI's `pytest -q` step): the three triples and meta files
   exist; inputs validate against the API's own `RunRequest` and carry the answer-key questions
   verbatim; outputs are schema-valid sample-mode successes; example 2's trace has a refuted Critic
   verdict and `logistics_delay` in `ruled_out`; example 3 has determinable false, no cause and a
   "Cannot be determined" summary; each trace names the requested and routed model on every model
   call; the meta counts equal the counts recomputed from the trace; `make_examples.py` run into a
-  temp folder reproduces the committed files after normalising timestamps, durations and the log
-  folder path; no `nvapi-`, `sk-` key, bearer token, `@gmail` or IPv4 other than 127.0.0.1/0.0.0.0 in
+  temp folder, with `QUERY_CACHE_DIR`, `loop`, `SAMPLE_MODE` and a `MARKOVIAN_*` variable set to other
+  values in its environment, reproduces the committed files after normalising timestamps, durations
+  and the log folder path; `clean_environment` drops those variables and keeps unrelated ones; no `nvapi-`, `sk-` key, bearer token, `@gmail` or IPv4 other than 127.0.0.1/0.0.0.0 in
   the Dockerfile, `.dockerignore`, `.env.example`, `input_examples/` or `output_examples/`; the
   Dockerfile base equals CI's Python version, dependencies come from `requirements.txt` at build time,
   the start command is `python -m app.api`, no `ARG` and no secret `ENV`; `.dockerignore` keeps
@@ -87,7 +89,7 @@ under `app/`, no prompt and no recorded cache changed, so every committed cache 
   variants in `.env.example`; and the shape of the new workflow.
 - `tests/test_docs.py`: the Docker-section test now checks the commands and `entrypoints.docker`
   instead of the Sprint 15 placeholder.
-- Local: full `pytest -q` 896 passed; `ruff check .` clean; `python scripts/make_examples.py` run
+- Local: full `pytest -q` 897 passed; `ruff check .` clean; `python scripts/make_examples.py` run
   twice in a row leaves `output_examples/` byte-identical.
 - Plan check P, `.github/workflows/docker-check.yml` (job `docker-check`, 15-minute limit): fresh
   checkout with no `.env`, `docker build -t explain-why-agent .`, `docker run -d -p 8000:8000 -e
@@ -96,8 +98,14 @@ under `app/`, no prompt and no recorded cache changed, so every committed cache 
   1500 bytes of each response printed, each body validated with the image's own `app.schemas.Result`
   (status success, sample mode, example 3 undeterminable with no cause). A second container started
   with `--network none` answers example 1 too, so the start command needs no network. `docker logs`
-  of both containers are printed and the containers stopped in an `always()` step. The CI result is
-  on the PR's checks (the build machine does not run Docker).
+  of both containers are printed and the containers stopped in an `always()` step.
+- Plan check P result: `docker-check` passed on PR 40
+  ([run 40226184252](https://github.com/cprite/explain-why-agent/actions/runs/40226184252), job time
+  57 s, head c733d1e). The container was healthy after 4 s (`{"status":"ok","sample_mode":true}`).
+  All three `POST /run` calls returned HTTP 200 with a schema-valid success: example_1 causes
+  `['volume']`, example_2 causes `['product_quality']`, example_3 determinable false with no causes
+  (`[]`). The `--network none` container answered example_1 with HTTP 200, status success, causes
+  `['volume']`. The build machine does not run Docker; this run is the only Docker proof.
 
 ## Known limits
 
