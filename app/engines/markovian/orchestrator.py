@@ -31,6 +31,13 @@ the generator are injected; this module makes no HTTP call itself.
   `cannot_be_determined` (no hypothesis supported, the Critic flagged the sample as smaller than
   `CRITIC_MIN_SAMPLE_SIZE`, or the cap reached without a supported leader: no causes, the refuted in
   `ruled_out`, the rest listed as unconfirmed in `limitations`) or `determined`.
+- Grounded filters (Sprint 11d): the agents run with `ground_filters`, so the Planner and the
+  Investigator see the stored text values next to the schema, and a measurement that matched no
+  records gets one stored-values check and rewrite (`app/agents/investigator.py`). If it still matches
+  nothing, its observation says "Filter matched no records"; a Critic sample-size flag of 0 records
+  that rests on such an observation (the hypothesis's or the change check's) is not used: the trace
+  has an `ignore_sample_flag` line, the hypothesis is left unmeasured, and the answer says the filter
+  matched no records instead of "sample too small".
 - The Reporter writes the result from the last carryover and the World Model's `report` evidence;
   with a Critic only the causes it supported are kept. If the Reporter asks for follow-up hypotheses
   they are tested in further chunks while the cap allows.
@@ -55,6 +62,7 @@ from __future__ import annotations
 
 import contextlib
 import json
+import re
 import threading
 import time
 from collections.abc import Callable
@@ -116,6 +124,8 @@ FOLLOW_UP_PREFIX = "Follow-up requested by the Critic: "
 """Leads the test description the Investigator gets in a revision."""
 NOTE_MIN_CHARS = 24
 """Shortest note or reason kept per carryover item when notes are shortened to fit the budget."""
+SAMPLE_REASON_RE = re.compile(r"^Sample too small:[^.]*\([^)]*\)\.\s*")
+"""The Critic's small-sample prefix on a verdict reason (`app/agents/critic.py`)."""
 
 
 # --- The Critic seam (Sprint 9) -----------------------------------------------------------------------
@@ -253,6 +263,16 @@ class _ObservedData(DataLayer):
         finally:
             self._leave()
 
+    def profile(self, sql: str, limit: int) -> QueryOutcome:
+        """The value-hint profile: passed through, not kept for the World Model."""
+        if not self._enter():
+            return QueryError(query_id="cancelled", source=None, sql=sql, adapter=self.adapter_name,
+                              code="cancelled", message="the run was stopped")
+        try:
+            return self.inner.profile(sql, limit)
+        finally:
+            self._leave()
+
     def query(self, source: str | None, sql: str, limit: int | None = None,
               timeout: float | None = None) -> QueryOutcome:
         if not self._enter():
@@ -352,7 +372,7 @@ class _Run:
         self.data = _ObservedData(data, self.cancel)
         self.budget = Budget(config.max_chunks, settings.max_tool_calls)
         self.ctx = AgentContext(run_id=run_id, generate=self.generate, data=self.data, trace=self.trace,
-                                budget=self.budget)
+                                budget=self.budget, ground_filters=True)
         self.manager = ChunkManager(config)
         self.fallback_ids = FallbackIds()
         self.query_log = getattr(getattr(data, "log", None), "path", None)
@@ -372,6 +392,9 @@ class _Run:
         self.change_obs: Observation | None = None
         self.change_row: dict[str, Any] | None = None
         self.query_rows: dict[str, dict[str, Any]] = {}
+        # Sprint 11d: observations whose filter matched no records, and the hypotheses they measured.
+        self.no_records: set[str] = set()
+        self.unmeasured: dict[str, str] = {}
         self.tool_cap_hit = False
         self.phase_started: float | None = None
         self.phase = "start"
@@ -485,6 +508,9 @@ class _Run:
         with self.lock:
             if checked.observation is not None:
                 obs = checked.observation
+                if checked.no_records:
+                    self.no_records.add(obs.id)
+                    self.notes.append(f"Change check not measured: {obs.finding} SQL: {obs.sql}")
                 self.observations.append(obs)
                 self.change_obs = obs
                 self.change_row = self.query_rows.get(obs.query_id)
@@ -631,6 +657,9 @@ class _Run:
         with self.lock:
             if outcome.observation is not None:
                 self.observations.append(outcome.observation)
+                if outcome.no_records:
+                    self.no_records.add(outcome.observation.id)
+                    self.unmeasured[hypothesis.id] = outcome.observation.sql
             elif outcome.error:
                 self.notes.append(f"Not tested: {outcome.error}")
         self.tool_cap_hit |= outcome.tool_cap_reached
@@ -649,6 +678,7 @@ class _Run:
             self.trace.write(agent=AGENT, action="skip_revision", hypothesis_id=hypothesis.id,
                              output_summary=f"{hypothesis.id} demoted without a revision: "
                              + (f"the Critic could not judge it ({verdict.critic_error})" if verdict.critic_error
+                                else "its filter matched no records" if hypothesis.id in self.unmeasured
                                 else "the Critic asked for no follow-up test"),
                              critic_error=verdict.critic_error)
         elif (verdict is not None and verdict.verdict == "insufficient" and not verdict.sample_too_small
@@ -701,6 +731,8 @@ class _Run:
                 if obs is not None:
                     self.observations.append(obs)
                     results.append(obs)
+                    if outcome.no_records:
+                        self.no_records.add(obs.id)
                 elif outcome.error:
                     self.notes.append(f"Follow-up not run: {outcome.error}")
             answered.append({"test": test, "query_ids": queries, "observation_id": obs.id if obs else None,
@@ -752,6 +784,7 @@ class _Run:
         ))
         if verdict is None:
             return None
+        verdict = self._without_empty_sample_flag(hypothesis, verdict, (obs, *follow_up))
         verdict_id = self._store_verdict(store, entity_id, verdict)
         self.trace.write(
             agent="Critic", action="critique", target="Orchestrator",
@@ -768,6 +801,28 @@ class _Run:
             critic_error=verdict.critic_error, world_model_id=verdict_id,
         )
         return verdict
+
+    def _without_empty_sample_flag(self, hypothesis: Hypothesis, verdict: Verdict,
+                                   observations: tuple[Observation | None, ...]) -> Verdict:
+        """Drop the Critic's small-sample flag when its 0 records come from a filter that matched none.
+
+        Applies when the flag counts no records (`sample_size` 0 or missing) and the observation under
+        critique, a follow-up result or the change check matched no records (Sprint 11d): that is a
+        filter on a value that is not stored, not a small sample. The verdict stays `insufficient`;
+        its reason says the filter matched no records.
+        """
+        if not verdict.sample_too_small or verdict.sample_size:
+            return verdict
+        empty = [o.id for o in (*observations, self.change_obs) if o is not None and o.id in self.no_records]
+        if not empty:
+            return verdict
+        model_reason = SAMPLE_REASON_RE.sub("", verdict.reason, count=1).strip()
+        reason = (f"Filter matched no records ({', '.join(dict.fromkeys(empty))}): not measured, so the "
+                  f"sample-size check is not used. {model_reason}").strip()
+        self.trace.write(agent=AGENT, action="ignore_sample_flag", hypothesis_id=hypothesis.id,
+                         input_summary=verdict.reason, output_summary=reason, sample_size=verdict.sample_size,
+                         observation_ids=list(dict.fromkeys(empty)))
+        return verdict.model_copy(update={"sample_too_small": False, "reason": reason})
 
     def _store_verdict(self, store: WorldStore, entity_id: str, verdict: Verdict) -> str | None:
         """Write the verdict to the World Model with its provenance: `judges` the hypothesis, `relies_on`
@@ -875,7 +930,11 @@ class _Run:
             for h in hypotheses:
                 status = self.status.get(h.id)
                 verdict = self.verdicts.get(h.id)
-                if status in ("demoted", "insufficient") and verdict is not None and verdict.critic_error:
+                if h.id in self.unmeasured and status != "supported":
+                    limitations.append(f"Not measured: {h.id} ({h.family}): the filter matched no records, also "
+                                       "after checking the stored values of the filtered columns; it is neither "
+                                       f"supported nor refuted. SQL: {self.unmeasured[h.id]}")
+                elif status in ("demoted", "insufficient") and verdict is not None and verdict.critic_error:
                     limitations.append(f"Critic failure: the Critic could not judge {h.id} ({h.family}) "
                                        f"({verdict.critic_error}); it is unconfirmed because the critique "
                                        "failed, not because data is missing.")

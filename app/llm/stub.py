@@ -25,6 +25,10 @@ Since Sprint 9 it also answers three more generic shapes and the Critic:
   supported on the second critique only if that follow-up shows 30 % or more. Fewer records behind
   the change than `min_sample_size` (the change check's `n` column) fails the sample-size check.
 
+Since Sprint 11d it answers the empty-result retry generically: the stored-values check lists the
+values of the first column the query compared with a literal, and the rewrite returns the query
+unchanged, so a filter that matched nothing ends as "Filter matched no records".
+
 Every change check also returns `spread` (the standard deviation of the measure across baseline
 periods as long as the window) and `n` (records in the window).
 
@@ -623,6 +627,8 @@ class ScriptedModel:
         }
 
     def _reply_SqlProposal(self, data: dict[str, Any]) -> dict[str, Any] | None:
+        if "previous_result" in data:  # the empty-result retry (Sprint 11d)
+            return self._empty_result_reply(data)
         task, plan = data.get("task", {}), data.get("plan", {})
         kind = "change_check" if task.get("kind") == "change_check" else task.get("family")
         shape = _shape(str(plan.get("metric", "")))
@@ -647,6 +653,26 @@ class ScriptedModel:
         sources = ["orders", "reviews"] if shape == "reviews" else ["orders", "payments"] if shape == "order_value" \
             else ["orders"]
         return {"sql": sql, "sources": sources, "rationale": rationale}
+
+    @staticmethod
+    def _empty_result_reply(data: dict[str, Any]) -> dict[str, Any]:
+        """The stored-values check lists the values of the first column the query compared with a
+        literal; the rewrite sends the query back unchanged (the stub cannot map names to values)."""
+        previous = str(data.get("previous_sql", ""))
+        if "value_check" in data:
+            return {"sql": previous, "sources": [], "rationale": "The stored values do not change the query."}
+        owners: dict[str, str] = {}  # column -> the first table that has it
+        for source in data.get("sources", []):
+            for table in source.get("tables", []):
+                for column in table.get("columns", []):
+                    owners.setdefault(column.split(" ", 1)[0], table["table"])
+        for match in re.finditer(r"(?:\b\w+\.)?\b(\w+)\s*=\s*'", previous):
+            column = match.group(1)
+            if column in owners:
+                sql = f"SELECT DISTINCT {column} AS stored_value FROM {owners[column]} ORDER BY 1 LIMIT 50"
+                return {"sql": sql, "sources": [owners[column].split(".")[0]],
+                        "rationale": f"The values stored in {column}."}
+        return {"sql": "SELECT 'no literal filter' AS note", "sources": [], "rationale": "Nothing to check."}
 
     def _reply_ObservationDraft(self, data: dict[str, Any]) -> dict[str, Any] | None:
         task = data.get("task", {})
