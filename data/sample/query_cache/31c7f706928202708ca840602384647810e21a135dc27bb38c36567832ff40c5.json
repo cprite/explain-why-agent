@@ -1,0 +1,22 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spread",
+  "n",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0149,
+   "n": 606,
+   "n_baseline": 5963,
+   "spread": 0.0067,
+   "value": 0.1007
+  }
+ ],
+ "source": null,
+ "sql": "SELECT round(avg(CASE WHEN CAST(o.order_delivered_customer_date AS DATE) > CAST(o.order_estimated_delivery_date AS DATE) THEN 1.0 ELSE 0.0 END) FILTER (WHERE o.order_delivered_customer_date >= DATE '2018-05-28'), 4) AS value, round(avg(CASE WHEN CAST(o.order_delivered_customer_date AS DATE) > CAST(o.order_estimated_delivery_date AS DATE) THEN 1.0 ELSE 0.0 END) FILTER (WHERE NOT (o.order_delivered_customer_date >= DATE '2018-05-28')), 4) AS baseline, (SELECT round(stddev_samp(m), 4) FROM (SELECT avg(CASE WHEN CAST(o.order_delivered_customer_date AS DATE) > CAST(o.order_estimated_delivery_date AS DATE) THEN 1.0 ELSE 0.0 END) AS m FROM orders.orders o WHERE o.order_status = 'delivered' AND o.order_delivered_customer_date >= DATE '2018-04-30' AND o.order_delivered_customer_date < DATE '2018-06-04' AND NOT (o.order_delivered_customer_date >= DATE '2018-05-28') GROUP BY floor(date_diff('day', DATE '2018-04-30', CAST(o.order_delivered_customer_date AS DATE)) / 7))) AS spread, count(*) FILTER (WHERE o.order_delivered_customer_date >= DATE '2018-05-28') AS n, count(*) FILTER (WHERE NOT (o.order_delivered_customer_date >= DATE '2018-05-28')) AS n_baseline FROM orders.orders o WHERE o.order_status = 'delivered' AND o.order_delivered_customer_date >= DATE '2018-04-30' AND o.order_delivered_customer_date < DATE '2018-06-04'",
+ "truncated": false
+}

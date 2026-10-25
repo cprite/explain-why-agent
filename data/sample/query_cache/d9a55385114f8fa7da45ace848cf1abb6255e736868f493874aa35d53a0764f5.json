@@ -1,0 +1,22 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spread",
+  "n",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 106.8571,
+   "n": 111,
+   "n_baseline": 748,
+   "spread": 17.677,
+   "value": 111.0
+  }
+ ],
+ "source": null,
+ "sql": "WITH d AS (SELECT CAST(o.order_purchase_timestamp AS DATE) AS day, count(DISTINCT o.order_id) AS m FROM orders.orders o  WHERE o.order_purchase_timestamp >= DATE '2017-09-14' AND o.order_purchase_timestamp < DATE '2017-09-22' GROUP BY 1) SELECT round(avg(m) FILTER (WHERE day >= DATE '2017-09-21'), 4) AS value, round(avg(m) FILTER (WHERE day < DATE '2017-09-21'), 4) AS baseline, round(stddev_samp(m) FILTER (WHERE day < DATE '2017-09-21'), 4) AS spread, sum(m) FILTER (WHERE day >= DATE '2017-09-21') AS n, sum(m) FILTER (WHERE day < DATE '2017-09-21') AS n_baseline FROM d",
+ "truncated": false
+}

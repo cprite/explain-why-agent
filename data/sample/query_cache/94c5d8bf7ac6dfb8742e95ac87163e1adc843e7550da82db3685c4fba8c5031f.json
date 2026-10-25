@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0,
+   "value": 0
+  }
+ ],
+ "source": null,
+ "sql": "SELECT count(*) FILTER (WHERE order_purchase_timestamp >= DATE '2017-11-24') - count(DISTINCT order_id) FILTER (WHERE order_purchase_timestamp >= DATE '2017-11-24') AS value, count(*) FILTER (WHERE order_purchase_timestamp < DATE '2017-11-24') - count(DISTINCT order_id) FILTER (WHERE order_purchase_timestamp < DATE '2017-11-24') AS baseline FROM orders.orders WHERE order_purchase_timestamp >= DATE '2017-11-17' AND order_purchase_timestamp < DATE '2017-11-25'",
+ "truncated": false
+}
