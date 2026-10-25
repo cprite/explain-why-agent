@@ -148,7 +148,15 @@ def _run_sql(
         status="ok" if isinstance(outcome, QueryResult) else outcome.code,
         retry_count=attempt,
         query_id=outcome.query_id,
+        adapter=outcome.adapter,
     )
+    if outcome.fallback_reason:
+        ctx.trace.write(
+            agent=AGENT, action="data_fallback", target="DataLayer", input_summary=outcome.query_id,
+            output_summary=f"query {outcome.query_id} ran on {outcome.adapter}", status="fallback",
+            retry_count=attempt, query_id=outcome.query_id, adapter=outcome.adapter,
+            fallback_reason=outcome.fallback_reason,
+        )
     return outcome
 
 

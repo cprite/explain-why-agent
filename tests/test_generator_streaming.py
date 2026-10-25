@@ -142,9 +142,11 @@ def test_error_events_exhaust_retries_then_fall_back_to_buffered_nvidia(tmp_path
     nvidia = httpx.Response(200, json=chat_reply(GOOD, model="nvidia/test-model"))
     rec = Recorder({"127.0.0.1": failing, "nvidia.test": [nvidia]})
     result = make_generator(tmp_path, rec, sleeps)(MESSAGES, schema=Answer)
-    assert sleeps == [2.0, 4.0, 8.0]
+    assert sleeps == [2.0]  # Meterless keeps the third of MAX_MODEL_ATTEMPTS=3 for the fallback
     assert result.ok and result.provider == "nvidia"
     assert result.attempts[0]["status"] == "retries_exhausted"
+    assert len(rec.requests) == 3
+    assert result.attempts[-1]["attempt"] == 3 and result.attempts[-1]["fallback_reason"].startswith("retries_exhausted")
     nvidia_body = json.loads(rec.requests[-1].content)
     assert "stream" not in nvidia_body and "stream_options" not in nvidia_body  # the fallback stays buffered
 
@@ -335,3 +337,21 @@ def test_sample_mode_still_replays_stub_entries_without_network(tmp_path: Path) 
     result = make_generator(tmp_path, rec, sample_mode=True)(MESSAGES, schema=Answer, role="planner")
     assert result.ok and result.from_cache and result.parsed["word"] == "zero"
     assert rec.requests == []
+
+
+def test_bounded_streamed_calls_keep_the_attempt_cap_and_trace_fields(tmp_path: Path) -> None:
+    """Through `with_limits` (the run_by_deadline worker) a streamed step still sends at most 3 requests,
+    and the trace lines carry provider, model, attempt and, on the fallback, fallback_reason."""
+    failing = [sse({"error": {"message": "upstream", "status": 503}}, done=False) for _ in range(4)]
+    nvidia = httpx.Response(200, json=chat_reply(GOOD, model="nvidia/test-model"))
+    rec = Recorder({"127.0.0.1": failing, "nvidia.test": [nvidia]})
+    generator = make_generator(tmp_path, rec)
+    result = generator.with_limits(deadline_seconds=30, max_retries=3)(MESSAGES, schema=Answer, run_id="gen-test")
+    assert result.ok and result.provider == "nvidia"
+    assert len(rec.requests) == 3
+    assert json.loads(rec.requests[0].content)["stream"] is True
+    lines = [json.loads(line) for line in (tmp_path / "logs" / "trace-gen-test.jsonl").read_text().splitlines()]
+    calls = [line for line in lines if line.get("provider") in ("meterless", "nvidia")]
+    assert [(c["provider"], c["attempt"]) for c in calls] == [("meterless", 2), ("nvidia", 3)]
+    assert all(c.get("model") for c in calls)
+    assert "fallback_reason" not in calls[0] and calls[1]["fallback_reason"].startswith("retries_exhausted")

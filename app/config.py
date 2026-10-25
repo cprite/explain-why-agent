@@ -102,6 +102,11 @@ class Settings(BaseSettings):
     api_port: int = Field(default=8000, ge=1, le=65535)
     api_run_timeout_seconds: float = Field(default=600, gt=0)
 
+    @property
+    def meterless_token(self) -> str:
+        """The Nightshift runtime token: METERLESS_RUNTIME_TOKEN, else the older METERLESS_API_KEY."""
+        return (self.meterless_runtime_token or self.meterless_api_key).strip()
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 

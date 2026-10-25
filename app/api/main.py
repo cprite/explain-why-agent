@@ -14,7 +14,9 @@
 
 Every error has one shape: `{"error": {"code": ..., "message": ..., "run_id": ...}}`. One run at a
 time per process: a second `POST /run` while one is running gets `busy` (429) at once, which also
-keeps memory to one DuckDB instance; a scan for `GET /anomalies` takes the same lock. A run that passes `API_RUN_TIMEOUT_SECONDS` gets `timeout`
+keeps memory to one DuckDB instance; a scan for `GET /anomalies` takes the same lock. A `run_id` that
+was already used (its trace, result or query log exists) gets `run_id_taken` (409) and the earlier logs
+stay as they were; a bad `LOOP` setting gets `invalid_input` (400) before anything runs. A run that passes `API_RUN_TIMEOUT_SECONDS` gets `timeout`
 (504); it cannot be killed, so it finishes in the background, still holding the run lock, and its
 result appears at `GET /runs/{id}` when it ends.
 """
@@ -34,7 +36,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.anomalies import MAX_METRIC_LIMIT, Board, BoardCache, Busy
 from app.config import Settings, get_settings, resolve_path
-from app.runner import RUN_ID_RULE, execute_run, new_run_id, valid_run_id
+from app.runner import RUN_ID_RULE, execute_run, new_run_id, select_loop, valid_run_id
 from app.schemas import Result, validate_result_file
 
 MAX_QUERY_CHARS = 1000
@@ -152,6 +154,14 @@ def _log_file(settings: Settings, run_id: str | None, kind: str, suffix: str) ->
     return path
 
 
+def _run_id_taken(settings: Settings, run_id: str) -> bool:
+    """True if any log file of `run_id` exists already."""
+    return any(
+        _log_file(settings, run_id, kind, suffix).exists()
+        for kind, suffix in (("trace", ".jsonl"), ("result", ".json"), ("queries", ".jsonl"))
+    )
+
+
 @app.get("/health")
 def health() -> dict[str, Any]:
     """Liveness; reads the settings only (no model, no data)."""
@@ -166,6 +176,10 @@ def post_run(body: RunRequest) -> JSONResponse:
         settings = settings.model_copy(update={"sample_mode": body.options.sample_mode})
     run_id = body.run_id or new_run_id()
     timeout = settings.api_run_timeout_seconds
+    try:
+        select_loop(settings)
+    except ValueError as exc:
+        raise ApiError(400, "invalid_input", f"server setting {exc}", run_id) from None
     if body.input is not None and body.anomaly_id is not None:
         raise ApiError(400, "invalid_input", "give either input.query or anomaly_id, not both", run_id)
     if body.input is not None:
@@ -178,6 +192,13 @@ def post_run(body: RunRequest) -> JSONResponse:
 
     if not _RUN_LOCK.acquire(blocking=False):
         raise ApiError(429, "busy", "a run is already in progress; try again when it has finished", run_id)
+    if _run_id_taken(settings, run_id):
+        _RUN_LOCK.release()
+        raise ApiError(
+            409, "run_id_taken",
+            f"run id {run_id} was already used and its logs are kept; send another run_id or leave it out",
+            run_id,
+        )
     outcome: dict[str, Any] = {}
 
     def work() -> None:

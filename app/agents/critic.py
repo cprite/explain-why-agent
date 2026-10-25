@@ -20,10 +20,14 @@ the explanation 0-3 on three points. The verdict is decided here, not by the mod
   (the orchestrator then ends the run as "cannot be determined"). When the records behind the measure
   fell in the window, the rule counts the window and the baseline together (`sample_rule`).
 
-An invalid reply (a failed call or one that does not validate) is asked for once more; a second
-invalid reply gives `insufficient` with no follow-up tests and `critic_error` set to the error code
-(the orchestrator then demotes the hypothesis without a revision chunk). One critique is therefore
-up to `MAX_REPLY_ATTEMPTS` (2) model calls. The Critic never raises.
+A reply that does not validate as a `CritiqueDraft` is asked for once more; a second invalid reply
+gives `insufficient` with no follow-up tests and `critic_error` set to the error code (the
+orchestrator then demotes the hypothesis without a revision chunk). One critique is therefore up to
+`MAX_REPLY_ATTEMPTS` (2) generate calls. A failed call (`ok` false) is not asked for again: the
+generator has already spent the step's retries, fallback and JSON repair within its cap of
+`MAX_MODEL_ATTEMPTS` (3) HTTP requests, so the fallback verdict comes at once and one critique never
+sends more than 3 requests. (The real generator validates the reply against `CritiqueDraft` itself,
+so the retry here is reached only with a generate function that does not.) The Critic never raises.
 """
 
 from __future__ import annotations
@@ -250,15 +254,25 @@ class Critic:
                     continue
                 return judge(draft, request, payload, min_sample_size=self.min_sample_size,
                              threshold=self.threshold, retry_count=attempt)
+            # A failed call: the generator's retries and fallback are used up (MAX_MODEL_ATTEMPTS per
+            # step), so asking again would exceed the step's cap. Fall back at once.
             error = reply.error or {}
             problem = str(error.get("code", "error"))
             self.last_problem = str(error.get("message", ""))
+            return self._fallback(request, problem, retry_count=attempt,
+                                  reason=f"The Critic's model call failed ({problem}); treated as insufficient.")
+        return self._fallback(request, problem, retry_count=MAX_REPLY_ATTEMPTS - 1,
+                              reason=f"The Critic's reply was invalid twice ({problem}); treated as insufficient.")
+
+    @staticmethod
+    def _fallback(request: CriticRequest, problem: str, *, retry_count: int, reason: str) -> Verdict:
+        """The Critic's fallback verdict: insufficient, no follow-up tests, `critic_error` set."""
         return Verdict(
             hypothesis_id=request.hypothesis.id,
             verdict="insufficient",
-            reason=f"The Critic's reply was invalid twice ({problem}); treated as insufficient.",
+            reason=reason,
             follow_up_tests=[],
             attempt=request.attempt,
-            retry_count=MAX_REPLY_ATTEMPTS - 1,
+            retry_count=retry_count,
             critic_error=problem,
         )

@@ -61,6 +61,8 @@ class QueryResult:
     ok: bool = True
     # True when sample mode served the rows recorded in the live run instead of this run's rows.
     replayed: bool = False
+    # Set when the adapter could not answer and another one did (Zetaris -> local): why.
+    fallback_reason: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Plain-dict form, safe to serialise to JSON."""
@@ -82,6 +84,8 @@ class QueryError:
     message: str
     duration_ms: float = 0.0
     ok: bool = False
+    # Set when the statement failed on the fallback adapter: why the primary one was not used.
+    fallback_reason: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Plain-dict form, safe to serialise to JSON."""

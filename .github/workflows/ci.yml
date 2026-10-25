@@ -144,6 +144,36 @@ jobs:
           python run.py "Why did order volume rise on 21 September 2017?" --sample --run-id ci-plan-check-n-no-change > /tmp/result-n-no-change.json
           python scripts/check_critic_run.py /tmp/result-n-no-change.json --expect no-change
 
+  clean-clone:
+    # Plan check M (task 20): the branch checked out into a fresh directory, an empty .env, the venv inside
+    # the tree, and the run step in a container with no network at all (docker run --network none).
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: "Clean clone (for plan check M): check out the branch into a fresh directory"
+        uses: actions/checkout@v4
+        with:
+          path: clean-clone
+      - name: "Clean clone (for plan check M): empty .env and a venv inside the tree (python:3.11-slim, network on for pip only)"
+        working-directory: clean-clone
+        run: |
+          : > .env
+          timeout 600 docker run --rm -v "$PWD":/work -w /work python:3.11-slim \
+            sh -c 'python -m venv .venv && .venv/bin/pip install --quiet --disable-pip-version-check -r requirements.txt'
+      - name: "Plan check M (task 20): scripts/clean_clone_check.sh with the network off (docker run --network none)"
+        working-directory: clean-clone
+        run: |
+          set +e
+          timeout 900 docker run --rm --network none -v "$PWD":/work -w /work python:3.11-slim bash -c '
+            if python -c "import socket; socket.create_connection((\"1.1.1.1\", 443), timeout=3)" 2>/dev/null; then
+              echo "network: ON inside the container, the check would not prove anything"; exit 3
+            fi
+            echo "network: off inside the container (docker run --network none); .env is $(wc -c < .env) bytes"
+            PATH=/work/.venv/bin:$PATH exec bash scripts/clean_clone_check.sh'
+          code=$?
+          echo "scripts/clean_clone_check.sh exit code: $code"
+          exit $code
+
   readme-quickstart:
     # Plan check O (task 23): "a second person can run it from the README alone". The branch is checked
     # out into a fresh directory with an empty .env, and the ```bash readme-quickstart``` block of

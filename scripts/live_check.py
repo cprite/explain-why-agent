@@ -44,7 +44,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     settings = get_settings()
-    if args.provider == "meterless" and not meterless_token_usable(settings.meterless_runtime_token):
+    if args.provider == "meterless" and not meterless_token_usable(settings.meterless_token):
         print("SKIP: METERLESS_RUNTIME_TOKEN is not set (or is the rt-local placeholder); no call made.")
         return 0
     if args.provider == "nvidia" and not (settings.nvidia_api_key and settings.nvidia_model):

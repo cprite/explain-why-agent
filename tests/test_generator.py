@@ -271,26 +271,27 @@ def test_second_invalid_reply_returns_structured_error(tmp_path: Path) -> None:
 
 
 def test_429_retry_sequence_then_success(tmp_path: Path) -> None:
+    # No fallback configured, so Meterless may use all MAX_MODEL_ATTEMPTS=3 requests (two retries).
     sleeps: list[float] = []
     rec = Recorder(
-        {"127.0.0.1": [httpx.Response(429), httpx.Response(503), httpx.Response(429), httpx.Response(200, json=chat_reply(GOOD))]}
+        {"127.0.0.1": [httpx.Response(429), httpx.Response(503), httpx.Response(200, json=chat_reply(GOOD))]}
     )
-    result = make_generator(tmp_path, rec, sleeps)(MESSAGES, schema=Answer, role="planner")
+    result = make_generator(tmp_path, rec, sleeps, nvidia_api_key="")(MESSAGES, schema=Answer, role="planner")
     assert result.ok and result.provider == "meterless"
-    assert sleeps == [2.0, 4.0, 8.0]
-    assert result.retries == 3
+    assert sleeps == [2.0, 4.0]
+    assert result.retries == 2
 
 
 def test_retries_exhausted_falls_back_to_nvidia(tmp_path: Path) -> None:
     sleeps: list[float] = []
     rec = Recorder(
         {
-            "127.0.0.1": [httpx.Response(429)] * 4,
+            "127.0.0.1": [httpx.Response(429)] * 2,
             "nvidia.test": [httpx.Response(200, json=chat_reply(GOOD, model="nvidia/test-model"))],
         }
     )
     result = make_generator(tmp_path, rec, sleeps)(MESSAGES, schema=Answer, role="planner")
-    assert sleeps == [2.0, 4.0, 8.0]
+    assert sleeps == [2.0]  # Meterless keeps the third of MAX_MODEL_ATTEMPTS=3 for the fallback
     assert result.ok and result.provider == "nvidia"
     assert [a["provider"] for a in result.attempts] == ["meterless", "nvidia"]
     assert result.attempts[0]["status"] == "retries_exhausted"
