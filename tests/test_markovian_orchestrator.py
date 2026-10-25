@@ -271,18 +271,27 @@ def test_no_significant_change_means_no_hypotheses(tmp_path: Path) -> None:
 
     def no_spread(reply: dict[str, Any], messages: Any) -> dict[str, Any]:
         if '"kind":"change_check"' in messages[-1]["content"]:
-            return {**reply, "sql": re.sub(r", round\(stddev_samp\(m\).*? AS n FROM d", " FROM d", reply["sql"])}
+            return {**reply, "sql": re.sub(r", round\(stddev_samp\(m\).*? AS n_baseline FROM d", " FROM d",
+                                           reply["sql"])}
         return reply
 
-    result = run(tmp_path, Scripted(ObservationDraft=not_real, SqlProposal=no_spread))
+    # 111 orders against 106.9 a day: within the relative rule (Sprint 11c), so with no spread the
+    # Investigator's "not real" still ends the run.
+    result = run(tmp_path, Scripted(ObservationDraft=not_real, SqlProposal=no_spread),
+                 question="Why did order volume rise on 21 September 2017?")
     assert result.stop_reason == "no_hypotheses"
     # Since Sprint 9 this is the no-significant-change branch: a determinable answer with no causes.
     # The stub's change check has a spread; the run ends here when the change is within it (or, as here
     # with the spread removed, when the Investigator reads the change as not real).
     assert result.status == "success" and result.determinable is True and result.causes == []
-    assert result.change is not None and result.change.significant is False
+    assert result.change is not None and result.change.significant is False and result.change.spread is None
     assert result.summary and result.summary.startswith("No significant change")
     assert len(chunk_lines(tmp_path)) == 1
+
+    # Day 1 (1176 orders against 136.6 a day) with the same "not real" reading and no spread: the change
+    # is far beyond the relative rule, so the hypotheses are tested (Sprint 11c, incident-10's cause).
+    day1 = run(tmp_path, Scripted(ObservationDraft=not_real, SqlProposal=no_spread), run_id="m2")
+    assert day1.stop_reason != "no_hypotheses" and day1.change is not None and day1.change.significant is None
 
 
 @pytest.mark.parametrize("schema", ["Plan", "ReportDraft"])
