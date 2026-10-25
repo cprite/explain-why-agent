@@ -1,0 +1,118 @@
+{
+  "run_id": "example_2",
+  "status": "success",
+  "question": "Why did review scores for watches/gifts (relogios_presentes) fall in 2018-01?",
+  "change": {
+    "metric": "average review score of reviewed orders, by order purchase date",
+    "segment": "category relogios_presentes",
+    "window": "2018-01-01 to 2018-02-01",
+    "baseline": 3.9975,
+    "observed": 1.8769,
+    "significant": true,
+    "spread": 0.1935
+  },
+  "determinable": true,
+  "causes": [
+    {
+      "rank": 1,
+      "type": "product_quality",
+      "summary": "Customers rated the products lower: scores fell even on orders delivered on time.",
+      "confidence": 0.75,
+      "statements": [
+        {
+          "text": "Average review score of orders delivered on time: 1.9333 in the window against 4.2504 in the baseline (-54.5%).",
+          "kind": "measured",
+          "query_ids": [
+            "q003"
+          ]
+        },
+        {
+          "text": "Average review score: 1.8769 in the window against 3.9975 in the baseline (-53.0%).",
+          "kind": "measured",
+          "query_ids": [
+            "q001"
+          ]
+        },
+        {
+          "text": "The measurements are consistent with: Customers rated the products lower: scores fell even on orders delivered on time.",
+          "kind": "inferred",
+          "query_ids": [
+            "q003",
+            "q001"
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "observation_id": "obs-2",
+          "source": "orders+reviews",
+          "query_id": "q003",
+          "finding": "Average review score of orders delivered on time: 1.9333 in the window against 4.2504 in the baseline (-54.5%)."
+        },
+        {
+          "observation_id": "obs-0",
+          "source": "orders+reviews",
+          "query_id": "q001",
+          "finding": "Average review score: 1.8769 in the window against 3.9975 in the baseline (-53.0%)."
+        }
+      ],
+      "next_checks": [
+        "Read the review comments for the window and check the products behind them."
+      ]
+    }
+  ],
+  "ruled_out": [
+    {
+      "type": "logistics_delay",
+      "why": "H1: The measure did not move as the explanation predicts: Average days from purchase to delivery of reviewed orders: 12.8825 in the window against 13.6991 in the baseline (-6.0%).",
+      "evidence": [
+        "q002"
+      ]
+    },
+    {
+      "type": "single_seller",
+      "why": "H3: The measure did not move as the explanation predicts: Largest single seller's share of low-score (1-2) reviews: 0.2714 in the window against 0.3456 in the baseline (-21.5%).",
+      "evidence": [
+        "q004"
+      ]
+    },
+    {
+      "type": "data_artefact",
+      "why": "H4: The measure did not move as the explanation predicts: Share of orders with duplicate or missing review scores: 0.0 in the window against 0.0013 in the baseline (-100.0%).",
+      "evidence": [
+        "q005"
+      ]
+    }
+  ],
+  "limitations": [
+    "Only delivery timing, on-time review scores, seller concentration and review-record quality were tested; review comment text and product details were not read.",
+    "Sample mode: model replies come from the recorded per-call cache and data from the local DuckDB sample; agents, queries and the loop run for real."
+  ],
+  "agents": [
+    {
+      "name": "Planner",
+      "role": "Turns the question into metric, window, baseline and hypotheses; checks the change is real"
+    },
+    {
+      "name": "Investigator",
+      "role": "Tests one hypothesis at a time with SQL against the data layer"
+    },
+    {
+      "name": "Reporter",
+      "role": "Ranks the supported causes with their evidence and lists what was ruled out"
+    }
+  ],
+  "trace_id": "example_2",
+  "log_file": "logs/trace-example_2.jsonl",
+  "query_log": "logs/queries-example_2.jsonl",
+  "token_report": {
+    "standard_estimate": 8334,
+    "markovian_actual": 4203,
+    "saving_percent": 49.6
+  },
+  "execution_time_seconds": 0.42,
+  "sample_mode": true,
+  "error": null,
+  "stop_reason": "completed",
+  "summary": "Most likely cause (product_quality): Customers rated the products lower: scores fell even on orders delivered on time."
+}

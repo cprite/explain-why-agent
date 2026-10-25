@@ -1,0 +1,8 @@
+{
+  "input": {
+    "query": "Why did review scores for watches/gifts (relogios_presentes) fall in 2018-01?"
+  },
+  "options": {
+    "sample_mode": true
+  }
+}

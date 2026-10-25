@@ -7,7 +7,7 @@
     "api": "POST /run",
     "api_start": "python -m app.api",
     "web": "GET / (served by python -m app.api)",
-    "docker": null
+    "docker": "docker build -t explain-why-agent . && docker run --rm -p 8000:8000 -e SAMPLE_MODE=true explain-why-agent"
   },
   "sample_mode": {
     "env": "SAMPLE_MODE=true",

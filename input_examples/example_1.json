@@ -1,0 +1,8 @@
+{
+  "input": {
+    "query": "Why did order volume spike on 24 November 2017?"
+  },
+  "options": {
+    "sample_mode": true
+  }
+}
