@@ -38,6 +38,8 @@ ls -l logs/result-quickstart.json logs/trace-quickstart.jsonl logs/queries-quick
 - `--loop simple` is needed for this question. Its recording comes from a live Nightshift run of
   the simple loop, while the default Markovian loop sends different prompts and gets `cache_miss`
   for it. [Usage](#usage) lists the questions recorded for the Markovian loop.
+- On Apple Silicon, if you see `incompatible architecture (have arm64, need x86_64)`, your shell
+  runs under Rosetta: run the commands from a native terminal or prefix them with `arch -arm64`.
 - CI runs exactly this block from a fresh checkout with an empty `.env` (job `readme-quickstart`,
   "Plan check O", script `scripts/readme_quickstart.py`).
 

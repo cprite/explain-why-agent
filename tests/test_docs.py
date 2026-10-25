@@ -201,6 +201,38 @@ def test_extract_block_rejects_zero_or_two_blocks() -> None:
         qs.extract_block(one + one)
 
 
+def _fake_sysctl(qs, monkeypatch: pytest.MonkeyPatch, system: str, arm64: str | None) -> list[list[str]]:
+    """Patch platform.system() and the sysctl call; return the list of argv the script ran."""
+    calls: list[list[str]] = []
+
+    def fake_run(argv, **kwargs):
+        calls.append(argv)
+        if arm64 is None:
+            raise OSError("no sysctl")
+        return qs.subprocess.CompletedProcess(argv, 0, stdout=f"{arm64}\n", stderr="")
+
+    monkeypatch.setattr(qs.platform, "system", lambda: system)
+    monkeypatch.setattr(qs.subprocess, "run", fake_run)
+    return calls
+
+
+def test_bash_command_runs_native_arm64_bin_bash_on_apple_silicon(monkeypatch: pytest.MonkeyPatch) -> None:
+    qs = _load_quickstart()
+    calls = _fake_sysctl(qs, monkeypatch, "Darwin", "1")
+    assert qs.bash_command("echo hi\n") == ["/usr/bin/arch", "-arm64", "/bin/bash", "-e", "-x", "-o", "pipefail",
+                                            "-c", "echo hi\n"]
+    assert calls == [["/usr/sbin/sysctl", "-n", "hw.optional.arm64"]]
+
+
+@pytest.mark.parametrize(("system", "arm64"), [("Darwin", "0"), ("Darwin", ""), ("Darwin", None), ("Linux", "1")])
+def test_bash_command_is_unchanged_elsewhere(monkeypatch: pytest.MonkeyPatch, system: str, arm64: str | None) -> None:
+    qs = _load_quickstart()
+    calls = _fake_sysctl(qs, monkeypatch, system, arm64)
+    assert qs.bash_command("echo hi\n") == ["bash", "-e", "-x", "-o", "pipefail", "-c", "echo hi\n"]
+    if system != "Darwin":
+        assert calls == []
+
+
 def test_ci_runs_the_quickstart_from_a_fresh_checkout_with_an_empty_env() -> None:
     ci = (REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
     job = ci[ci.index("\n  readme-quickstart:"):]

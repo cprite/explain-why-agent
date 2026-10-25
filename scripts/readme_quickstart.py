@@ -5,7 +5,10 @@
 
 `--run` extracts the one block tagged `bash readme-quickstart` from README.md, prints its commands,
 and runs them with `bash -e -x -o pipefail` in the repository root (`-x` echoes each command into
-the log). The environment is the caller's minus every variable named in `.env.example`, with
+the log). On Apple Silicon (Darwin with `sysctl -n hw.optional.arm64` = 1) the block runs as
+`arch -arm64 /bin/bash ...`, so python, pip and the venv run as arm64 even when the caller's shell
+runs under Rosetta (a universal python started from an x86_64 process starts as x86_64 and cannot
+load arm64-only wheels such as pydantic_core). The environment is the caller's minus every variable named in `.env.example`, with
 `SAMPLE_MODE=true` added, so no credential or service setting can leak in. Afterwards it asserts
 that the block produced a new `logs/result-*.json` (a success result with `sample_mode: true`) and a
 new non-empty `logs/trace-*.jsonl`. Exit 0 on pass, 1 on fail, 2 when the block is missing.
@@ -18,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import platform
 import re
 import subprocess
 import sys
@@ -54,6 +58,26 @@ def clean_env(root: Path = REPO_ROOT) -> dict[str, str]:
     return env
 
 
+def _apple_silicon() -> bool:
+    """True on a Mac whose hardware is arm64, also when this process runs under Rosetta."""
+    if platform.system() != "Darwin":
+        return False
+    try:
+        out = subprocess.run(["/usr/sbin/sysctl", "-n", "hw.optional.arm64"], capture_output=True, text=True,
+                             timeout=10, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return out.stdout.strip() == "1"
+
+
+def bash_command(block: str) -> list[str]:
+    """The argv that runs the block: native arm64 /bin/bash on Apple Silicon, PATH bash elsewhere."""
+    args = ["-e", "-x", "-o", "pipefail", "-c", block]
+    if _apple_silicon():
+        return ["/usr/bin/arch", "-arm64", "/bin/bash", *args]
+    return ["bash", *args]
+
+
 def _snapshot(logs: Path) -> set[str]:
     return {p.name for p in logs.glob("result-*.json")} | {p.name for p in logs.glob("trace-*.jsonl")}
 
@@ -67,12 +91,13 @@ def run(root: Path, timeout: float) -> int:
         return 2
     print("--- README.md ```bash readme-quickstart``` block ---")
     print(block, end="" if block.endswith("\n") else "\n")
-    print("--- running it (bash -e -x -o pipefail, SAMPLE_MODE=true, no .env.example variables set) ---",
+    cmd = bash_command(block)
+    print(f"--- running it ({' '.join(cmd[:-2])} -c <block>, SAMPLE_MODE=true, no .env.example variables set) ---",
           flush=True)
     logs = root / "logs"
     before = _snapshot(logs) if logs.is_dir() else set()
     try:
-        proc = subprocess.run(["bash", "-e", "-x", "-o", "pipefail", "-c", block], cwd=root,
+        proc = subprocess.run(cmd, cwd=root,
                               env=clean_env(root), timeout=timeout, check=False)
     except subprocess.TimeoutExpired:
         print(f"[FAIL] the block did not finish within {timeout:g} s")
