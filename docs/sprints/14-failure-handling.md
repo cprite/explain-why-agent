@@ -174,10 +174,15 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
   - New `::test_bounded_streamed_calls_keep_the_attempt_cap_and_trace_fields`: the same through
     `with_limits` (the `run_by_deadline` worker), so the cap and trace fields hold for bounded
     streamed calls too.
-  - `test_eval_run.py` compared incident-01 with the root `result.json`; that file (unchanged) is
-    now `tests/fixtures/day1-sample-result.json` and the test reads it there.
-- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 720 passed after
-  revision 4 (717 after revision 3, 715 after merging origin/main 0ae9313, 54 of them in `test_failure_handling.py`; 702 at the first merge, against 650 on
+  - `test_eval_run.py` compared incident-01 with the root `result.json`. Sprint 11c (#37) changed
+    the test to compare with a direct run on the same loop, so main's version is kept and the
+    root file is not needed (an earlier revision had moved it to `tests/fixtures/`; that copy is gone).
+- After merging origin/main 912862e (Sprint 11c, #37), there were two conflicts. `app/agents/critic.py`
+  keeps 11c's `threshold` in `judge` and this sprint's rule that a failed call is not asked for again.
+  `tests/test_eval_run.py` is main's version. The Day 1 line of the clean-clone check now reports
+  top cause `volume` (11c's prompts and stub caches), where it was `mix_shift` before.
+- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 775 passed after
+  merging Sprint 11c (720 after revision 4, 717 after revision 3, 715 after merging origin/main 0ae9313, 54 of them in `test_failure_handling.py`; 702 at the first merge, against 650 on
   origin/main 457cde2), about 6 minutes on the Pi.
 - Every step of the existing `test` job was rerun locally and passes: A, B, C, D (Zetaris and task 7),
   E, F, G, H, I (a live server on a spare port, including a `run_id_taken` answer for a reused id),
@@ -191,7 +196,7 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
   "Network is unreachable"):
 
   ```text
-  [PASS] Why did order volume spike on 24 November 2017? | success | determinable=true | top cause=mix_shift
+  [PASS] Why did order volume spike on 24 November 2017? | success | determinable=true | top cause=volume
   [PASS] Why did delivery lateness spike for deliveries completed the week of 28 May 2018? | success | determinable=true | top cause=logistics_delay
   [PASS] Why did review scores fall in March 2018? | error cache_miss | determinable=false | top cause=none
   clean clone check: PASS (3 of 3)

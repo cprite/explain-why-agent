@@ -27,6 +27,9 @@ env/
 # Runtime logs (keep the directory)
 logs/*
 !logs/.gitkeep
+# Evaluation reports before and after a prompt change are committed (Sprint 11c).
+!logs/eval-before-*.json
+!logs/eval-after-*.json
 
 # Editor / OS
 .idea/
