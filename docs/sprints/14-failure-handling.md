@@ -152,9 +152,9 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
     streamed calls too.
   - `test_eval_run.py` compared incident-01 with the root `result.json`; that file (unchanged) is
     now `tests/fixtures/day1-sample-result.json` and the test reads it there.
-- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 705 passed
-  (650 on origin/main 457cde2: 54 in `test_failure_handling.py`, 1 new streaming test), about
-  5 minutes on the Pi.
+- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 715 passed after merging
+  origin/main 0ae9313 (54 of them in `test_failure_handling.py`; 702 at the first merge, against 650 on
+  origin/main 457cde2), about 6 minutes on the Pi.
 - Every step of the existing `test` job was rerun locally and passes: A, B, C, D (Zetaris and task 7),
   E, F, G, H, I (a live server on a spare port, including a `run_id_taken` answer for a reused id),
   J, both L steps (the eval prints the same `Score: 0/10 (answered 1, no_cache 9, errors 0)` as
