@@ -122,6 +122,14 @@ class DataLayer(ABC):
         `timeout` is in seconds. Defaults come from the adapter's settings.
         """
 
+    def profile(self, sql: str, limit: int) -> QueryOutcome:
+        """Run one read-only statement to profile the data (value hints), not as part of a run.
+
+        Adapters override it so that profiling takes no query id from the run's sequence and writes
+        nothing to the run's query log. Default: a cross-source `query`.
+        """
+        return self.query(None, sql, limit)
+
     def close(self) -> None:
         """Release the adapter's resources (database file, HTTP client). Default: nothing to release."""
 

@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0357,
+   "value": 0.0638
+  }
+ ],
+ "source": null,
+ "sql": "WITH s AS (SELECT o.order_purchase_timestamp >= DATE '2017-11-24' AS in_window, i.seller_id, count(DISTINCT o.order_id) AS n FROM orders.orders o JOIN orders.order_items i ON i.order_id = o.order_id WHERE o.order_purchase_timestamp >= DATE '2017-11-17' AND o.order_purchase_timestamp < DATE '2017-11-25' GROUP BY 1, 2) SELECT round(max(n) FILTER (WHERE in_window) / sum(n) FILTER (WHERE in_window), 4) AS value, round(max(n) FILTER (WHERE NOT in_window) / sum(n) FILTER (WHERE NOT in_window), 4) AS baseline FROM s",
+ "truncated": false
+}

@@ -1,0 +1,22 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spread",
+  "n",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 3.9975,
+   "n": 333,
+   "n_baseline": 792,
+   "spread": 0.1935,
+   "value": 1.8769
+  }
+ ],
+ "source": null,
+ "sql": "WITH r AS (SELECT o.order_id, CAST(o.order_purchase_timestamp AS DATE) AS day, o.order_purchase_timestamp AS ts, o.order_delivered_customer_date AS delivered, o.order_estimated_delivery_date AS estimated, avg(rv.review_score) AS score, count(*) AS reviews FROM orders.orders o JOIN reviews.order_reviews rv ON rv.order_id = o.order_id WHERE o.order_id IN (SELECT i.order_id FROM orders.order_items i JOIN orders.products p ON p.product_id = i.product_id WHERE p.product_category_name = 'relogios_presentes') AND o.order_purchase_timestamp >= DATE '2017-10-01' AND o.order_purchase_timestamp < DATE '2018-02-01' GROUP BY 1, 2, 3, 4, 5) SELECT round(avg(score) FILTER (WHERE day >= DATE '2018-01-01'), 4) AS value, round(avg(score) FILTER (WHERE NOT (day >= DATE '2018-01-01')), 4) AS baseline, (SELECT round(stddev_samp(m), 4) FROM (SELECT avg(score) AS m FROM r WHERE day < DATE '2018-01-01' GROUP BY floor(date_diff('day', DATE '2017-10-01', day) / 31))) AS spread, count(*) FILTER (WHERE day >= DATE '2018-01-01') AS n, count(*) FILTER (WHERE NOT (day >= DATE '2018-01-01')) AS n_baseline FROM r",
+ "truncated": false
+}

@@ -4,6 +4,11 @@ Agents receive everything they use through `AgentContext` (the injected generato
 the trace writer and the budget), so tests can swap any of them. Model input is the agent's system
 prompt plus one user message `INPUT:` followed by canonical JSON; the canonical form keeps the
 sample-mode cache key stable across runs.
+
+With `ground_filters` (the Markovian orchestrator, Sprint 11d) every table in `source_schemas()` also
+carries `values`: the stored values of its text columns, read from the data (`app/data/value_hints.py`),
+and the Planner and Investigator add a note telling the model to map names in the question to them.
+The simple loop leaves it off, so its prompts, and the recorded Day 1 cache, are unchanged.
 """
 
 from __future__ import annotations
@@ -14,6 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from app.data.layer import DataLayer
+from app.data.value_hints import value_hints
 from app.llm.generator import GenerateFn, Message
 from app.trace import TraceWriter
 
@@ -57,9 +63,13 @@ class AgentContext:
     trace: TraceWriter
     budget: Budget
     schema_cache: list[dict[str, Any]] = field(default_factory=list)
+    ground_filters: bool = False
 
     def source_schemas(self) -> list[dict[str, Any]]:
-        """Compact description of every source (tables, columns with types, row counts)."""
+        """Compact description of every source (tables, columns with types, row counts).
+
+        With `ground_filters`, each table with text columns also has `values` (see the module docstring).
+        """
         if not self.schema_cache:
             for source in self.data.list_sources():
                 info = self.data.describe(source)
@@ -76,6 +86,12 @@ class AgentContext:
                         ],
                     }
                 )
+            if self.ground_filters:
+                hints = value_hints(self.data, self.schema_cache)
+                for source in self.schema_cache:
+                    for table in source["tables"]:
+                        if table["table"] in hints:
+                            table["values"] = hints[table["table"]]
         return self.schema_cache
 
 

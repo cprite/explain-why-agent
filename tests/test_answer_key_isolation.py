@@ -54,3 +54,55 @@ def test_app_never_names_the_answer_key_or_opens_eval() -> None:
             if re.search(r"""f["'][^"'\n]*\beval[/\\]""", text):
                 problems.append(f"{name}: f-string path under eval/")
     assert not problems, problems
+
+
+# --- Sprint 11d: no incident ids or question-to-value mappings in app/ -----------------------------
+
+ANSWER_KEY = ROOT / "eval" / "answer_key.json"
+# The names the 25 Oct real-run questions used for a segment, and the values stored for them. A
+# mapping from one to the other in app/ would fix those incidents by hand instead of from the data.
+QUESTION_NAMES = ("Minas Gerais", "Rio de Janeiro", "paid-search", "paid search")
+# The files Sprint 11d added for grounding: they must not even name a stored segment value.
+GROUNDING_FILES = (
+    APP / "data" / "value_hints.py",
+    APP / "agents" / "prompts" / "value_hints_note.md",
+    APP / "agents" / "prompts" / "investigator_check_values.md",
+    APP / "agents" / "prompts" / "investigator_rewrite_note.md",
+)
+
+
+def _incident_needles() -> list[tuple[str, re.Pattern[str]]]:
+    import json
+
+    needles = [("incident id", re.compile(r"\bincident[-_ ]?\d{1,2}\b", re.IGNORECASE))]
+    for incident in json.loads(ANSWER_KEY.read_text()):
+        value = str(incident["segment"]["value"])
+        if incident["segment"]["type"] in ("seller", "category"):  # ids and stored category names
+            needles.append((value, re.compile(re.escape(value), re.IGNORECASE)))
+    needles += [(name, re.compile(re.escape(name), re.IGNORECASE)) for name in QUESTION_NAMES]
+    return needles
+
+
+def test_app_has_no_incident_ids_or_question_to_value_mappings() -> None:
+    needles = _incident_needles()
+    assert len(needles) > len(QUESTION_NAMES) + 1  # the answer key's seller and category values are in
+    problems = []
+    for path in app_files():
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        problems += [f"{path.relative_to(ROOT)}: {label}" for label, pattern in needles if pattern.search(text)]
+    assert not problems, problems
+
+
+def test_grounding_code_and_prompts_name_no_stored_segment_value() -> None:
+    import json
+
+    stored = {"paid_search", "boleto"}
+    for incident in json.loads(ANSWER_KEY.read_text()):
+        if incident["segment"]["type"] == "state":
+            stored.add(str(incident["segment"]["value"]))
+    problems = []
+    for path in GROUNDING_FILES:
+        text = path.read_text(encoding="utf-8")
+        problems += [f"{path.relative_to(ROOT)}: {value}" for value in sorted(stored)
+                     if re.search(rf"(?<![A-Za-z_]){re.escape(value)}(?![A-Za-z_])", text)]
+    assert not problems, problems
