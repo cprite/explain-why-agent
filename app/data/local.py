@@ -332,6 +332,10 @@ class LocalDataLayer(DataLayer):
         """
         return self._run(source, sql, limit, timeout)
 
+    def profile(self, sql: str, limit: int) -> QueryOutcome:
+        """Run one statement for the value hints: guard and timeout apply; no query id, log or replay."""
+        return self._run(None, sql, limit, None, query_id="profile")
+
     def _cache_path(self, source: str | None, sql: str, limit: int | None) -> Path:
         key = json.dumps({"source": source, "sql": " ".join(sql.split()), "limit": limit}, sort_keys=True)
         return self._query_cache / f"{hashlib.sha256(key.encode()).hexdigest()}.json"
@@ -359,9 +363,10 @@ class LocalDataLayer(DataLayer):
         return result
 
     def _run(
-        self, source: str | None, sql: str, limit: int | None, timeout: float | None
+        self, source: str | None, sql: str, limit: int | None, timeout: float | None,
+        query_id: str | None = None,
     ) -> QueryOutcome:
-        query_id = self._next_query_id()
+        query_id = query_id or self._next_query_id()
         limit = self.max_rows if limit is None else max(1, min(int(limit), self.max_rows))
         timeout = self.timeout_seconds if timeout is None else float(timeout)
         started = time.perf_counter()

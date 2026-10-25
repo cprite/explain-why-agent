@@ -547,6 +547,36 @@ class ZetarisDataLayer(DataLayer):
         self._described[source] = info
         return info
 
+    def profile(self, sql: str, limit: int) -> QueryOutcome:
+        """Run one statement for the value hints through the USL: same guard, timeout, retry and local
+        fallback as `query`, but no query id from the run's sequence and no query-log line."""
+        started = time.perf_counter()
+
+        def error(code: str, message: str) -> QueryError:
+            return QueryError(query_id="profile", source=None, sql=sql, adapter=self.adapter_name, code=code,
+                              message=message, duration_ms=elapsed_ms(started))
+
+        try:
+            body = check_read_only(sql)
+        except GuardError as exc:
+            return error("rejected", str(exc))
+        usl_sql, usl_tables = to_usl_sql(body, None)
+        try:
+            rest = self._run_with_retry(usl_sql, limit + 1, self.timeout_seconds)
+        except ZetarisRequestError as exc:
+            return error("failed", f"Zetaris: {exc}")
+        except ZetarisUnavailable as exc:
+            if not self.fallback:
+                return error("timeout" if exc.timeout else "failed", f"Zetaris unavailable after one retry: {exc}")
+            try:
+                return self._local_layer().profile(sql, limit)
+            except Exception as local_exc:  # noqa: BLE001 - a query never raises
+                return error("failed", f"local fallback failed: {type(local_exc).__name__}: {local_exc}")
+        rows = convert_rows(rest, usl_tables)
+        return QueryResult(query_id="profile", source=None, sql=sql, adapter=self.adapter_name,
+                           columns=list(rest.headers), rows=rows[:limit], row_count=min(len(rows), limit),
+                           truncated=len(rows) > limit, duration_ms=elapsed_ms(started))
+
     def query(
         self,
         source: str | None,

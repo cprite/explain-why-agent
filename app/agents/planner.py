@@ -3,7 +3,8 @@
 The model proposes metric, segment, window, baseline window, the change check and 2-4 hypotheses
 from the families in architecture §4, guided by `HYPOTHESIS_CHECKLIST` (the standard families for each
 kind of metric, with the breadth test for `volume`); the code renumbers hypotheses by priority so ids
-are stable.
+are stable. With `ctx.ground_filters` the sources carry the stored text values and the prompt has the
+value note (`prompts/value_hints_note.md`, Sprint 11d).
 """
 
 from __future__ import annotations
@@ -59,9 +60,10 @@ def make_plan(ctx: AgentContext, question: str) -> PlanOutcome:
         "hypothesis_families": list(HYPOTHESIS_FAMILIES),
         "hypothesis_checklist": list(HYPOTHESIS_CHECKLIST),
     }
-    reply = ctx.generate(
-        build_messages(load_prompt("planner"), payload), schema=Plan, role=ROLE, run_id=ctx.run_id
-    )
+    prompt = load_prompt("planner")
+    if ctx.ground_filters:
+        prompt = f"{prompt}\n\n{load_prompt('value_hints_note')}"
+    reply = ctx.generate(build_messages(prompt, payload), schema=Plan, role=ROLE, run_id=ctx.run_id)
     if not reply.ok or reply.parsed is None:
         error = reply.error or {"code": "planner_failed", "message": "no plan returned"}
         ctx.trace.write(

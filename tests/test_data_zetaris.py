@@ -572,3 +572,26 @@ def test_env_example_documents_the_zetaris_settings_without_values() -> None:
                 "OLIST_PG_PASSWORD"):
         assert re.search(rf"^{key}=$", text, re.MULTILINE), key
     assert re.search(r"^DATA_LAYER=zetaris$", text, re.MULTILINE)
+
+
+# --- value-hint profiling (Sprint 11d) -------------------------------------------------------------
+
+
+def test_profile_goes_through_the_usl_without_a_query_id_or_log_line(tmp_path: Path) -> None:
+    calls: list[httpx.Request] = []
+    with layer(tmp_path, lambda r: ok(["v", "n"], [["MG", "12"], ["SP", "40"]]), calls=calls) as data:
+        result = data.profile('SELECT customer_state AS v, count(*) AS n FROM orders.customers GROUP BY 1', 51)
+        assert isinstance(result, QueryResult) and result.query_id == "profile"
+        assert [row["v"] for row in result.rows] == ["MG", "SP"]
+        assert "olist_usl.customers" in sql_of(calls[-1])
+        assert data.log.read() == []
+        assert data.query(None, "SELECT 1 AS n").query_id == "q001"
+        rejected = data.profile("DROP TABLE orders.customers", 1)
+        assert isinstance(rejected, QueryError) and rejected.code == "rejected"
+
+
+def test_profile_falls_back_to_local_when_zetaris_is_down(tmp_path: Path) -> None:
+    with layer(tmp_path, lambda r: httpx.Response(503, text="down")) as data:
+        result = data.profile("SELECT DISTINCT payment_type AS v FROM payments.order_payments ORDER BY 1", 51)
+        assert isinstance(result, QueryResult) and "boleto" in [row["v"] for row in result.rows]
+        assert data.log.read() == []

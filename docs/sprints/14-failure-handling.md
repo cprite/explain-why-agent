@@ -190,8 +190,13 @@ The round, tool-call, chunk and run caps are tested in earlier sprints.
   keeps 11c's `threshold` in `judge` and this sprint's rule that a failed call is not asked for again.
   `tests/test_eval_run.py` is main's version. The Day 1 line of the clean-clone check now reports
   top cause `volume` (11c's prompts and stub caches), where it was `mix_shift` before.
-- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 782 passed after
-  revision 6 (the injectable `sysctl`; 775 after merging Sprint 11c, 720 after revision 4, 717 after revision 3, 715 after merging origin/main 0ae9313, 54 of them in `test_failure_handling.py`; 702 at the first merge, against 650 on
+- After merging origin/main 844239e (Sprint 15, #34, and Sprint 11d, #38) there were two conflicts.
+  `ci.yml` keeps both jobs: this branch's `clean-clone` (plan check M) and main's `readme-quickstart`
+  (plan check O). In `app/agents/investigator.py`, main moved the query step into `_run_sql`; this
+  sprint's `adapter` field and `data_fallback` trace line now live in `_run_sql`, so the empty-result
+  retry from 11d records them too. The clean-clone check gives the same three lines.
+- `pytest -q` under `systemd-run --user --scope -p MemoryMax=3G -p MemorySwapMax=0`: 853 passed after
+  merging Sprint 15 (#34) and Sprint 11d (#38) (782 after revision 6, the injectable `sysctl`; 775 after merging Sprint 11c, 720 after revision 4, 717 after revision 3, 715 after merging origin/main 0ae9313, 54 of them in `test_failure_handling.py`; 702 at the first merge, against 650 on
   origin/main 457cde2), about 6 minutes on the Pi.
 - Every step of the existing `test` job was rerun locally and passes: A, B, C, D (Zetaris and task 7),
   E, F, G, H, I (a live server on a spare port, including a `run_id_taken` answer for a reused id),

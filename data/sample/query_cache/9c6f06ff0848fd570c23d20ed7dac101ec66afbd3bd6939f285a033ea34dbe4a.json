@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 135.5229,
+   "value": 111.7524
+  }
+ ],
+ "source": null,
+ "sql": "SELECT round(avg(i.price) FILTER (WHERE o.order_purchase_timestamp >= DATE '2017-11-24'), 4) AS value, round(avg(i.price) FILTER (WHERE o.order_purchase_timestamp < DATE '2017-11-24'), 4) AS baseline FROM orders.orders o JOIN orders.order_items i ON i.order_id = o.order_id WHERE o.order_purchase_timestamp >= DATE '2017-11-17' AND o.order_purchase_timestamp < DATE '2017-11-25'",
+ "truncated": false
+}

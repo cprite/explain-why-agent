@@ -1,0 +1,67 @@
+{
+  "name": "explain-why-agent",
+  "track": "02 — The Agent That Can Explain Why",
+  "description": "Asks why a business number changed, investigates across four data sources, tries to disprove its own explanation, and answers with evidence or says it cannot be determined.",
+  "entrypoints": {
+    "cli": "python run.py \"<question>\"",
+    "api": "POST /run",
+    "api_start": "python -m app.api",
+    "web": "GET / (served by python -m app.api)",
+    "docker": null
+  },
+  "sample_mode": {
+    "env": "SAMPLE_MODE=true",
+    "needs_network": false,
+    "needs_credentials": false,
+    "quickstart": "README.md, block ```bash readme-quickstart```"
+  },
+  "sponsors": [
+    {
+      "sponsor": "Zetaris",
+      "role": "data layer",
+      "required": true,
+      "code": ["app/data/zetaris.py", "app/data/usl.py", "app/data/factory.py", "scripts/zetaris_setup.py"],
+      "evidence": ["tests/fixtures/zetaris/", "tests/test_zetaris_plan_check.py", "scripts/zetaris_fixture_status.py"],
+      "query_log": "logs/queries-<run_id>.jsonl (written per run, adapter and zetaris_sql per query)"
+    },
+    {
+      "sponsor": "Meterless",
+      "engines": ["World Model", "Markovian"],
+      "required": true,
+      "code": ["app/engines/world_model/", "app/engines/markovian/"],
+      "tests": [
+        "tests/test_world_store.py",
+        "tests/test_world_ingest.py",
+        "tests/test_world_context.py",
+        "tests/test_markovian_chunks.py",
+        "tests/test_markovian_carryover.py",
+        "tests/test_markovian_orchestrator.py",
+        "scripts/check_markovian_run.py"
+      ]
+    },
+    {
+      "sponsor": "Meterless Nightshift",
+      "role": "primary AI provider",
+      "required": true,
+      "code": ["app/llm/generator.py"],
+      "evidence": ["data/sample/llm_cache/"],
+      "evidence_note": "cache entries with \"recorded_with\": \"meterless\" (live Day 1 run, routed model and receipt per call); the questions sample mode replays today are stub-recorded"
+    },
+    {
+      "sponsor": "NVIDIA",
+      "models": ["nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b", "nvidia/nvidia/nemotron-3.5-lightning-30b-a3b"],
+      "via": "Meterless Nightshift",
+      "evidence": ["data/sample/llm_cache/"],
+      "evidence_note": "cache entries with \"recorded_with\": \"meterless\" (live Day 1 run, routed model and receipt per call); the questions sample mode replays today are stub-recorded"
+    },
+    {
+      "sponsor": "Cursor",
+      "required": false,
+      "role": "development tool (partial)"
+    }
+  ],
+  "examples": {"inputs": "input_examples/", "outputs": "output_examples/"},
+  "pre_existing": "docs/PRE-EXISTING.md",
+  "data_licence": "CC BY-NC-SA 4.0 (Olist)",
+  "synthetic_incidents": true
+}

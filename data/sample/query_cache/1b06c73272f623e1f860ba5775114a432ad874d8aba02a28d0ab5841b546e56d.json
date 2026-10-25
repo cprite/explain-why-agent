@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 90.0,
+   "value": 383.0
+  }
+ ],
+ "source": null,
+ "sql": "WITH d AS (SELECT CAST(o.order_purchase_timestamp AS DATE) AS day, count(DISTINCT i.seller_id) AS m FROM orders.orders o JOIN orders.order_items i ON i.order_id = o.order_id WHERE o.order_purchase_timestamp >= DATE '2017-11-17' AND o.order_purchase_timestamp < DATE '2017-11-25' GROUP BY 1) SELECT round(avg(m) FILTER (WHERE day >= DATE '2017-11-24'), 4) AS value, round(avg(m) FILTER (WHERE day < DATE '2017-11-24'), 4) AS baseline FROM d",
+ "truncated": false
+}

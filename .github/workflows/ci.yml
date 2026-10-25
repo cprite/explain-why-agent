@@ -173,3 +173,24 @@ jobs:
           code=$?
           echo "scripts/clean_clone_check.sh exit code: $code"
           exit $code
+
+  readme-quickstart:
+    # Plan check O (task 23): "a second person can run it from the README alone". The branch is checked
+    # out into a fresh directory with an empty .env, and the ```bash readme-quickstart``` block of
+    # README.md is extracted and run as written (venv, pip install, sample-mode run.py).
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: "README quick start (for plan check O): check out the branch into a fresh directory"
+        uses: actions/checkout@v4
+        with:
+          path: readme-check
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: "Plan check O (task 23): README quick start block run from the fresh checkout, empty .env, SAMPLE_MODE=true"
+        working-directory: readme-check
+        run: |
+          : > .env
+          echo ".env is $(wc -c < .env) bytes"
+          python3 scripts/readme_quickstart.py --run --timeout 1080

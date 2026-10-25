@@ -25,6 +25,12 @@ SIZE_BEFORE = {
     "planner": 1595,
     "reporter": 1238,
 }
+# Prompts added after 0ae9313 (Sprint 11d): their size when they were added.
+SIZE_BEFORE |= {
+    "investigator_check_values": 846,
+    "investigator_rewrite_note": 442,
+    "value_hints_note": 655,
+}
 MAX_GROWTH = 1.5
 MAX_HEADER_LINES = 4
 
