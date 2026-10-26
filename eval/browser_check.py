@@ -92,6 +92,14 @@ def run(page: Page) -> None:
           lambda: page.locator("#ask").is_disabled() or page.locator("#result .result-body").count() == 1)
     check("result view appears",
           lambda: page.wait_for_selector("#result .result-body", timeout=RUN_TIMEOUT_MS) is not None)
+    check("agents-at-work panel shows the hand-offs, the hypotheses and a Replay button",
+          lambda: page.locator("#live .feed li.step").count() >= 5 and page.locator("#live .hyp").count() >= 1 and
+          page.locator("#live button.replay").count() == 1 and
+          f"{page.locator('#live .feed li.step').count()} steps, {page.locator('#live .hyp').count()} hypotheses")
+    check("Replay animates the hand-offs with an active agent",
+          lambda: page.locator("#live button.replay").click() is None and
+          page.wait_for_selector("#live .agent.active", timeout=STEP_TIMEOUT_MS) is not None and
+          page.wait_for_selector("#live button.replay", timeout=60_000) is not None)
     check("at least one ranked cause", lambda: page.locator("#result li.cause").count() >= 1 and
           page.locator("#result li.cause").first.inner_text().replace("\n", " | ")[:200])
     check("no 'Cannot be determined' on a determinable answer",
