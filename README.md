@@ -13,6 +13,10 @@ two Meterless engines (World Model and Markovian) inside this repository, and ev
 through Meterless Nightshift to NVIDIA Nemotron. Every step is written to a JSONL trace.
 Hackathon track: **Track 02, "The Agent That Can Explain Why"**.
 
+| The agents at work (replay of a recorded Nemotron run) | The answer |
+|---|---|
+| ![Agents at work: the team strip, the hypothesis board with the Critic's verdicts and the hand-off feed](docs/screenshots/agents-finished.png) | ![The answer: the change, the top cause with its confidence, the ruled-out explanations and the limitations](docs/screenshots/answer.png) |
+
 ## Quick start (sample mode)
 
 Sample mode needs no credentials and no network apart from `pip install`. It uses the local DuckDB
@@ -160,7 +164,15 @@ trace" link. While a question runs, an "Agents at work" panel follows the run's 
 `GET /runs/{id}/trace`): the active agent, each hand-off (Planner to Investigator, Investigator to
 the data layer, the Critic's verdict), every model call with its Nemotron route, and a hypothesis
 board that updates as the Critic judges. After the run, "Replay step by step" plays the hand-offs
-again. Files: `web/index.html`, `web/app.js`, `web/style.css`.
+again. Each agent has its own colour, and the page follows the system's light or dark theme.
+Files: `web/index.html`, `web/app.js`, `web/style.css`. The screenshots below were taken with
+`eval/ui_screenshots.py` against the Nemotron recordings (sample mode).
+
+![The anomaly board: flagged movements with their change and what drove it](docs/screenshots/board.png)
+
+![Half-way through a replay: the Critic is working on H1 while the feed shows each hand-off](docs/screenshots/agents-at-work.png)
+
+![The same view in the dark theme](docs/screenshots/agents-at-work-dark.png)
 
 **Anomaly scanner** on its own: `python -m app.scanner` (add `--json` to write the report to `logs/`).
 
