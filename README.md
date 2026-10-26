@@ -44,8 +44,9 @@ ls -l logs/result-quickstart.json logs/trace-quickstart.jsonl logs/queries-quick
   `recorded_with: stub`, `model_routed: scripted-stub`, `receipt_id: null`. The run shows the agents,
   the Markovian loop, the queries and the trace working end to end, not Nemotron's reasoning. The
   live Nightshift replies on Nemotron are the 15 cache entries marked `"recorded_with": "meterless"`
-  (see [NVIDIA](#nvidia)); the prompts changed after they were recorded, so they no longer replay,
-  until the question is re-recorded through Nightshift.
+  (see [NVIDIA](#nvidia)); the prompts changed after they were recorded, so they no longer replay.
+  The question was re-recorded through Nightshift on 25 Oct with the other evaluation questions:
+  add `LLM_CACHE_DIR=data/recorded/nemotron/llm_cache` to the command to replay Nemotron's replies.
 - The query log is `logs/queries-quickstart.jsonl`: every SQL statement with its source, adapter,
   duration and row count.
 - The command uses the default Markovian loop with the Critic. The same question also replays on the
@@ -409,8 +410,9 @@ CI steps too: `pytest -q -s tests/test_world_context.py::test_plan_check_task9_c
   call, for example the Planner's reply in
   `data/sample/llm_cache/c3826ed22b2b5f2efd8c1f79897585acd2548933f67c3949090fd1a611092f56.json`
   (`model_requested: meterless/deep`, routed model and receipt id). The prompts changed in
-  Sprint 11c, so these entries no longer replay; the questions sample mode replays today are
-  stub-recorded until they are re-recorded through Nightshift.
+  Sprint 11c, so these entries no longer replay. The ten evaluation questions were re-recorded
+  through Nightshift on 25 Oct: the 206 entries in `data/recorded/nemotron/llm_cache/` keep the
+  routed model and receipt id of every call and replay with `LLM_CACHE_DIR` (see Results).
 
 ### NVIDIA
 
@@ -420,9 +422,9 @@ CI steps too: `pytest -q -s tests/test_world_context.py::test_plan_check_task9_c
   `nvidia/nvidia/nemotron-3.5-lightning-30b-a3b`.
 - **Where the model id per request is shown.** The `model_routed` field of every `model_call` line in
   `logs/trace-<run_id>.jsonl` (in sample mode, copied from the recording: `scripted-stub` for the
-  stub-recorded replies the committed questions replay today), the same field in each
-  `data/sample/llm_cache/*.json` entry marked `"recorded_with": "meterless"`, and the `sponsors`
-  record in `metadata.json`.
+  stub-recorded replies of the default cache, the Nemotron model for the replies in
+  `data/recorded/nemotron/llm_cache/`), the same field in each cache entry marked
+  `"recorded_with": "meterless"`, and the `sponsors` record in `metadata.json`.
 - An optional direct NVIDIA fallback (`NVIDIA_API_KEY`, `NVIDIA_MODEL`) sits behind the same
   interface, used only when Nightshift is unreachable.
 
@@ -499,8 +501,10 @@ is what an analyst needs to trust the answer.
 - **Recordings.** Each cache entry says how it was recorded: `"recorded_with": "meterless"` for the
   15 replies of the live Nightshift run of the Day 1 question on 23 Oct (with routed model and
   receipt; kept, but no longer replayed since the Sprint 11c prompt changes), `"stub"` for replies
-  from the deterministic stand-in in `app/llm/stub.py`. Every question sample mode replays today,
-  the Day 1 question included, is stub-recorded until it is re-recorded through Nightshift.
+  from the deterministic stand-in in `app/llm/stub.py`. The default cache replays stub-recorded
+  replies, the Day 1 question included. The 206 entries in `data/recorded/nemotron/llm_cache/` are
+  `"recorded_with": "meterless"` replies from the 25 Oct recording of the ten evaluation questions,
+  replayed with `LLM_CACHE_DIR=data/recorded/nemotron/llm_cache`.
   Recording uses `RECORD_CACHE=true` on a live run.
 - **No hand-written outputs or logs.** Results, traces and query logs are written by the code.
   The one hand-written file is `output_examples/example-result.json`, an example of the result
@@ -532,7 +536,7 @@ is what an analyst needs to trust the answer.
 
 - **One run at a time.** The API holds one lock for runs and scans (`busy` otherwise) and assumes
   a single uvicorn worker. It has no authentication; set `API_HOST=127.0.0.1` where that matters.
-- **Sample mode answers only recorded questions, and those replies are the stand-in model's.** Every
+- **Sample mode answers only recorded questions, and by default those replies are the stand-in model's.** Every
   question with a recording (the Day 1 question, incident-02, -06, -09, -10 and the 21 September
   no-change question) replays stub-recorded replies, not a live model's. The live Nemotron recording
   of 23 Oct is kept in the cache but no longer replays since the Sprint 11c prompt changes. The ten
@@ -553,11 +557,16 @@ is what an analyst needs to trust the answer.
   count the change check reports for the "sample too small" rule. A statistical association is not
   proof of cause; the answer marks each statement as measured or inferred.
 - **SQL dialect.** The Investigator prompt asks for DuckDB SQL; on the Zetaris path Spark runs it,
-  and a DuckDB-only function fails and is repaired once.
+  and a DuckDB-only function fails and is repaired once. The repair does not always work: in a live
+  run on 26 Oct the change-check query still failed with a Zetaris parse error after its repair,
+  and the run went on without confirming the change.
 - **Zetaris in CI.** CI replays recorded Zetaris responses; a change on the server shows up only in
   the next live run.
-- **Live run time** is not measured yet. Each Meterless call may take up to 180 s before it times
-  out, and the run is capped by `MARKOVIAN_RUN_TIMEOUT_S`.
+- **Live run time** is not in the Results table yet. Each Meterless call may take up to 180 s before
+  it times out, and the run is capped by `MARKOVIAN_RUN_TIMEOUT_S`. On 26 Oct, with Nemotron taking
+  one to two minutes per call, the 21 September no-change question ran live (Nightshift, Nemotron,
+  Zetaris) in 309 s, while a full investigation of a review-score question stopped at the 3,000 s
+  cap after about 25 model calls.
 - **Cut from the build plan:** `GET /runs/{id}/events` (the page polls the trace file every two
   seconds instead of streaming events), trend lines on the board tiles, and H-MEM (each run is one
   self-contained investigation). The Docker image is not pushed to a registry; build it locally.
