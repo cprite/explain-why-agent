@@ -1,0 +1,22 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spread",
+  "n",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.2004,
+   "n": 772,
+   "n_baseline": 514,
+   "spread": null,
+   "value": 0.0997
+  }
+ ],
+ "source": null,
+ "sql": "WITH mg_payments AS (\n  SELECT\n    p.payment_type,\n    CAST(o.order_purchase_timestamp AS DATE) AS purchase_date\n  FROM orders.orders o\n  JOIN orders.customers c ON c.customer_id = o.customer_id\n  JOIN payments.order_payments p ON p.order_id = o.order_id\n  WHERE c.customer_state = 'MG'\n),\nwindow_stats AS (\n  SELECT\n    COUNT(*) FILTER (WHERE payment_type = 'boleto') AS boleto_cnt,\n    COUNT(*) AS total_cnt\n  FROM mg_payments\n  WHERE purchase_date >= DATE '2018-03-01'\n    AND purchase_date < DATE '2018-04-01'\n),\nbaseline_periods AS (\n  SELECT\n    DATE_TRUNC('month', purchase_date)::DATE AS period_start,\n    COUNT(*) FILTER (WHERE payment_type = 'boleto') AS boleto_cnt,\n    COUNT(*) AS total_cnt\n  FROM mg_payments\n  WHERE purchase_date >= DATE '2018-02-01'\n    AND purchase_date < DATE '2018-03-01'\n  GROUP BY 1\n),\nbaseline_stats AS (\n  SELECT\n    SUM(boleto_cnt)::DOUBLE / NULLIF(SUM(total_cnt), 0) AS baseline_share,\n    CASE WHEN COUNT(*) >= 2 THEN STDDEV(boleto_cnt::DOUBLE / NULLIF(total_cnt, 0)) END AS spread,\n    SUM(total_cnt) AS n_baseline\n  FROM baseline_periods\n)\nSELECT\n  ROUND(ws.boleto_cnt::DOUBLE / NULLIF(ws.total_cnt, 0), 4) AS value,\n  ROUND(bs.baseline_share, 4) AS baseline,\n  ROUND(bs.spread, 4) AS spread,\n  ws.total_cnt AS n,\n  bs.n_baseline\nFROM window_stats ws, baseline_stats bs;",
+ "truncated": false
+}

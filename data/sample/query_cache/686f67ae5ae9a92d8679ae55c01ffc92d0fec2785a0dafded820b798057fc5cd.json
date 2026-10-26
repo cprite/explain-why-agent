@@ -1,0 +1,24 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_total_reviews",
+  "baseline_total_reviews",
+  "window_n_products",
+  "baseline_n_products"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0472,
+   "baseline_n_products": 203,
+   "baseline_total_reviews": 381,
+   "value": 0.076,
+   "window_n_products": 163,
+   "window_total_reviews": 329
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_reviews AS (\n  SELECT r.review_id, p.product_id\n  FROM reviews.order_reviews AS r\n  JOIN orders.order_items AS oi ON oi.order_id = r.order_id\n  JOIN orders.products AS p ON p.product_id = oi.product_id\n  WHERE p.product_category_name = 'relogios_presentes'\n    AND r.review_creation_date IS NOT NULL\n    AND r.review_creation_date >= DATE '2018-01-01'\n    AND r.review_creation_date < DATE '2018-02-01'\n),\nwindow_counts AS (\n  SELECT product_id, COUNT(*) AS cnt\n  FROM window_reviews\n  GROUP BY product_id\n),\nwindow_total AS (\n  SELECT COUNT(*) AS total_cnt\n  FROM window_reviews\n),\nwindow_share AS (\n  SELECT MAX(cnt)::DOUBLE / ANY_VALUE(total_cnt) AS top_share,\n         COUNT(*) AS n_products,\n         ANY_VALUE(total_cnt) AS total_reviews\n  FROM window_counts, window_total\n),\nbaseline_reviews AS (\n  SELECT r.review_id, p.product_id\n  FROM reviews.order_reviews AS r\n  JOIN orders.order_items AS oi ON oi.order_id = r.order_id\n  JOIN orders.products AS p ON p.product_id = oi.product_id\n  WHERE p.product_category_name = 'relogios_presentes'\n    AND r.review_creation_date IS NOT NULL\n    AND r.review_creation_date >= DATE '2017-12-01'\n    AND r.review_creation_date < DATE '2018-01-01'\n),\nbaseline_counts AS (\n  SELECT product_id, COUNT(*) AS cnt\n  FROM baseline_reviews\n  GROUP BY product_id\n),\nbaseline_total AS (\n  SELECT COUNT(*) AS total_cnt\n  FROM baseline_reviews\n),\nbaseline_share AS (\n  SELECT MAX(cnt)::DOUBLE / ANY_VALUE(total_cnt) AS top_share,\n         COUNT(*) AS n_products,\n         ANY_VALUE(total_cnt) AS total_reviews\n  FROM baseline_counts, baseline_total\n)\nSELECT ROUND(w.top_share, 4) AS value,\n       ROUND(b.top_share, 4) AS baseline,\n       w.total_reviews AS window_total_reviews,\n       b.total_reviews AS baseline_total_reviews,\n       w.n_products AS window_n_products,\n       b.n_products AS baseline_n_products\nFROM window_share w, baseline_share b;",
+ "truncated": false
+}

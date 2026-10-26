@@ -11,6 +11,11 @@ the run without a key.
   `recorded_with: meterless` and a Nightshift receipt id. They live in their own folder because a
   live recording overwrites a stub-recorded entry with the same key; `data/sample/llm_cache/` (the
   scripted stand-in, used by the quick start and the tests) is unchanged.
+- `data/sample/query_cache/`: the 85 query results recorded with those replies (new files only; the
+  committed entries are unchanged). Sample mode swaps in the recorded rows, so the model sees the
+  rows it saw while recording. Without them the replay depended on DuckDB returning the same rows:
+  it did on Linux, but on macOS a few results differed (tie order, one row fewer) and five questions
+  missed their Critic replies.
 - `logs/eval-after-20261025T235356Z.json`: the scored replay of those entries.
 - `app/schemas.py`: `CauseDraft` takes its `observation_ids` from its statements when the model left
   the cause-level list out. Nemotron did this on incident-03 and incident-05 (the ids were on every

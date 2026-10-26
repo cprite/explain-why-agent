@@ -1,0 +1,218 @@
+{
+ "columns": [
+  "customer_city",
+  "value",
+  "baseline",
+  "share_diff",
+  "n_window",
+  "n_baseline",
+  "boleto_window",
+  "boleto_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 1.0,
+   "boleto_baseline": 2,
+   "boleto_window": 1,
+   "customer_city": "santa luzia",
+   "n_baseline": 2,
+   "n_window": 9,
+   "share_diff": -0.8889,
+   "value": 0.1111
+  },
+  {
+   "baseline": 0.1121,
+   "boleto_baseline": 13,
+   "boleto_window": 15,
+   "customer_city": "belo horizonte",
+   "n_baseline": 116,
+   "n_window": 193,
+   "share_diff": -0.0344,
+   "value": 0.0777
+  },
+  {
+   "baseline": 0.2381,
+   "boleto_baseline": 5,
+   "boleto_window": 2,
+   "customer_city": "contagem",
+   "n_baseline": 21,
+   "n_window": 31,
+   "share_diff": -0.1736,
+   "value": 0.0645
+  },
+  {
+   "baseline": 0.6667,
+   "boleto_baseline": 2,
+   "boleto_window": 1,
+   "customer_city": "caratinga",
+   "n_baseline": 3,
+   "n_window": 8,
+   "share_diff": -0.5417,
+   "value": 0.125
+  },
+  {
+   "baseline": 0.3333,
+   "boleto_baseline": 2,
+   "boleto_window": 1,
+   "customer_city": "betim",
+   "n_baseline": 6,
+   "n_window": 16,
+   "share_diff": -0.2708,
+   "value": 0.0625
+  },
+  {
+   "baseline": 0.6667,
+   "boleto_baseline": 2,
+   "boleto_window": 0,
+   "customer_city": "sao joao del rei",
+   "n_baseline": 3,
+   "n_window": 6,
+   "share_diff": -0.6667,
+   "value": 0.0
+  },
+  {
+   "baseline": 1.0,
+   "boleto_baseline": 1,
+   "boleto_window": 1,
+   "customer_city": "timoteo",
+   "n_baseline": 1,
+   "n_window": 5,
+   "share_diff": -0.8,
+   "value": 0.2
+  },
+  {
+   "baseline": 0.5,
+   "boleto_baseline": 1,
+   "boleto_window": 0,
+   "customer_city": "conselheiro lafaiete",
+   "n_baseline": 2,
+   "n_window": 7,
+   "share_diff": -0.5,
+   "value": 0.0
+  },
+  {
+   "baseline": 1.0,
+   "boleto_baseline": 1,
+   "boleto_window": 1,
+   "customer_city": "extrema",
+   "n_baseline": 1,
+   "n_window": 4,
+   "share_diff": -0.75,
+   "value": 0.25
+  },
+  {
+   "baseline": 1.0,
+   "boleto_baseline": 1,
+   "boleto_window": 0,
+   "customer_city": "frutal",
+   "n_baseline": 1,
+   "n_window": 3,
+   "share_diff": -1.0,
+   "value": 0.0
+  },
+  {
+   "baseline": 0.1852,
+   "boleto_baseline": 5,
+   "boleto_window": 2,
+   "customer_city": "juiz de fora",
+   "n_baseline": 27,
+   "n_window": 26,
+   "share_diff": -0.1083,
+   "value": 0.0769
+  },
+  {
+   "baseline": 0.2857,
+   "boleto_baseline": 2,
+   "boleto_window": 0,
+   "customer_city": "uberaba",
+   "n_baseline": 7,
+   "n_window": 9,
+   "share_diff": -0.2857,
+   "value": 0.0
+  },
+  {
+   "baseline": 0.0,
+   "boleto_baseline": 0,
+   "boleto_window": 2,
+   "customer_city": "pouso alegre",
+   "n_baseline": 4,
+   "n_window": 8,
+   "share_diff": 0.25,
+   "value": 0.25
+  },
+  {
+   "baseline": 1.0,
+   "boleto_baseline": 1,
+   "boleto_window": 0,
+   "customer_city": "formiga",
+   "n_baseline": 1,
+   "n_window": 2,
+   "share_diff": -1.0,
+   "value": 0.0
+  },
+  {
+   "baseline": 1.0,
+   "boleto_baseline": 1,
+   "boleto_window": 0,
+   "customer_city": "itabirito",
+   "n_baseline": 1,
+   "n_window": 2,
+   "share_diff": -1.0,
+   "value": 0.0
+  },
+  {
+   "baseline": 1.0,
+   "boleto_baseline": 1,
+   "boleto_window": 0,
+   "customer_city": "jacutinga",
+   "n_baseline": 1,
+   "n_window": 2,
+   "share_diff": -1.0,
+   "value": 0.0
+  },
+  {
+   "baseline": 0.0,
+   "boleto_baseline": 0,
+   "boleto_window": 2,
+   "customer_city": "itajuba",
+   "n_baseline": 4,
+   "n_window": 7,
+   "share_diff": 0.2857,
+   "value": 0.2857
+  },
+  {
+   "baseline": 0.3333,
+   "boleto_baseline": 2,
+   "boleto_window": 0,
+   "customer_city": "manhuacu",
+   "n_baseline": 6,
+   "n_window": 5,
+   "share_diff": -0.3333,
+   "value": 0.0
+  },
+  {
+   "baseline": 0.25,
+   "boleto_baseline": 1,
+   "boleto_window": 0,
+   "customer_city": "ituiutaba",
+   "n_baseline": 4,
+   "n_window": 6,
+   "share_diff": -0.25,
+   "value": 0.0
+  },
+  {
+   "baseline": 0.5,
+   "boleto_baseline": 1,
+   "boleto_window": 0,
+   "customer_city": "barbacena",
+   "n_baseline": 2,
+   "n_window": 3,
+   "share_diff": -0.5,
+   "value": 0.0
+  }
+ ],
+ "source": null,
+ "sql": "WITH mg_orders AS (\n  SELECT\n    o.order_id,\n    CAST(o.order_purchase_timestamp AS DATE) AS order_date,\n    c.customer_city,\n    CASE\n      WHEN o.order_purchase_timestamp >= DATE '2018-02-01' AND o.order_purchase_timestamp < DATE '2018-03-01' THEN 'baseline'\n      WHEN o.order_purchase_timestamp >= DATE '2018-03-01' AND o.order_purchase_timestamp < DATE '2018-04-01' THEN 'window'\n    END AS period\n  FROM orders.orders AS o\n  JOIN orders.customers AS c ON c.customer_id = o.customer_id\n  WHERE c.customer_state = 'MG'\n    AND o.order_purchase_timestamp >= DATE '2018-02-01'\n    AND o.order_purchase_timestamp < DATE '2018-04-01'\n),\nmg_payments AS (\n  SELECT\n    mo.order_id,\n    mo.order_date,\n    mo.customer_city,\n    mo.period,\n    pp.payment_type\n  FROM mg_orders AS mo\n  JOIN payments.order_payments AS pp ON pp.order_id = mo.order_id\n),\ncity_stats AS (\n  SELECT\n    customer_city,\n    period,\n    COUNT(*) AS n_payments,\n    SUM(CASE WHEN payment_type = 'boleto' THEN 1 ELSE 0 END) AS n_boleto,\n    ROUND(SUM(CASE WHEN payment_type = 'boleto' THEN 1 ELSE 0 END)::DOUBLE / COUNT(*), 4) AS boleto_share\n  FROM mg_payments\n  GROUP BY customer_city, period\n),\ncity_pivot AS (\n  SELECT\n    customer_city,\n    MAX(CASE WHEN period = 'window' THEN boleto_share END) AS value,\n    MAX(CASE WHEN period = 'baseline' THEN boleto_share END) AS baseline,\n    MAX(CASE WHEN period = 'window' THEN n_payments END) AS n_window,\n    MAX(CASE WHEN period = 'baseline' THEN n_payments END) AS n_baseline,\n    MAX(CASE WHEN period = 'window' THEN n_boleto END) AS boleto_window,\n    MAX(CASE WHEN period = 'baseline' THEN n_boleto END) AS boleto_baseline\n  FROM city_stats\n  GROUP BY customer_city\n)\nSELECT\n  customer_city,\n  ROUND(value, 4) AS value,\n  ROUND(baseline, 4) AS baseline,\n  ROUND(value - baseline, 4) AS share_diff,\n  n_window,\n  n_baseline,\n  boleto_window,\n  boleto_baseline\nFROM city_pivot\nWHERE value IS NOT NULL AND baseline IS NOT NULL\nORDER BY ABS(value - baseline) * n_window DESC, n_window DESC\nLIMIT 20;",
+ "truncated": false
+}

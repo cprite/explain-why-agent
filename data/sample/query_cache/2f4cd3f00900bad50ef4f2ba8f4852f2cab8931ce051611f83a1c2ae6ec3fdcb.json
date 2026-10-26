@@ -1,0 +1,20 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spike_ratio",
+  "extra_orders"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 136.5714,
+   "extra_orders": 1039.4286,
+   "spike_ratio": 8.6109,
+   "value": 1176
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_orders AS (\n  SELECT COUNT(DISTINCT o.order_id) AS value\n  FROM orders.orders o\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-24'\n    AND o.order_purchase_timestamp < DATE '2017-11-25'\n),\nbaseline_orders AS (\n  SELECT COUNT(DISTINCT o.order_id) AS value\n  FROM orders.orders o\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-17'\n    AND o.order_purchase_timestamp < DATE '2017-11-24'\n)\nSELECT\n  w.value AS value,\n  ROUND(b.value::DOUBLE / 7.0, 4) AS baseline,\n  ROUND(w.value::DOUBLE / NULLIF(b.value::DOUBLE / 7.0, 0), 4) AS spike_ratio,\n  ROUND(w.value - b.value::DOUBLE / 7.0, 4) AS extra_orders\nFROM window_orders w, baseline_orders b;",
+ "truncated": false
+}

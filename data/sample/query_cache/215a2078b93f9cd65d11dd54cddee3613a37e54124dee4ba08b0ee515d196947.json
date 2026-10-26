@@ -1,0 +1,518 @@
+{
+ "columns": [
+  "seller_id",
+  "window_items",
+  "baseline_items",
+  "window_share",
+  "baseline_share",
+  "value",
+  "baseline",
+  "freight_diff"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 15.6189,
+   "baseline_items": 19,
+   "baseline_share": 0.0235,
+   "freight_diff": 7.8736,
+   "seller_id": "6560211a19b47992c3666cc44a7e94c0",
+   "value": 23.4925,
+   "window_items": 16,
+   "window_share": 0.0196
+  },
+  {
+   "baseline": 19.1513,
+   "baseline_items": 8,
+   "baseline_share": 0.0099,
+   "freight_diff": 9.6509,
+   "seller_id": "4869f7a5dfa277a7dca6462dcf3b52b2",
+   "value": 28.8021,
+   "window_items": 14,
+   "window_share": 0.0171
+  },
+  {
+   "baseline": 29.1281,
+   "baseline_items": 16,
+   "baseline_share": 0.0198,
+   "freight_diff": 12.1073,
+   "seller_id": "1025f0e2d44d7041d6cf58b6550e0bfa",
+   "value": 41.2354,
+   "window_items": 13,
+   "window_share": 0.0159
+  },
+  {
+   "baseline": 10.3133,
+   "baseline_items": 3,
+   "baseline_share": 0.0037,
+   "freight_diff": 2.0767,
+   "seller_id": "70c27847eca8195c983ed7e798c56743",
+   "value": 12.39,
+   "window_items": 12,
+   "window_share": 0.0147
+  },
+  {
+   "baseline": 8.8025,
+   "baseline_items": 4,
+   "baseline_share": 0.0049,
+   "freight_diff": 3.4505,
+   "seller_id": "537eb890efff034a88679788b647c564",
+   "value": 12.253,
+   "window_items": 10,
+   "window_share": 0.0122
+  },
+  {
+   "baseline": 16.532,
+   "baseline_items": 5,
+   "baseline_share": 0.0062,
+   "freight_diff": 7.848,
+   "seller_id": "289cdb325fb7e7f891c38608bf9e0962",
+   "value": 24.38,
+   "window_items": 9,
+   "window_share": 0.011
+  },
+  {
+   "baseline": 17.21,
+   "baseline_items": 1,
+   "baseline_share": 0.0012,
+   "freight_diff": 10.66,
+   "seller_id": "671585f5a2af58b6e276bc01003c0d2b",
+   "value": 27.87,
+   "window_items": 8,
+   "window_share": 0.0098
+  },
+  {
+   "baseline": 19.56,
+   "baseline_items": 5,
+   "baseline_share": 0.0062,
+   "freight_diff": 10.175,
+   "seller_id": "1835b56ce799e6a4dc4eddc053f04066",
+   "value": 29.735,
+   "window_items": 8,
+   "window_share": 0.0098
+  },
+  {
+   "baseline": 10.185,
+   "baseline_items": 8,
+   "baseline_share": 0.0099,
+   "freight_diff": 4.8287,
+   "seller_id": "620c87c171fb2a6dd6e8bb4dec959fc6",
+   "value": 15.0138,
+   "window_items": 8,
+   "window_share": 0.0098
+  },
+  {
+   "baseline": 19.53,
+   "baseline_items": 2,
+   "baseline_share": 0.0025,
+   "freight_diff": 10.6725,
+   "seller_id": "4b9750c8ad28220fe6702d4ecb7c898f",
+   "value": 30.2025,
+   "window_items": 8,
+   "window_share": 0.0098
+  },
+  {
+   "baseline": 28.5267,
+   "baseline_items": 3,
+   "baseline_share": 0.0037,
+   "freight_diff": -9.8324,
+   "seller_id": "240b9776d844d37535668549a396af32",
+   "value": 18.6943,
+   "window_items": 7,
+   "window_share": 0.0086
+  },
+  {
+   "baseline": 17.03,
+   "baseline_items": 1,
+   "baseline_share": 0.0012,
+   "freight_diff": 27.8386,
+   "seller_id": "acce39e832338debb07b02385cde5967",
+   "value": 44.8686,
+   "window_items": 7,
+   "window_share": 0.0086
+  },
+  {
+   "baseline": 22.6133,
+   "baseline_items": 6,
+   "baseline_share": 0.0074,
+   "freight_diff": 5.371,
+   "seller_id": "e9779976487b77c6d4ac45f75ec7afe9",
+   "value": 27.9843,
+   "window_items": 7,
+   "window_share": 0.0086
+  },
+  {
+   "baseline": 46.798,
+   "baseline_items": 5,
+   "baseline_share": 0.0062,
+   "freight_diff": -3.038,
+   "seller_id": "53243585a1d6dc2643021fd1853d8905",
+   "value": 43.76,
+   "window_items": 7,
+   "window_share": 0.0086
+  },
+  {
+   "baseline": 9.685,
+   "baseline_items": 2,
+   "baseline_share": 0.0025,
+   "freight_diff": 9.875,
+   "seller_id": "382229d1e840115ffe3dbf5ff460e417",
+   "value": 19.56,
+   "window_items": 7,
+   "window_share": 0.0086
+  },
+  {
+   "baseline": 18.2317,
+   "baseline_items": 6,
+   "baseline_share": 0.0074,
+   "freight_diff": 11.0283,
+   "seller_id": "1900267e848ceeba8fa32d80c1a5f5a8",
+   "value": 29.26,
+   "window_items": 7,
+   "window_share": 0.0086
+  },
+  {
+   "baseline": 24.49,
+   "baseline_items": 16,
+   "baseline_share": 0.0198,
+   "freight_diff": 6.0257,
+   "seller_id": "4a3ca9315b744ce9f8e9374361493884",
+   "value": 30.5157,
+   "window_items": 7,
+   "window_share": 0.0086
+  },
+  {
+   "baseline": 17.3864,
+   "baseline_items": 11,
+   "baseline_share": 0.0136,
+   "freight_diff": 9.0936,
+   "seller_id": "8b9d6eec4a7eb7d0f9d579ce0b38324d",
+   "value": 26.48,
+   "window_items": 6,
+   "window_share": 0.0073
+  },
+  {
+   "baseline": 51.0067,
+   "baseline_items": 6,
+   "baseline_share": 0.0074,
+   "freight_diff": 23.6983,
+   "seller_id": "a1043bafd471dff536d0c462352beb48",
+   "value": 74.705,
+   "window_items": 6,
+   "window_share": 0.0073
+  },
+  {
+   "baseline": 16.77,
+   "baseline_items": 4,
+   "baseline_share": 0.0049,
+   "freight_diff": 7.0933,
+   "seller_id": "9f505651f4a6abe901a56cdc21508025",
+   "value": 23.8633,
+   "window_items": 6,
+   "window_share": 0.0073
+  },
+  {
+   "baseline": 16.815,
+   "baseline_items": 2,
+   "baseline_share": 0.0025,
+   "freight_diff": 6.6467,
+   "seller_id": "85d9eb9ddc5d00ca9336a2219c97bb13",
+   "value": 23.4617,
+   "window_items": 6,
+   "window_share": 0.0073
+  },
+  {
+   "baseline": 20.148,
+   "baseline_items": 5,
+   "baseline_share": 0.0062,
+   "freight_diff": 9.832,
+   "seller_id": "213b25e6f54661939f11710a6fddb871",
+   "value": 29.98,
+   "window_items": 6,
+   "window_share": 0.0073
+  },
+  {
+   "baseline": 27.19,
+   "baseline_items": 2,
+   "baseline_share": 0.0025,
+   "freight_diff": 11.5583,
+   "seller_id": "cc63f0dd2acba93ffed4fe9f8e0321fa",
+   "value": 38.7483,
+   "window_items": 6,
+   "window_share": 0.0073
+  },
+  {
+   "baseline": 22.856,
+   "baseline_items": 10,
+   "baseline_share": 0.0123,
+   "freight_diff": 11.1257,
+   "seller_id": "e9bc59e7b60fc3063eb2290deda4cced",
+   "value": 33.9817,
+   "window_items": 6,
+   "window_share": 0.0073
+  },
+  {
+   "baseline": 23.08,
+   "baseline_items": 1,
+   "baseline_share": 0.0012,
+   "freight_diff": 4.04,
+   "seller_id": "f46490624488d3ff7ce78613913a7711",
+   "value": 27.12,
+   "window_items": 5,
+   "window_share": 0.0061
+  },
+  {
+   "baseline": 22.04,
+   "baseline_items": 9,
+   "baseline_share": 0.0111,
+   "freight_diff": 10.438,
+   "seller_id": "8160255418d5aaa7dbdc9f4c64ebda44",
+   "value": 32.478,
+   "window_items": 5,
+   "window_share": 0.0061
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "baseline_share": 0.0,
+   "freight_diff": null,
+   "seller_id": "55dedd83e501d8248880557d9073cbfd",
+   "value": 14.024,
+   "window_items": 5,
+   "window_share": 0.0061
+  },
+  {
+   "baseline": 15.5667,
+   "baseline_items": 3,
+   "baseline_share": 0.0037,
+   "freight_diff": 9.5793,
+   "seller_id": "080102cd0a76b09e0dcf55fcacc60e05",
+   "value": 25.146,
+   "window_items": 5,
+   "window_share": 0.0061
+  },
+  {
+   "baseline": 21.2067,
+   "baseline_items": 6,
+   "baseline_share": 0.0074,
+   "freight_diff": 12.4473,
+   "seller_id": "951e8cef368f09bb3f3d03c00ca4702c",
+   "value": 33.654,
+   "window_items": 5,
+   "window_share": 0.0061
+  },
+  {
+   "baseline": 34.415,
+   "baseline_items": 6,
+   "baseline_share": 0.0074,
+   "freight_diff": 18.517,
+   "seller_id": "06a2c3af7b3aee5d69171b0e14f0ee87",
+   "value": 52.932,
+   "window_items": 5,
+   "window_share": 0.0061
+  },
+  {
+   "baseline": 20.1413,
+   "baseline_items": 8,
+   "baseline_share": 0.0099,
+   "freight_diff": 13.8112,
+   "seller_id": "d91fb3b7d041e83b64a00a3edfb37e4f",
+   "value": 33.9525,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 16.6882,
+   "baseline_items": 11,
+   "baseline_share": 0.0136,
+   "freight_diff": 8.2368,
+   "seller_id": "c70c1b0d8ca86052f45a432a38b73958",
+   "value": 24.925,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 23.33,
+   "baseline_items": 2,
+   "baseline_share": 0.0025,
+   "freight_diff": 17.845,
+   "seller_id": "1554a68530182680ad5c8b042c3ab563",
+   "value": 41.175,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 20.8433,
+   "baseline_items": 3,
+   "baseline_share": 0.0037,
+   "freight_diff": 12.6692,
+   "seller_id": "8a432f4e5b471f8da497d7dc517666e2",
+   "value": 33.5125,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 48.974,
+   "baseline_items": 5,
+   "baseline_share": 0.0062,
+   "freight_diff": 19.0885,
+   "seller_id": "c33847515fa6305ce6feb1e818569f13",
+   "value": 68.0625,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 17.2867,
+   "baseline_items": 3,
+   "baseline_share": 0.0037,
+   "freight_diff": 8.9508,
+   "seller_id": "5656537e588803a555b8eb41f07a944b",
+   "value": 26.2375,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 17.4567,
+   "baseline_items": 9,
+   "baseline_share": 0.0111,
+   "freight_diff": 12.7033,
+   "seller_id": "7d13fca15225358621be4086e1eb0964",
+   "value": 30.16,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 16.835,
+   "baseline_items": 2,
+   "baseline_share": 0.0025,
+   "freight_diff": 6.6875,
+   "seller_id": "8d956fec2e4337affcb520f56fd8cbfd",
+   "value": 23.5225,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 16.16,
+   "baseline_items": 2,
+   "baseline_share": 0.0025,
+   "freight_diff": 8.025,
+   "seller_id": "7b07b3c7487f0ea825fc6df75abd658b",
+   "value": 24.185,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 20.2473,
+   "baseline_items": 11,
+   "baseline_share": 0.0136,
+   "freight_diff": 12.7627,
+   "seller_id": "da8622b14eb17ae2831f4ac5b9dab84a",
+   "value": 33.01,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "baseline_share": 0.0,
+   "freight_diff": null,
+   "seller_id": "7040e82f899a04d1b434b795a43b4617",
+   "value": 25.09,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 19.24,
+   "baseline_items": 5,
+   "baseline_share": 0.0062,
+   "freight_diff": 75.29,
+   "seller_id": "d2374cbcbb3ca4ab1086534108cc3ab7",
+   "value": 94.53,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "baseline_share": 0.0,
+   "freight_diff": null,
+   "seller_id": "81f89e42267213cb94da7ddc301651da",
+   "value": 27.9325,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 18.02,
+   "baseline_items": 1,
+   "baseline_share": 0.0012,
+   "freight_diff": 16.3575,
+   "seller_id": "53e4c6e0f4312d4d2107a8c9cddf45cd",
+   "value": 34.3775,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 15.3,
+   "baseline_items": 1,
+   "baseline_share": 0.0012,
+   "freight_diff": 9.235,
+   "seller_id": "18a349e75d307f4b4cc646a691ed4216",
+   "value": 24.535,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 23.48,
+   "baseline_items": 1,
+   "baseline_share": 0.0012,
+   "freight_diff": 5.43,
+   "seller_id": "17e34d8224d27a541263c4c64b11a56b",
+   "value": 28.91,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 23.2,
+   "baseline_items": 1,
+   "baseline_share": 0.0012,
+   "freight_diff": 1.0175,
+   "seller_id": "594f9aaa48e5bf431f011ddc5669b0d5",
+   "value": 24.2175,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 8.045,
+   "baseline_items": 2,
+   "baseline_share": 0.0025,
+   "freight_diff": 4.155,
+   "seller_id": "81783131d2a97c8d44d406a4be81b5d9",
+   "value": 12.2,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "baseline_share": 0.0,
+   "freight_diff": null,
+   "seller_id": "402916f742e5c740cc751493d9cf5053",
+   "value": 28.8175,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 18.45,
+   "baseline_items": 3,
+   "baseline_share": 0.0037,
+   "freight_diff": 9.1575,
+   "seller_id": "391fc6631aebcf3004804e51b40bcf1e",
+   "value": 27.6075,
+   "window_items": 4,
+   "window_share": 0.0049
+  }
+ ],
+ "source": null,
+ "sql": "WITH rj_base AS (\n   SELECT\n     oi.seller_id,\n     oi.freight_value,\n     o.order_purchase_timestamp\n   FROM orders.order_items oi\n   JOIN orders.orders o ON oi.order_id = o.order_id\n   JOIN orders.customers c ON o.customer_id = c.customer_id\n   WHERE c.customer_state = 'RJ'\n     AND o.order_purchase_timestamp >= DATE '2018-07-01'\n     AND o.order_purchase_timestamp < DATE '2018-09-01'\n),\nwindow_stats AS (\n   SELECT\n     seller_id,\n     COUNT(*) AS window_items,\n     AVG(freight_value) AS window_avg_freight\n   FROM rj_base\n   WHERE order_purchase_timestamp >= DATE '2018-08-01'\n     AND order_purchase_timestamp < DATE '2018-09-01'\n   GROUP BY seller_id\n),\nbaseline_stats AS (\n   SELECT\n     seller_id,\n     COUNT(*) AS baseline_items,\n     AVG(freight_value) AS baseline_avg_freight\n   FROM rj_base\n   WHERE order_purchase_timestamp >= DATE '2018-07-01'\n     AND order_purchase_timestamp < DATE '2018-08-01'\n   GROUP BY seller_id\n),\nwindow_total AS (\n   SELECT COUNT(*) AS total_items FROM rj_base\n   WHERE order_purchase_timestamp >= DATE '2018-08-01'\n     AND order_purchase_timestamp < DATE '2018-09-01'\n),\nbaseline_total AS (\n   SELECT COUNT(*) AS total_items FROM rj_base\n   WHERE order_purchase_timestamp >= DATE '2018-07-01'\n     AND order_purchase_timestamp < DATE '2018-08-01'\n)\nSELECT\n   COALESCE(w.seller_id, b.seller_id) AS seller_id,\n   COALESCE(w.window_items, 0) AS window_items,\n   COALESCE(b.baseline_items, 0) AS baseline_items,\n   ROUND(COALESCE(w.window_items, 0)::DOUBLE / wt.total_items, 4) AS window_share,\n   ROUND(COALESCE(b.baseline_items, 0)::DOUBLE / bt.total_items, 4) AS baseline_share,\n   ROUND(w.window_avg_freight, 4) AS value,\n   ROUND(b.baseline_avg_freight, 4) AS baseline,\n   ROUND(w.window_avg_freight - b.baseline_avg_freight, 4) AS freight_diff\nFROM window_stats w\nFULL OUTER JOIN baseline_stats b ON w.seller_id = b.seller_id\nCROSS JOIN window_total wt\nCROSS JOIN baseline_total bt\nORDER BY COALESCE(w.window_items, 0) DESC\nLIMIT 50;",
+ "truncated": false
+}

@@ -1,0 +1,22 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spread",
+  "n",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 24.8632,
+   "n": 817,
+   "n_baseline": 810,
+   "spread": null,
+   "value": 32.6192
+  }
+ ],
+ "source": null,
+ "sql": "WITH filtered AS (\n  SELECT\n    oi.freight_value,\n    o.order_purchase_timestamp\n  FROM orders.order_items oi\n  JOIN orders.orders o ON oi.order_id = o.order_id\n  JOIN orders.customers c ON o.customer_id = c.customer_id\n  WHERE c.customer_state = 'RJ'\n    AND oi.freight_value IS NOT NULL\n    AND o.order_purchase_timestamp IS NOT NULL\n    AND (\n      (o.order_purchase_timestamp >= DATE '2018-08-01' AND o.order_purchase_timestamp < DATE '2018-09-01')\n      OR (o.order_purchase_timestamp >= DATE '2018-07-01' AND o.order_purchase_timestamp < DATE '2018-08-01')\n    )\n),\nperiods AS (\n  SELECT\n    CASE\n      WHEN order_purchase_timestamp >= DATE '2018-08-01' AND order_purchase_timestamp < DATE '2018-09-01' THEN 'window'\n      ELSE 'baseline'\n    END AS period,\n    DATE_TRUNC('month', order_purchase_timestamp) AS month_start,\n    freight_value\n  FROM filtered\n),\nwindow_agg AS (\n  SELECT AVG(freight_value) AS value, COUNT(*) AS n\n  FROM periods WHERE period = 'window'\n),\nbaseline_agg AS (\n  SELECT AVG(freight_value) AS baseline, COUNT(*) AS n_baseline\n  FROM periods WHERE period = 'baseline'\n),\nbaseline_monthly AS (\n  SELECT AVG(freight_value) AS month_avg\n  FROM periods\n  WHERE period = 'baseline'\n  GROUP BY month_start\n),\nspread_calc AS (\n  SELECT CASE WHEN COUNT(*) >= 2 THEN STDDEV(month_avg) ELSE NULL END AS spread\n  FROM baseline_monthly\n)\nSELECT\n  ROUND(wa.value, 4) AS value,\n  ROUND(ba.baseline, 4) AS baseline,\n  ROUND(sc.spread, 4) AS spread,\n  wa.n,\n  ba.n_baseline\nFROM window_agg wa, baseline_agg ba, spread_calc sc;",
+ "truncated": false
+}

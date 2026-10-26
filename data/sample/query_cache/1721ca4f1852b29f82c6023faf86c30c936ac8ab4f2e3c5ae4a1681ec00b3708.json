@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0,
+   "value": 1436.5900000000001
+  }
+ ],
+ "source": null,
+ "sql": "WITH march_cohort AS (\n  SELECT DISTINCT d.seller_id\n  FROM marketing.marketing_qualified_leads m\n  JOIN marketing.closed_deals d ON m.mql_id = d.mql_id\n  WHERE m.origin = 'paid_search'\n    AND d.won_date >= DATE '2018-03-01' AND d.won_date < DATE '2018-04-01'\n),\nfeb_cohort AS (\n  SELECT DISTINCT d.seller_id\n  FROM marketing.marketing_qualified_leads m\n  JOIN marketing.closed_deals d ON m.mql_id = d.mql_id\n  WHERE m.origin = 'paid_search'\n    AND d.won_date >= DATE '2018-02-01' AND d.won_date < DATE '2018-03-01'\n),\nmarch_revenue AS (\n  SELECT COALESCE(SUM(oi.price), 0) AS revenue\n  FROM orders.order_items oi\n  JOIN orders.orders o ON oi.order_id = o.order_id\n  WHERE oi.seller_id IN (SELECT seller_id FROM march_cohort)\n    AND o.order_purchase_timestamp >= DATE '2018-03-01' AND o.order_purchase_timestamp < DATE '2018-04-01'\n),\nfeb_revenue AS (\n  SELECT COALESCE(SUM(oi.price), 0) AS revenue\n  FROM orders.order_items oi\n  JOIN orders.orders o ON oi.order_id = o.order_id\n  WHERE oi.seller_id IN (SELECT seller_id FROM feb_cohort)\n    AND o.order_purchase_timestamp >= DATE '2018-02-01' AND o.order_purchase_timestamp < DATE '2018-03-01'\n)\nSELECT (SELECT revenue FROM march_revenue) AS value,\n       (SELECT revenue FROM feb_revenue) AS baseline;",
+ "truncated": false
+}

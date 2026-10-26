@@ -1,0 +1,24 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_customers",
+  "baseline_customers",
+  "window_new_customers",
+  "baseline_new_customers"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 1.0,
+   "baseline_customers": 140,
+   "baseline_new_customers": 140,
+   "value": 1.0,
+   "window_customers": 2958,
+   "window_new_customers": 2958
+  }
+ ],
+ "source": null,
+ "sql": "WITH customer_first AS (\n  SELECT customer_id, MIN(CAST(order_purchase_timestamp AS DATE)) AS first_order_date\n  FROM orders.orders GROUP BY customer_id\n),\nperiod_orders AS (\n  SELECT o.order_id,\n         o.customer_id,\n         CAST(o.order_purchase_timestamp AS DATE) AS order_date,\n         CASE WHEN CAST(o.order_purchase_timestamp AS DATE) >= DATE '2017-08-01' AND CAST(o.order_purchase_timestamp AS DATE) < DATE '2017-09-01' THEN 'window'\n              WHEN CAST(o.order_purchase_timestamp AS DATE) >= DATE '2017-07-01' AND CAST(o.order_purchase_timestamp AS DATE) < DATE '2017-08-01' THEN 'baseline'\n            END AS period\n  FROM orders.orders o\n  WHERE CAST(o.order_purchase_timestamp AS DATE) >= DATE '2017-07-01'\n    AND CAST(o.order_purchase_timestamp AS DATE) < DATE '2017-09-01'\n),\ncust_type AS (\n  SELECT po.customer_id,\n         po.period,\n         CASE WHEN cf.first_order_date >= CASE po.period WHEN 'window' THEN DATE '2017-08-01' ELSE DATE '2017-07-01' END\n              AND cf.first_order_date < CASE po.period WHEN 'window' THEN DATE '2017-09-01' ELSE DATE '2017-08-01' END\n              THEN 'new' ELSE 'returning' END AS cust_type\n  FROM period_orders po\n  JOIN customer_first cf ON cf.customer_id = po.customer_id\n  WHERE po.period IS NOT NULL\n)\nSELECT\n  ROUND(CAST(COUNT(DISTINCT CASE WHEN period = 'window' AND cust_type = 'new' THEN customer_id END) AS DOUBLE)\n        / NULLIF(COUNT(DISTINCT CASE WHEN period = 'window' THEN customer_id END), 0), 4) AS value,\n  ROUND(CAST(COUNT(DISTINCT CASE WHEN period = 'baseline' AND cust_type = 'new' THEN customer_id END) AS DOUBLE)\n        / NULLIF(COUNT(DISTINCT CASE WHEN period = 'baseline' THEN customer_id END), 0), 4) AS baseline,\n  COUNT(DISTINCT CASE WHEN period = 'window' THEN customer_id END) AS window_customers,\n  COUNT(DISTINCT CASE WHEN period = 'baseline' THEN customer_id END) AS baseline_customers,\n  COUNT(DISTINCT CASE WHEN period = 'window' AND cust_type = 'new' THEN customer_id END) AS window_new_customers,\n  COUNT(DISTINCT CASE WHEN period = 'baseline' AND cust_type = 'new' THEN customer_id END) AS baseline_new_customers\nFROM cust_type;",
+ "truncated": false
+}

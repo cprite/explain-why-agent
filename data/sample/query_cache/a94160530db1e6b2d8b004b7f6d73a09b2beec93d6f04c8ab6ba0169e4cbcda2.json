@@ -1,0 +1,155 @@
+{
+ "columns": [
+  "seller_id",
+  "window_orders",
+  "baseline_orders",
+  "extra_orders",
+  "share_of_total_extra"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline_orders": 34,
+   "extra_orders": 41,
+   "seller_id": "1f50f920176fa81dab994f9023523100",
+   "share_of_total_extra": 0.0726,
+   "window_orders": 75
+  },
+  {
+   "baseline_orders": 10,
+   "extra_orders": 20,
+   "seller_id": "1025f0e2d44d7041d6cf58b6550e0bfa",
+   "share_of_total_extra": 0.0354,
+   "window_orders": 30
+  },
+  {
+   "baseline_orders": 8,
+   "extra_orders": 18,
+   "seller_id": "8160255418d5aaa7dbdc9f4c64ebda44",
+   "share_of_total_extra": 0.0319,
+   "window_orders": 26
+  },
+  {
+   "baseline_orders": 15,
+   "extra_orders": 15,
+   "seller_id": "ea8482cd71df3c1969d7b9473ff13abc",
+   "share_of_total_extra": 0.0265,
+   "window_orders": 30
+  },
+  {
+   "baseline_orders": 14,
+   "extra_orders": 15,
+   "seller_id": "6560211a19b47992c3666cc44a7e94c0",
+   "share_of_total_extra": 0.0265,
+   "window_orders": 29
+  },
+  {
+   "baseline_orders": 1,
+   "extra_orders": 9,
+   "seller_id": "891071be6ba827b591264c90c2ae8a63",
+   "share_of_total_extra": 0.0159,
+   "window_orders": 10
+  },
+  {
+   "baseline_orders": 30,
+   "extra_orders": 9,
+   "seller_id": "cc419e0650a3c5ba77189a1882b7556a",
+   "share_of_total_extra": 0.0159,
+   "window_orders": 39
+  },
+  {
+   "baseline_orders": 3,
+   "extra_orders": 9,
+   "seller_id": "391fc6631aebcf3004804e51b40bcf1e",
+   "share_of_total_extra": 0.0159,
+   "window_orders": 12
+  },
+  {
+   "baseline_orders": 11,
+   "extra_orders": 8,
+   "seller_id": "da8622b14eb17ae2831f4ac5b9dab84a",
+   "share_of_total_extra": 0.0142,
+   "window_orders": 19
+  },
+  {
+   "baseline_orders": 4,
+   "extra_orders": 8,
+   "seller_id": "54965bbe3e4f07ae045b90b0b8541f52",
+   "share_of_total_extra": 0.0142,
+   "window_orders": 12
+  },
+  {
+   "baseline_orders": 0,
+   "extra_orders": 7,
+   "seller_id": "fe2032dab1a61af8794248c8196565c9",
+   "share_of_total_extra": 0.0124,
+   "window_orders": 7
+  },
+  {
+   "baseline_orders": 24,
+   "extra_orders": 7,
+   "seller_id": "4a3ca9315b744ce9f8e9374361493884",
+   "share_of_total_extra": 0.0124,
+   "window_orders": 31
+  },
+  {
+   "baseline_orders": 0,
+   "extra_orders": 7,
+   "seller_id": "2dee2ce60de9709b1a24083217181a1f",
+   "share_of_total_extra": 0.0124,
+   "window_orders": 7
+  },
+  {
+   "baseline_orders": 2,
+   "extra_orders": 7,
+   "seller_id": "7d76b645482be4a332374e8223836592",
+   "share_of_total_extra": 0.0124,
+   "window_orders": 9
+  },
+  {
+   "baseline_orders": 4,
+   "extra_orders": 6,
+   "seller_id": "85d9eb9ddc5d00ca9336a2219c97bb13",
+   "share_of_total_extra": 0.0106,
+   "window_orders": 10
+  },
+  {
+   "baseline_orders": 5,
+   "extra_orders": 6,
+   "seller_id": "53e4c6e0f4312d4d2107a8c9cddf45cd",
+   "share_of_total_extra": 0.0106,
+   "window_orders": 11
+  },
+  {
+   "baseline_orders": 1,
+   "extra_orders": 5,
+   "seller_id": "8581055ce74af1daba164fdbd55a40de",
+   "share_of_total_extra": 0.0088,
+   "window_orders": 6
+  },
+  {
+   "baseline_orders": 1,
+   "extra_orders": 5,
+   "seller_id": "ef506c96320abeedfb894c34db06f478",
+   "share_of_total_extra": 0.0088,
+   "window_orders": 6
+  },
+  {
+   "baseline_orders": 2,
+   "extra_orders": 5,
+   "seller_id": "ccc4bbb5f32a6ab2b7066a4130f114e3",
+   "share_of_total_extra": 0.0088,
+   "window_orders": 7
+  },
+  {
+   "baseline_orders": 1,
+   "extra_orders": 5,
+   "seller_id": "1a3df491d1c4f1589fc2b934ada68bf2",
+   "share_of_total_extra": 0.0088,
+   "window_orders": 6
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_orders AS (\n  SELECT oi.seller_id, COUNT(DISTINCT o.order_id) AS window_orders\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-24'\n    AND o.order_purchase_timestamp < DATE '2017-11-25'\n  GROUP BY oi.seller_id\n),\nbaseline_orders AS (\n  SELECT oi.seller_id, COUNT(DISTINCT o.order_id) AS baseline_orders\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-17'\n    AND o.order_purchase_timestamp < DATE '2017-11-24'\n  GROUP BY oi.seller_id\n),\ncombined AS (\n  SELECT\n    COALESCE(w.seller_id, b.seller_id) AS seller_id,\n    COALESCE(w.window_orders, 0) AS window_orders,\n    COALESCE(b.baseline_orders, 0) AS baseline_orders,\n    COALESCE(w.window_orders, 0) - COALESCE(b.baseline_orders, 0) AS extra_orders\n  FROM window_orders w\n  FULL OUTER JOIN baseline_orders b ON w.seller_id = b.seller_id\n),\ntotal_extra AS (\n  SELECT SUM(extra_orders) AS total_extra FROM combined WHERE extra_orders > 0\n)\nSELECT\n  c.seller_id,\n  c.window_orders,\n  c.baseline_orders,\n  c.extra_orders,\n  ROUND(c.extra_orders::DOUBLE / t.total_extra, 4) AS share_of_total_extra\nFROM combined c, total_extra t\nWHERE c.extra_orders > 0\nORDER BY c.extra_orders DESC\nLIMIT 20;",
+ "truncated": false
+}

@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 3.979,
+   "value": 2.6292
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_reviews AS (\n  SELECT r.review_score\n  FROM reviews.order_reviews AS r\n  JOIN orders.orders AS o ON o.order_id = r.order_id\n  JOIN orders.order_items AS oi ON oi.order_id = o.order_id\n  JOIN orders.products AS p ON p.product_id = oi.product_id\n  WHERE p.product_category_name = 'relogios_presentes'\n    AND r.review_creation_date IS NOT NULL\n    AND CAST(r.review_creation_date AS DATE) >= DATE '2018-01-01'\n    AND CAST(r.review_creation_date AS DATE) < DATE '2018-02-01'\n),\nbaseline_reviews AS (\n  SELECT r.review_score\n  FROM reviews.order_reviews AS r\n  JOIN orders.orders AS o ON o.order_id = r.order_id\n  JOIN orders.order_items AS oi ON oi.order_id = o.order_id\n  JOIN orders.products AS p ON p.product_id = oi.product_id\n  WHERE p.product_category_name = 'relogios_presentes'\n    AND r.review_creation_date IS NOT NULL\n    AND CAST(r.review_creation_date AS DATE) >= DATE '2017-12-01'\n    AND CAST(r.review_creation_date AS DATE) < DATE '2018-01-01'\n),\nwindow_avg AS (\n  SELECT ROUND(AVG(review_score::DOUBLE), 4) AS value\n  FROM window_reviews\n),\nbaseline_avg AS (\n  SELECT ROUND(AVG(review_score::DOUBLE), 4) AS baseline\n  FROM baseline_reviews\n)\nSELECT value, baseline FROM window_avg, baseline_avg;",
+ "truncated": false
+}

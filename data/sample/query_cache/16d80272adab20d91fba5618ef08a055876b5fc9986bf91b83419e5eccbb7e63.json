@@ -1,0 +1,20 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "abs_change",
+  "rel_change"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "abs_change": 7.756,
+   "baseline": 24.8632,
+   "rel_change": 0.3119,
+   "value": 32.6192
+  }
+ ],
+ "source": null,
+ "sql": "WITH rj_items AS (\n  SELECT oi.freight_value,\n    o.order_purchase_timestamp,\n    CASE WHEN o.order_purchase_timestamp >= DATE '2018-08-01' AND o.order_purchase_timestamp < DATE '2018-09-01' THEN 'window'\n         WHEN o.order_purchase_timestamp >= DATE '2018-07-01' AND o.order_purchase_timestamp < DATE '2018-08-01' THEN 'baseline'\n    END AS period\n  FROM orders.order_items oi\n  JOIN orders.orders o ON oi.order_id = o.order_id\n  JOIN orders.customers c ON o.customer_id = c.customer_id\n  WHERE c.customer_state = 'RJ'\n    AND o.order_purchase_timestamp >= DATE '2018-07-01'\n    AND o.order_purchase_timestamp < DATE '2018-09-01'\n)\nSELECT\n  ROUND(AVG(CASE WHEN period = 'window' THEN freight_value END), 4) AS value,\n  ROUND(AVG(CASE WHEN period = 'baseline' THEN freight_value END), 4) AS baseline,\n  ROUND(AVG(CASE WHEN period = 'window' THEN freight_value END) - AVG(CASE WHEN period = 'baseline' THEN freight_value END), 4) AS abs_change,\n  ROUND(AVG(CASE WHEN period = 'window' THEN freight_value END) / NULLIF(AVG(CASE WHEN period = 'baseline' THEN freight_value END), 0) - 1, 4) AS rel_change\nFROM rj_items\nWHERE period IS NOT NULL;",
+ "truncated": false
+}

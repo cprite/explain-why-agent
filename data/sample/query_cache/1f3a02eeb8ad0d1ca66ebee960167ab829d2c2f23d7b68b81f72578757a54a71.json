@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 1434,
+   "value": 606
+  }
+ ],
+ "source": null,
+ "sql": "SELECT\n  SUM(CASE WHEN order_delivered_customer_date >= DATE '2018-05-28' AND order_delivered_customer_date < DATE '2018-06-04' THEN 1 ELSE 0 END) AS value,\n  SUM(CASE WHEN order_delivered_customer_date >= DATE '2018-05-21' AND order_delivered_customer_date < DATE '2018-05-28' THEN 1 ELSE 0 END) AS baseline\nFROM orders.orders\nWHERE order_status = 'delivered'\n  AND (\n    (order_delivered_customer_date >= DATE '2018-05-28' AND order_delivered_customer_date < DATE '2018-06-04')\n    OR (order_delivered_customer_date >= DATE '2018-05-21' AND order_delivered_customer_date < DATE '2018-05-28')\n  );",
+ "truncated": false
+}

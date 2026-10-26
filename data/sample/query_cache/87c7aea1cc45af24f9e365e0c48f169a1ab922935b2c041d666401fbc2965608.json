@@ -1,0 +1,28 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_items",
+  "baseline_items",
+  "window_null_freight",
+  "baseline_null_freight",
+  "window_extreme_freight",
+  "baseline_extreme_freight"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 24.8632,
+   "baseline_extreme_freight": 0,
+   "baseline_items": 810,
+   "baseline_null_freight": 0,
+   "value": 32.6192,
+   "window_extreme_freight": 0,
+   "window_items": 817,
+   "window_null_freight": 0
+  }
+ ],
+ "source": null,
+ "sql": "WITH rj_orders AS (\n  SELECT\n    oi.freight_value,\n    o.order_purchase_timestamp\n  FROM orders.order_items oi\n  JOIN orders.orders o ON oi.order_id = o.order_id\n  JOIN orders.customers c ON o.customer_id = c.customer_id\n  WHERE c.customer_state = 'RJ'\n    AND o.order_purchase_timestamp >= DATE '2018-07-01'\n    AND o.order_purchase_timestamp < DATE '2018-09-01'\n),\nwindow_stats AS (\n  SELECT\n    COUNT(*) AS n_items,\n    SUM(CASE WHEN freight_value IS NULL THEN 1 ELSE 0 END) AS n_null_freight,\n    SUM(CASE WHEN freight_value IS NOT NULL AND (freight_value < 0 OR freight_value > 1000) THEN 1 ELSE 0 END) AS n_extreme_freight,\n    AVG(freight_value) AS avg_freight\n  FROM rj_orders\n  WHERE order_purchase_timestamp >= DATE '2018-08-01'\n    AND order_purchase_timestamp < DATE '2018-09-01'\n),\nbaseline_stats AS (\n  SELECT\n    COUNT(*) AS n_items,\n    SUM(CASE WHEN freight_value IS NULL THEN 1 ELSE 0 END) AS n_null_freight,\n    SUM(CASE WHEN freight_value IS NOT NULL AND (freight_value < 0 OR freight_value > 1000) THEN 1 ELSE 0 END) AS n_extreme_freight,\n    AVG(freight_value) AS avg_freight\n  FROM rj_orders\n  WHERE order_purchase_timestamp >= DATE '2018-07-01'\n    AND order_purchase_timestamp < DATE '2018-08-01'\n)\nSELECT\n  ROUND(w.avg_freight, 4) AS value,\n  ROUND(b.avg_freight, 4) AS baseline,\n  w.n_items AS window_items,\n  b.n_items AS baseline_items,\n  w.n_null_freight AS window_null_freight,\n  b.n_null_freight AS baseline_null_freight,\n  w.n_extreme_freight AS window_extreme_freight,\n  b.n_extreme_freight AS baseline_extreme_freight\nFROM window_stats w, baseline_stats b;",
+ "truncated": false
+}

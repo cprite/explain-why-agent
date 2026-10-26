@@ -1,0 +1,62 @@
+{
+ "columns": [
+  "period",
+  "payment_type",
+  "n_payments",
+  "share_of_mg_payments"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "n_payments": 103,
+   "payment_type": "boleto",
+   "period": "baseline",
+   "share_of_mg_payments": 0.2004
+  },
+  {
+   "n_payments": 398,
+   "payment_type": "credit_card",
+   "period": "baseline",
+   "share_of_mg_payments": 0.7743
+  },
+  {
+   "n_payments": 4,
+   "payment_type": "debit_card",
+   "period": "baseline",
+   "share_of_mg_payments": 0.0078
+  },
+  {
+   "n_payments": 9,
+   "payment_type": "voucher",
+   "period": "baseline",
+   "share_of_mg_payments": 0.0175
+  },
+  {
+   "n_payments": 77,
+   "payment_type": "boleto",
+   "period": "window",
+   "share_of_mg_payments": 0.0997
+  },
+  {
+   "n_payments": 651,
+   "payment_type": "credit_card",
+   "period": "window",
+   "share_of_mg_payments": 0.8433
+  },
+  {
+   "n_payments": 5,
+   "payment_type": "debit_card",
+   "period": "window",
+   "share_of_mg_payments": 0.0065
+  },
+  {
+   "n_payments": 39,
+   "payment_type": "voucher",
+   "period": "window",
+   "share_of_mg_payments": 0.0505
+  }
+ ],
+ "source": null,
+ "sql": "WITH mg AS (\n  SELECT\n    p.payment_type,\n    o.order_purchase_timestamp\n  FROM payments.order_payments AS p\n  JOIN orders.orders AS o ON o.order_id = p.order_id\n  JOIN orders.customers AS c ON c.customer_id = o.customer_id\n  WHERE c.customer_state = 'MG'\n    AND o.order_purchase_timestamp >= DATE '2018-02-01'\n    AND o.order_purchase_timestamp < DATE '2018-04-01'\n),\nperiods AS (\n  SELECT\n    payment_type,\n    CASE\n      WHEN order_purchase_timestamp < DATE '2018-03-01' THEN 'baseline'\n      ELSE 'window'\n    END AS period\n  FROM mg\n)\nSELECT\n  period,\n  payment_type,\n  COUNT(*) AS n_payments,\n  ROUND(COUNT(*)::DOUBLE / SUM(COUNT(*)) OVER (PARTITION BY period), 4) AS share_of_mg_payments\nFROM periods\nGROUP BY period, payment_type\nORDER BY period,\n  CASE payment_type\n    WHEN 'boleto' THEN 1\n    WHEN 'credit_card' THEN 2\n    WHEN 'debit_card' THEN 3\n    WHEN 'voucher' THEN 4\n    WHEN 'not_defined' THEN 5\n    ELSE 6\n  END,\n  payment_type;",
+ "truncated": false
+}

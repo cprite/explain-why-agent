@@ -1,0 +1,20 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_orders",
+  "baseline_orders"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 562.76,
+   "baseline_orders": 7,
+   "value": 1560.53,
+   "window_orders": 13
+  }
+ ],
+ "source": null,
+ "sql": "WITH order_payments_agg AS (\n  SELECT order_id, SUM(payment_value) AS payment_value\n  FROM payments.order_payments\n  GROUP BY order_id\n),\nwindow_sales AS (\n  SELECT COUNT(DISTINCT o.order_id) AS n_orders,\n         ROUND(SUM(opa.payment_value), 4) AS value\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  JOIN order_payments_agg opa ON o.order_id = opa.order_id\n  WHERE oi.seller_id = 'f8db351d8c4c4c22c6835c19a46f01b0'\n    AND o.order_purchase_timestamp >= DATE '2018-01-10'\n    AND o.order_purchase_timestamp < DATE '2018-01-20'\n),\nbaseline_sales AS (\n  SELECT COUNT(DISTINCT o.order_id) AS n_orders,\n         ROUND(SUM(opa.payment_value), 4) AS baseline\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  JOIN order_payments_agg opa ON o.order_id = opa.order_id\n  WHERE oi.seller_id = 'f8db351d8c4c4c22c6835c19a46f01b0'\n    AND o.order_purchase_timestamp >= DATE '2018-01-01'\n    AND o.order_purchase_timestamp < DATE '2018-01-10'\n)\nSELECT w.value AS value,\n       b.baseline AS baseline,\n       w.n_orders AS window_orders,\n       b.n_orders AS baseline_orders\nFROM window_sales w, baseline_sales b;",
+ "truncated": false
+}

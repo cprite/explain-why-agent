@@ -1,0 +1,24 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_completed",
+  "window_late",
+  "baseline_completed",
+  "baseline_late"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0307,
+   "baseline_completed": 1434,
+   "baseline_late": 44,
+   "value": 0.132,
+   "window_completed": 606,
+   "window_late": 80
+  }
+ ],
+ "source": null,
+ "sql": "WITH completed AS (\n  SELECT\n    order_id,\n    order_delivered_customer_date,\n    order_estimated_delivery_date,\n    CASE WHEN order_delivered_customer_date > order_estimated_delivery_date THEN 1 ELSE 0 END AS is_late\n  FROM orders.orders\n  WHERE order_status = 'delivered'\n    AND order_delivered_customer_date IS NOT NULL\n),\nwindow_stats AS (\n  SELECT\n    COUNT(*) AS completed_count,\n    SUM(is_late) AS late_count,\n    ROUND(SUM(is_late)::DOUBLE / NULLIF(COUNT(*), 0), 4) AS late_share\n  FROM completed\n  WHERE order_delivered_customer_date >= DATE '2018-05-28'\n    AND order_delivered_customer_date < DATE '2018-06-04'\n),\nbaseline_stats AS (\n  SELECT\n    COUNT(*) AS completed_count,\n    SUM(is_late) AS late_count,\n    ROUND(SUM(is_late)::DOUBLE / NULLIF(COUNT(*), 0), 4) AS late_share\n  FROM completed\n  WHERE order_delivered_customer_date >= DATE '2018-05-21'\n    AND order_delivered_customer_date < DATE '2018-05-28'\n)\nSELECT\n  ROUND(w.late_share, 4) AS value,\n  ROUND(b.late_share, 4) AS baseline,\n  w.completed_count AS window_completed,\n  w.late_count AS window_late,\n  b.completed_count AS baseline_completed,\n  b.late_count AS baseline_late\nFROM window_stats w, baseline_stats b;",
+ "truncated": false
+}

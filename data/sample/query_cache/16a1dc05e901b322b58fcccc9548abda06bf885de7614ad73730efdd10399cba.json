@@ -1,0 +1,26 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_total_reviews",
+  "baseline_total_reviews",
+  "window_out_of_range",
+  "baseline_out_of_range",
+  "total_null_dates"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 3.979,
+   "baseline_out_of_range": 2966,
+   "baseline_total_reviews": 381,
+   "total_null_dates": 0,
+   "value": 2.6292,
+   "window_out_of_range": 3018,
+   "window_total_reviews": 329
+  }
+ ],
+ "source": null,
+ "sql": "WITH relogios AS (\n  SELECT r.review_score,\n         r.review_creation_date,\n         CASE WHEN r.review_creation_date >= DATE '2018-01-01' AND r.review_creation_date < DATE '2018-02-01' THEN 1 ELSE 0 END AS in_window,\n         CASE WHEN r.review_creation_date >= DATE '2017-12-01' AND r.review_creation_date < DATE '2018-01-01' THEN 1 ELSE 0 END AS in_baseline\n  FROM reviews.order_reviews r\n  JOIN orders.orders o ON r.order_id = o.order_id\n  JOIN orders.order_items i ON o.order_id = i.order_id\n  JOIN orders.products p ON i.product_id = p.product_id\n  WHERE p.product_category_name = 'relogios_presentes'\n)\nSELECT\n  ROUND(AVG(CASE WHEN in_window = 1 THEN review_score END),4) AS value,\n  ROUND(AVG(CASE WHEN in_baseline = 1 THEN review_score END),4) AS baseline,\n  SUM(in_window) AS window_total_reviews,\n  SUM(in_baseline) AS baseline_total_reviews,\n  SUM(CASE WHEN in_window = 0 AND review_creation_date IS NOT NULL THEN 1 ELSE 0 END) AS window_out_of_range,\n  SUM(CASE WHEN in_baseline = 0 AND review_creation_date IS NOT NULL THEN 1 ELSE 0 END) AS baseline_out_of_range,\n  SUM(CASE WHEN review_creation_date IS NULL THEN 1 ELSE 0 END) AS total_null_dates\nFROM relogios;",
+ "truncated": false
+}

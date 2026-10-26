@@ -1,0 +1,120 @@
+{
+ "columns": [
+  "seller_state",
+  "value",
+  "baseline",
+  "window_items",
+  "baseline_items"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 48.8625,
+   "baseline_items": 8,
+   "seller_state": "BA",
+   "value": 52.8167,
+   "window_items": 9
+  },
+  {
+   "baseline": 120.91,
+   "baseline_items": 1,
+   "seller_state": "CE",
+   "value": 172.73,
+   "window_items": 1
+  },
+  {
+   "baseline": 18.5375,
+   "baseline_items": 4,
+   "seller_state": "DF",
+   "value": 26.8029,
+   "window_items": 7
+  },
+  {
+   "baseline": 18.3825,
+   "baseline_items": 4,
+   "seller_state": "ES",
+   "value": 53.9075,
+   "window_items": 4
+  },
+  {
+   "baseline": 31.894,
+   "baseline_items": 5,
+   "seller_state": "GO",
+   "value": 46.378,
+   "window_items": 5
+  },
+  {
+   "baseline": 34.415,
+   "baseline_items": 6,
+   "seller_state": "MA",
+   "value": 52.932,
+   "window_items": 5
+  },
+  {
+   "baseline": 27.6017,
+   "baseline_items": 70,
+   "seller_state": "MG",
+   "value": 38.0356,
+   "window_items": 66
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "seller_state": "MT",
+   "value": 51.39,
+   "window_items": 1
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "seller_state": "PB",
+   "value": 143.26,
+   "window_items": 2
+  },
+  {
+   "baseline": 35.0475,
+   "baseline_items": 4,
+   "seller_state": "PE",
+   "value": null,
+   "window_items": 0
+  },
+  {
+   "baseline": 28.0478,
+   "baseline_items": 86,
+   "seller_state": "PR",
+   "value": 36.1827,
+   "window_items": 55
+  },
+  {
+   "baseline": 12.4095,
+   "baseline_items": 84,
+   "seller_state": "RJ",
+   "value": 17.6777,
+   "window_items": 119
+  },
+  {
+   "baseline": 32.2559,
+   "baseline_items": 27,
+   "seller_state": "RS",
+   "value": 44.4873,
+   "window_items": 22
+  },
+  {
+   "baseline": 32.9352,
+   "baseline_items": 29,
+   "seller_state": "SC",
+   "value": 41.6467,
+   "window_items": 30
+  },
+  {
+   "baseline": 24.4002,
+   "baseline_items": 482,
+   "seller_state": "SP",
+   "value": 32.4479,
+   "window_items": 491
+  }
+ ],
+ "source": null,
+ "sql": "WITH rj_items AS (\n  SELECT\n    oi.freight_value,\n    o.order_purchase_timestamp,\n    s.seller_state\n  FROM orders.order_items oi\n  JOIN orders.orders o ON o.order_id = oi.order_id\n  JOIN orders.customers c ON c.customer_id = o.customer_id\n  JOIN orders.sellers s ON s.seller_id = oi.seller_id\n  WHERE c.customer_state = 'RJ'\n    AND o.order_purchase_timestamp >= DATE '2018-07-01'\n    AND o.order_purchase_timestamp < DATE '2018-09-01'\n)\nSELECT\n  seller_state,\n  ROUND(AVG(CASE WHEN order_purchase_timestamp >= DATE '2018-08-01' THEN freight_value END), 4) AS value,\n  ROUND(AVG(CASE WHEN order_purchase_timestamp < DATE '2018-08-01' THEN freight_value END), 4) AS baseline,\n  COUNT(CASE WHEN order_purchase_timestamp >= DATE '2018-08-01' THEN 1 END) AS window_items,\n  COUNT(CASE WHEN order_purchase_timestamp < DATE '2018-08-01' THEN 1 END) AS baseline_items\nFROM rj_items\nGROUP BY seller_state\nORDER BY seller_state;",
+ "truncated": false
+}

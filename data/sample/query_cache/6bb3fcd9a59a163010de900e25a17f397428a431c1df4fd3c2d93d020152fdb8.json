@@ -1,0 +1,113 @@
+{
+ "columns": [
+  "period",
+  "order_date",
+  "completed",
+  "late",
+  "late_share"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "completed": 413,
+   "late": 7,
+   "late_share": 0.0169,
+   "order_date": "2018-05-21",
+   "period": "baseline"
+  },
+  {
+   "completed": 346,
+   "late": 7,
+   "late_share": 0.0202,
+   "order_date": "2018-05-22",
+   "period": "baseline"
+  },
+  {
+   "completed": 276,
+   "late": 14,
+   "late_share": 0.0507,
+   "order_date": "2018-05-23",
+   "period": "baseline"
+  },
+  {
+   "completed": 218,
+   "late": 8,
+   "late_share": 0.0367,
+   "order_date": "2018-05-24",
+   "period": "baseline"
+  },
+  {
+   "completed": 151,
+   "late": 6,
+   "late_share": 0.0397,
+   "order_date": "2018-05-25",
+   "period": "baseline"
+  },
+  {
+   "completed": 29,
+   "late": 2,
+   "late_share": 0.069,
+   "order_date": "2018-05-26",
+   "period": "baseline"
+  },
+  {
+   "completed": 1,
+   "late": 0,
+   "late_share": 0.0,
+   "order_date": "2018-05-27",
+   "period": "baseline"
+  },
+  {
+   "completed": 111,
+   "late": 3,
+   "late_share": 0.027,
+   "order_date": "2018-05-28",
+   "period": "window"
+  },
+  {
+   "completed": 92,
+   "late": 8,
+   "late_share": 0.087,
+   "order_date": "2018-05-29",
+   "period": "window"
+  },
+  {
+   "completed": 70,
+   "late": 10,
+   "late_share": 0.1429,
+   "order_date": "2018-05-30",
+   "period": "window"
+  },
+  {
+   "completed": 7,
+   "late": 2,
+   "late_share": 0.2857,
+   "order_date": "2018-05-31",
+   "period": "window"
+  },
+  {
+   "completed": 190,
+   "late": 34,
+   "late_share": 0.1789,
+   "order_date": "2018-06-01",
+   "period": "window"
+  },
+  {
+   "completed": 100,
+   "late": 19,
+   "late_share": 0.19,
+   "order_date": "2018-06-02",
+   "period": "window"
+  },
+  {
+   "completed": 36,
+   "late": 4,
+   "late_share": 0.1111,
+   "order_date": "2018-06-03",
+   "period": "window"
+  }
+ ],
+ "source": null,
+ "sql": "WITH filtered AS (\n  SELECT\n    CAST(order_delivered_customer_date AS DATE) AS order_date,\n    CASE\n      WHEN CAST(order_delivered_customer_date AS DATE) >= DATE '2018-05-28' AND CAST(order_delivered_customer_date AS DATE) < DATE '2018-06-04' THEN 'window'\n      WHEN CAST(order_delivered_customer_date AS DATE) >= DATE '2018-05-21' AND CAST(order_delivered_customer_date AS DATE) < DATE '2018-05-28' THEN 'baseline'\n    END AS period,\n    CASE WHEN order_delivered_customer_date > order_estimated_delivery_date THEN 1 ELSE 0 END AS is_late\n  FROM orders.orders\n  WHERE order_status = 'delivered'\n    AND order_delivered_customer_date IS NOT NULL\n    AND order_estimated_delivery_date IS NOT NULL\n    AND (\n      (CAST(order_delivered_customer_date AS DATE) >= DATE '2018-05-28' AND CAST(order_delivered_customer_date AS DATE) < DATE '2018-06-04')\n      OR (CAST(order_delivered_customer_date AS DATE) >= DATE '2018-05-21' AND CAST(order_delivered_customer_date AS DATE) < DATE '2018-05-28')\n    )\n)\nSELECT\n  period,\n  order_date,\n  COUNT(*) AS completed,\n  SUM(is_late) AS late,\n  ROUND(CAST(SUM(is_late) AS DOUBLE) / COUNT(*), 4) AS late_share\nFROM filtered\nWHERE period IS NOT NULL\nGROUP BY period, order_date\nORDER BY period, order_date;",
+ "truncated": false
+}

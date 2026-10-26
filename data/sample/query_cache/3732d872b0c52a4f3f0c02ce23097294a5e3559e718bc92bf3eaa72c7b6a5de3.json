@@ -1,0 +1,155 @@
+{
+ "columns": [
+  "product_category_name",
+  "value",
+  "baseline",
+  "window_items",
+  "baseline_items"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 132.19,
+   "baseline_items": 1,
+   "product_category_name": "pcs",
+   "value": 27.51,
+   "window_items": 1
+  },
+  {
+   "baseline": 59.9,
+   "baseline_items": 2,
+   "product_category_name": "moveis_quarto",
+   "value": 91.125,
+   "window_items": 2
+  },
+  {
+   "baseline": 48.365,
+   "baseline_items": 4,
+   "product_category_name": "moveis_cozinha_area_de_servico_jantar_e_jardim",
+   "value": 78.992,
+   "window_items": 5
+  },
+  {
+   "baseline": 19.4418,
+   "baseline_items": 11,
+   "product_category_name": "construcao_ferramentas_construcao",
+   "value": 40.6542,
+   "window_items": 12
+  },
+  {
+   "baseline": 18.58,
+   "baseline_items": 4,
+   "product_category_name": "malas_acessorios",
+   "value": 39.5131,
+   "window_items": 13
+  },
+  {
+   "baseline": 48.55,
+   "baseline_items": 3,
+   "product_category_name": "portateis_casa_forno_e_cafe",
+   "value": 28.18,
+   "window_items": 1
+  },
+  {
+   "baseline": 20.7405,
+   "baseline_items": 20,
+   "product_category_name": "papelaria",
+   "value": 40.2873,
+   "window_items": 11
+  },
+  {
+   "baseline": 17.3431,
+   "baseline_items": 13,
+   "product_category_name": null,
+   "value": 34.535,
+   "window_items": 4
+  },
+  {
+   "baseline": 18.5347,
+   "baseline_items": 15,
+   "product_category_name": "eletronicos",
+   "value": 33.52,
+   "window_items": 21
+  },
+  {
+   "baseline": 47.5771,
+   "baseline_items": 31,
+   "product_category_name": "moveis_escritorio",
+   "value": 33.0,
+   "window_items": 1
+  },
+  {
+   "baseline": 19.2965,
+   "baseline_items": 23,
+   "product_category_name": "automotivo",
+   "value": 33.2651,
+   "window_items": 35
+  },
+  {
+   "baseline": 23.499,
+   "baseline_items": 104,
+   "product_category_name": "cama_mesa_banho",
+   "value": 37.3566,
+   "window_items": 79
+  },
+  {
+   "baseline": 42.85,
+   "baseline_items": 2,
+   "product_category_name": "alimentos_bebidas",
+   "value": 29.09,
+   "window_items": 4
+  },
+  {
+   "baseline": 17.76,
+   "baseline_items": 1,
+   "product_category_name": "construcao_ferramentas_ferramentas",
+   "value": 30.12,
+   "window_items": 2
+  },
+  {
+   "baseline": 19.9886,
+   "baseline_items": 7,
+   "product_category_name": "eletrodomesticos",
+   "value": 32.0083,
+   "window_items": 6
+  },
+  {
+   "baseline": 21.267,
+   "baseline_items": 54,
+   "product_category_name": "esporte_lazer",
+   "value": 32.9927,
+   "window_items": 55
+  },
+  {
+   "baseline": 23.5,
+   "baseline_items": 3,
+   "product_category_name": "artes",
+   "value": 34.94,
+   "window_items": 1
+  },
+  {
+   "baseline": 16.8036,
+   "baseline_items": 14,
+   "product_category_name": "brinquedos",
+   "value": 28.2041,
+   "window_items": 22
+  },
+  {
+   "baseline": 41.85,
+   "baseline_items": 2,
+   "product_category_name": "construcao_ferramentas_iluminacao",
+   "value": 31.08,
+   "window_items": 7
+  },
+  {
+   "baseline": 19.3154,
+   "baseline_items": 13,
+   "product_category_name": "telefonia",
+   "value": 29.5997,
+   "window_items": 31
+  }
+ ],
+ "source": null,
+ "sql": "WITH rj_items AS (\n  SELECT\n    oi.freight_value,\n    o.order_purchase_timestamp,\n    p.product_category_name\n  FROM orders.order_items oi\n  JOIN orders.orders o ON oi.order_id = o.order_id\n  JOIN orders.customers c ON o.customer_id = c.customer_id\n  JOIN orders.products p ON oi.product_id = p.product_id\n  WHERE c.customer_state = 'RJ'\n    AND o.order_purchase_timestamp >= DATE '2018-07-01'\n    AND o.order_purchase_timestamp < DATE '2018-09-01'\n)\nSELECT\n  product_category_name,\n  ROUND(AVG(CASE WHEN order_purchase_timestamp >= DATE '2018-08-01' THEN freight_value END), 4) AS value,\n  ROUND(AVG(CASE WHEN order_purchase_timestamp < DATE '2018-08-01' THEN freight_value END), 4) AS baseline,\n  COUNT(CASE WHEN order_purchase_timestamp >= DATE '2018-08-01' THEN 1 END) AS window_items,\n  COUNT(CASE WHEN order_purchase_timestamp < DATE '2018-08-01' THEN 1 END) AS baseline_items\nFROM rj_items\nGROUP BY product_category_name\nORDER BY ABS(\n  AVG(CASE WHEN order_purchase_timestamp >= DATE '2018-08-01' THEN freight_value END) -\n  AVG(CASE WHEN order_purchase_timestamp < DATE '2018-08-01' THEN freight_value END)\n) DESC\nLIMIT 20;",
+ "truncated": false
+}

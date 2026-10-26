@@ -1,0 +1,28 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_total_payments",
+  "baseline_total_payments",
+  "window_boleto_payments",
+  "baseline_boleto_payments",
+  "window_null_payment_type",
+  "baseline_null_payment_type"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.2004,
+   "baseline_boleto_payments": 103,
+   "baseline_null_payment_type": 0,
+   "baseline_total_payments": 514,
+   "value": 0.0997,
+   "window_boleto_payments": 77,
+   "window_null_payment_type": 0,
+   "window_total_payments": 772
+  }
+ ],
+ "source": null,
+ "sql": "WITH base AS (\n  SELECT\n    p.payment_type,\n    o.order_purchase_timestamp,\n    c.customer_state\n  FROM payments.order_payments p\n  JOIN orders.orders o ON p.order_id = o.order_id\n  JOIN orders.customers c ON o.customer_id = c.customer_id\n  WHERE o.order_purchase_timestamp >= DATE '2018-02-01'\n    AND o.order_purchase_timestamp < DATE '2018-04-01'\n),\nmg AS (\n  SELECT * FROM base WHERE customer_state = 'MG'\n),\nwindow_stats AS (\n  SELECT\n    COUNT(*) AS n_total,\n    SUM(CASE WHEN payment_type = 'boleto' THEN 1 ELSE 0 END) AS n_boleto,\n    SUM(CASE WHEN payment_type IS NULL THEN 1 ELSE 0 END) AS n_null_type\n  FROM mg\n  WHERE order_purchase_timestamp >= DATE '2018-03-01' AND order_purchase_timestamp < DATE '2018-04-01'\n),\nbaseline_stats AS (\n  SELECT\n    COUNT(*) AS n_total,\n    SUM(CASE WHEN payment_type = 'boleto' THEN 1 ELSE 0 END) AS n_boleto,\n    SUM(CASE WHEN payment_type IS NULL THEN 1 ELSE 0 END) AS n_null_type\n  FROM mg\n  WHERE order_purchase_timestamp >= DATE '2018-02-01' AND order_purchase_timestamp < DATE '2018-03-01'\n)\nSELECT\n  ROUND(1.0 * w.n_boleto / NULLIF(w.n_total, 0), 4) AS value,\n  ROUND(1.0 * b.n_boleto / NULLIF(b.n_total, 0), 4) AS baseline,\n  w.n_total AS window_total_payments,\n  b.n_total AS baseline_total_payments,\n  w.n_boleto AS window_boleto_payments,\n  b.n_boleto AS baseline_boleto_payments,\n  w.n_null_type AS window_null_payment_type,\n  b.n_null_type AS baseline_null_payment_type\nFROM window_stats w, baseline_stats b;",
+ "truncated": false
+}

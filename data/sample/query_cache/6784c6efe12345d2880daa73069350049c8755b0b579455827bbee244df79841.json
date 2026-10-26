@@ -1,0 +1,225 @@
+{
+ "columns": [
+  "product_category_name",
+  "value",
+  "baseline",
+  "window_items",
+  "baseline_items"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 170.0,
+   "baseline_items": 1,
+   "product_category_name": "eletrodomesticos_2",
+   "value": 1133.25,
+   "window_items": 2
+  },
+  {
+   "baseline": null,
+   "baseline_items": null,
+   "product_category_name": "portateis_casa_forno_e_cafe",
+   "value": 637.5,
+   "window_items": 1
+  },
+  {
+   "baseline": 274.5,
+   "baseline_items": 2,
+   "product_category_name": "casa_construcao",
+   "value": 74.165,
+   "window_items": 4
+  },
+  {
+   "baseline": 254.88,
+   "baseline_items": 4,
+   "product_category_name": "eletroportateis",
+   "value": 61.69,
+   "window_items": 3
+  },
+  {
+   "baseline": 171.75,
+   "baseline_items": 3,
+   "product_category_name": "construcao_ferramentas_seguranca",
+   "value": null,
+   "window_items": null
+  },
+  {
+   "baseline": 150.0,
+   "baseline_items": 1,
+   "product_category_name": "moveis_quarto",
+   "value": null,
+   "window_items": null
+  },
+  {
+   "baseline": null,
+   "baseline_items": null,
+   "product_category_name": "construcao_ferramentas_iluminacao",
+   "value": 143.65,
+   "window_items": 1
+  },
+  {
+   "baseline": 179.9,
+   "baseline_items": 1,
+   "product_category_name": "moveis_sala",
+   "value": 64.6613,
+   "window_items": 8
+  },
+  {
+   "baseline": 31.49,
+   "baseline_items": 2,
+   "product_category_name": "telefonia",
+   "value": 139.9912,
+   "window_items": 17
+  },
+  {
+   "baseline": null,
+   "baseline_items": null,
+   "product_category_name": "telefonia_fixa",
+   "value": 106.25,
+   "window_items": 1
+  },
+  {
+   "baseline": 104.45,
+   "baseline_items": 2,
+   "product_category_name": "casa_conforto",
+   "value": null,
+   "window_items": null
+  },
+  {
+   "baseline": null,
+   "baseline_items": null,
+   "product_category_name": "instrumentos_musicais",
+   "value": 104.23,
+   "window_items": 2
+  },
+  {
+   "baseline": 74.245,
+   "baseline_items": 8,
+   "product_category_name": "papelaria",
+   "value": 176.3944,
+   "window_items": 9
+  },
+  {
+   "baseline": 62.19,
+   "baseline_items": 1,
+   "product_category_name": "eletrodomesticos",
+   "value": 140.25,
+   "window_items": 1
+  },
+  {
+   "baseline": 77.05,
+   "baseline_items": 2,
+   "product_category_name": "malas_acessorios",
+   "value": null,
+   "window_items": null
+  },
+  {
+   "baseline": 220.7,
+   "baseline_items": 1,
+   "product_category_name": "fashion_calcados",
+   "value": 144.32,
+   "window_items": 1
+  },
+  {
+   "baseline": 165.8367,
+   "baseline_items": 12,
+   "product_category_name": "bebes",
+   "value": 91.2,
+   "window_items": 14
+  },
+  {
+   "baseline": 112.75,
+   "baseline_items": 2,
+   "product_category_name": "bebidas",
+   "value": 46.82,
+   "window_items": 5
+  },
+  {
+   "baseline": null,
+   "baseline_items": null,
+   "product_category_name": "livros_tecnicos",
+   "value": 65.44,
+   "window_items": 1
+  },
+  {
+   "baseline": 90.0,
+   "baseline_items": 1,
+   "product_category_name": "consoles_games",
+   "value": 30.77,
+   "window_items": 2
+  },
+  {
+   "baseline": 54.0,
+   "baseline_items": 2,
+   "product_category_name": "flores",
+   "value": null,
+   "window_items": null
+  },
+  {
+   "baseline": null,
+   "baseline_items": null,
+   "product_category_name": "fraldas_higiene",
+   "value": 51.0,
+   "window_items": 1
+  },
+  {
+   "baseline": null,
+   "baseline_items": null,
+   "product_category_name": "livros_importados",
+   "value": 50.91,
+   "window_items": 2
+  },
+  {
+   "baseline": 67.8,
+   "baseline_items": 1,
+   "product_category_name": "alimentos",
+   "value": 112.41,
+   "window_items": 2
+  },
+  {
+   "baseline": 56.9,
+   "baseline_items": 1,
+   "product_category_name": "audio",
+   "value": 13.4067,
+   "window_items": 3
+  },
+  {
+   "baseline": 130.6656,
+   "baseline_items": 36,
+   "product_category_name": "beleza_saude",
+   "value": 87.4633,
+   "window_items": 52
+  },
+  {
+   "baseline": 128.3492,
+   "baseline_items": 12,
+   "product_category_name": "automotivo",
+   "value": 167.699,
+   "window_items": 21
+  },
+  {
+   "baseline": 31.78,
+   "baseline_items": 2,
+   "product_category_name": "artigos_de_natal",
+   "value": null,
+   "window_items": null
+  },
+  {
+   "baseline": 72.0,
+   "baseline_items": 2,
+   "product_category_name": "moveis_cozinha_area_de_servico_jantar_e_jardim",
+   "value": 101.942,
+   "window_items": 5
+  },
+  {
+   "baseline": 123.1924,
+   "baseline_items": 21,
+   "product_category_name": "informatica_acessorios",
+   "value": 95.9731,
+   "window_items": 29
+  }
+ ],
+ "source": null,
+ "sql": "WITH rj_orders AS (\n  SELECT o.order_id, o.order_purchase_timestamp\n  FROM orders.orders o\n  JOIN orders.customers c ON c.customer_id = o.customer_id\n  WHERE c.customer_state = 'RJ'\n    AND o.order_purchase_timestamp >= DATE '2018-06-01'\n    AND o.order_purchase_timestamp < DATE '2018-07-01'\n),\nwin_orders AS (\n  SELECT order_id\n  FROM rj_orders\n  WHERE order_purchase_timestamp >= DATE '2018-06-12'\n    AND order_purchase_timestamp < DATE '2018-07-01'\n),\nbase_orders AS (\n  SELECT order_id\n  FROM rj_orders\n  WHERE order_purchase_timestamp >= DATE '2018-06-01'\n    AND order_purchase_timestamp < DATE '2018-06-12'\n),\nwin_stats AS (\n  SELECT p.product_category_name AS category,\n         AVG(oi.price) AS avg_price,\n         COUNT(*) AS n_items\n  FROM win_orders w\n  JOIN orders.order_items oi ON oi.order_id = w.order_id\n  JOIN orders.products p ON p.product_id = oi.product_id\n  GROUP BY p.product_category_name\n),\nbase_stats AS (\n  SELECT p.product_category_name AS category,\n         AVG(oi.price) AS avg_price,\n         COUNT(*) AS n_items\n  FROM base_orders b\n  JOIN orders.order_items oi ON oi.order_id = b.order_id\n  JOIN orders.products p ON p.product_id = oi.product_id\n  GROUP BY p.product_category_name\n)\nSELECT\n  COALESCE(w.category, b.category) AS product_category_name,\n  ROUND(w.avg_price, 4) AS value,\n  ROUND(b.avg_price, 4) AS baseline,\n  w.n_items AS window_items,\n  b.n_items AS baseline_items\nFROM win_stats w\nFULL OUTER JOIN base_stats b ON w.category = b.category\nORDER BY ABS(COALESCE(w.avg_price, 0) - COALESCE(b.avg_price, 0)) DESC\nLIMIT 30;",
+ "truncated": false
+}

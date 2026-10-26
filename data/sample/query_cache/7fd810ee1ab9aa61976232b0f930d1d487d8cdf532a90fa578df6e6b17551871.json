@@ -1,0 +1,318 @@
+{
+ "columns": [
+  "seller_id",
+  "window_completed",
+  "baseline_completed",
+  "window_late",
+  "baseline_late",
+  "value",
+  "baseline",
+  "diff"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0,
+   "baseline_completed": 4,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "28f10b1c5e5abb9d4857745bede6147c",
+   "value": 1.0,
+   "window_completed": 2,
+   "window_late": 2
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 2,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "2e90cb1677d35cfe24eef47d441b7c87",
+   "value": 1.0,
+   "window_completed": 2,
+   "window_late": 2
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 4,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "dbd66278cbfe1aa1000f90a217ca4695",
+   "value": 1.0,
+   "window_completed": 2,
+   "window_late": 2
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 1,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "d1ef48b38baca7e831711c4a0aeb398f",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 1,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "8648b1e89e9b349e32d3741b30ec737e",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 4,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "0adac9fbd9a2b63cccaac4f8756c1ca8",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 2,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "23c38debaffe4a25a30fdbd9b586a13f",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 1,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "1b4c3a6f53068f0b6944d2d005c9fc89",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 1,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "f680f85bee2d253556ac91be391d2c82",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 1,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "7202e2ba20579a9bd1acb29e61fe71f6",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 4,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "4b9750c8ad28220fe6702d4ecb7c898f",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 5,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "8a432f4e5b471f8da497d7dc517666e2",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 1,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "cac4c8e7b1ca6252d8f20b2fc1a2e4af",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 1,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "31da954dc0855f2495c6310f70a2f931",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 1,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "8bdd8e3fd58bafa48af76b2c5fd71974",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 2,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "1a932caad4f9d804097d7f8e615baed1",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 6,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "92eb0f42c21942b6552362b9b114707d",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 2,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "a3f0b55de503387383c7b1de3ad7f678",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 2,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "a3a38f4affed601eb87a97788c949667",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 6,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "a673821011d0cec28146ea42f5ab767f",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 2,
+   "baseline_late": 0,
+   "diff": 1.0,
+   "seller_id": "b74d1c09cb380e1d03a6f859c6f4224b",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.1429,
+   "baseline_completed": 7,
+   "baseline_late": 1,
+   "diff": 0.8571,
+   "seller_id": "c003204e1ab016dfa150abc119207b24",
+   "value": 1.0,
+   "window_completed": 2,
+   "window_late": 2
+  },
+  {
+   "baseline": 0.2,
+   "baseline_completed": 5,
+   "baseline_late": 1,
+   "diff": 0.8,
+   "seller_id": "7299e27ed73d2ad986de7f7c77d919fa",
+   "value": 1.0,
+   "window_completed": 1,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.1667,
+   "baseline_completed": 12,
+   "baseline_late": 2,
+   "diff": 0.6333,
+   "seller_id": "cc419e0650a3c5ba77189a1882b7556a",
+   "value": 0.8,
+   "window_completed": 5,
+   "window_late": 4
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 7,
+   "baseline_late": 0,
+   "diff": 0.5,
+   "seller_id": "a1043bafd471dff536d0c462352beb48",
+   "value": 0.5,
+   "window_completed": 4,
+   "window_late": 2
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 4,
+   "baseline_late": 0,
+   "diff": 0.5,
+   "seller_id": "516e7738bd8f735ac19a010ee5450d8d",
+   "value": 0.5,
+   "window_completed": 2,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 1,
+   "baseline_late": 0,
+   "diff": 0.5,
+   "seller_id": "3935fe5fe0f82787a9dcb8deb62be09d",
+   "value": 0.5,
+   "window_completed": 2,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 7,
+   "baseline_late": 0,
+   "diff": 0.5,
+   "seller_id": "1900267e848ceeba8fa32d80c1a5f5a8",
+   "value": 0.5,
+   "window_completed": 2,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 6,
+   "baseline_late": 0,
+   "diff": 0.5,
+   "seller_id": "7142540dd4c91e2237acb7e911c4eba2",
+   "value": 0.5,
+   "window_completed": 2,
+   "window_late": 1
+  },
+  {
+   "baseline": 0.0,
+   "baseline_completed": 6,
+   "baseline_late": 0,
+   "diff": 0.5,
+   "seller_id": "ececbfcff9804a2d6b40f589df8eef2b",
+   "value": 0.5,
+   "window_completed": 2,
+   "window_late": 1
+  }
+ ],
+ "source": null,
+ "sql": "WITH delivered_orders AS (\n  SELECT DISTINCT\n    o.order_id,\n    oi.seller_id,\n    o.order_delivered_customer_date,\n    o.order_estimated_delivery_date\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  WHERE o.order_status = 'delivered'\n    AND o.order_delivered_customer_date IS NOT NULL\n    AND o.order_estimated_delivery_date IS NOT NULL\n),\nlabeled AS (\n  SELECT\n    seller_id,\n    CASE\n      WHEN order_delivered_customer_date >= DATE '2018-05-28' AND order_delivered_customer_date < DATE '2018-06-04' THEN 'window'\n      WHEN order_delivered_customer_date >= DATE '2018-05-21' AND order_delivered_customer_date < DATE '2018-05-28' THEN 'baseline'\n    END AS period,\n    CASE WHEN order_delivered_customer_date > order_estimated_delivery_date THEN 1 ELSE 0 END AS is_late\n  FROM delivered_orders\n  WHERE order_delivered_customer_date >= DATE '2018-05-21'\n    AND order_delivered_customer_date < DATE '2018-06-04'\n),\naggregated AS (\n  SELECT\n    seller_id,\n    period,\n    COUNT(*) AS completed,\n    SUM(is_late) AS late_count\n  FROM labeled\n  WHERE period IS NOT NULL\n  GROUP BY seller_id, period\n),\npivoted AS (\n  SELECT\n    seller_id,\n    MAX(CASE WHEN period = 'window' THEN completed END) AS window_completed,\n    MAX(CASE WHEN period = 'baseline' THEN completed END) AS baseline_completed,\n    MAX(CASE WHEN period = 'window' THEN late_count END) AS window_late,\n    MAX(CASE WHEN period = 'baseline' THEN late_count END) AS baseline_late\n  FROM aggregated\n  GROUP BY seller_id\n)\nSELECT\n  seller_id,\n  window_completed,\n  baseline_completed,\n  window_late,\n  baseline_late,\n  ROUND(CAST(window_late AS DOUBLE) / NULLIF(window_completed, 0), 4) AS value,\n  ROUND(CAST(baseline_late AS DOUBLE) / NULLIF(baseline_completed, 0), 4) AS baseline,\n  ROUND(CAST(window_late AS DOUBLE) / NULLIF(window_completed, 0) - CAST(baseline_late AS DOUBLE) / NULLIF(baseline_completed, 0), 4) AS diff\nFROM pivoted\nWHERE window_completed IS NOT NULL\nORDER BY ABS(diff) DESC, window_completed DESC\nLIMIT 30;",
+ "truncated": false
+}

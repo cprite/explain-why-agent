@@ -1,0 +1,24 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_duplicate_order_rows",
+  "baseline_duplicate_order_rows_per_day",
+  "window_total_rows",
+  "baseline_total_rows_per_day"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 136.5714,
+   "baseline_duplicate_order_rows_per_day": 0.0,
+   "baseline_total_rows_per_day": 136.5714,
+   "value": 1176.0,
+   "window_duplicate_order_rows": 0,
+   "window_total_rows": 1176
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_orders AS (\n  SELECT order_id\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-24'\n    AND order_purchase_timestamp < DATE '2017-11-25'\n),\nbaseline_orders AS (\n  SELECT order_id\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-17'\n    AND order_purchase_timestamp < DATE '2017-11-24'\n),\nwindow_stats AS (\n  SELECT\n    COUNT(*) AS total_rows,\n    COUNT(DISTINCT order_id) AS distinct_orders,\n    COUNT(*) - COUNT(DISTINCT order_id) AS duplicate_order_rows\n  FROM window_orders\n),\nbaseline_stats AS (\n  SELECT\n    COUNT(*) AS total_rows,\n    COUNT(DISTINCT order_id) AS distinct_orders,\n    COUNT(*) - COUNT(DISTINCT order_id) AS duplicate_order_rows\n  FROM baseline_orders\n)\nSELECT\n  ROUND(ws.distinct_orders::DOUBLE, 4) AS value,\n  ROUND(bs.distinct_orders::DOUBLE / 7, 4) AS baseline,\n  ROUND(ws.duplicate_order_rows, 4) AS window_duplicate_order_rows,\n  ROUND(bs.duplicate_order_rows::DOUBLE / 7, 4) AS baseline_duplicate_order_rows_per_day,\n  ROUND(ws.total_rows, 4) AS window_total_rows,\n  ROUND(bs.total_rows::DOUBLE / 7, 4) AS baseline_total_rows_per_day\nFROM window_stats ws, baseline_stats bs;",
+ "truncated": false
+}

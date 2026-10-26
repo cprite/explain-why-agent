@@ -1,0 +1,22 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spread",
+  "n",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 3.979,
+   "n": 329,
+   "n_baseline": 381,
+   "spread": null,
+   "value": 2.6292
+  }
+ ],
+ "source": null,
+ "sql": "WITH filtered AS (\n  SELECT\n    r.review_score,\n    r.review_creation_date\n  FROM reviews.order_reviews r\n  JOIN orders.order_items oi ON oi.order_id = r.order_id\n  JOIN orders.products p ON p.product_id = oi.product_id\n  WHERE p.product_category_name = 'relogios_presentes'\n    AND r.review_creation_date IS NOT NULL\n),\nwindow_stats AS (\n  SELECT\n    AVG(review_score)::DOUBLE AS value,\n    COUNT(*) AS n\n  FROM filtered\n  WHERE review_creation_date >= DATE '2018-01-01'\n    AND review_creation_date < DATE '2018-02-01'\n),\nbaseline_stats AS (\n  SELECT\n    AVG(review_score)::DOUBLE AS baseline,\n    COUNT(*) AS n_baseline\n  FROM filtered\n  WHERE review_creation_date >= DATE '2017-12-01'\n    AND review_creation_date < DATE '2018-01-01'\n),\nbaseline_periods AS (\n  SELECT\n    DATE_TRUNC('month', review_creation_date) AS period_start,\n    AVG(review_score)::DOUBLE AS period_avg\n  FROM filtered\n  WHERE review_creation_date >= DATE '2017-12-01'\n    AND review_creation_date < DATE '2018-01-01'\n  GROUP BY DATE_TRUNC('month', review_creation_date)\n),\nspread_calc AS (\n  SELECT\n    CASE WHEN COUNT(*) >= 2 THEN STDDEV(period_avg) ELSE NULL END AS spread\n  FROM baseline_periods\n)\nSELECT\n  ROUND(w.value, 4) AS value,\n  ROUND(b.baseline, 4) AS baseline,\n  ROUND(s.spread, 4) AS spread,\n  w.n AS n,\n  b.n_baseline AS n_baseline\nFROM window_stats w, baseline_stats b, spread_calc s;",
+ "truncated": false
+}

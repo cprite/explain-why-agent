@@ -1,0 +1,407 @@
+{
+ "columns": [
+  "period",
+  "order_date",
+  "total_payments",
+  "boleto_payments",
+  "boleto_share"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "boleto_payments": 1,
+   "boleto_share": 0.25,
+   "order_date": "2018-02-01",
+   "period": "baseline",
+   "total_payments": 4
+  },
+  {
+   "boleto_payments": 1,
+   "boleto_share": 0.3333,
+   "order_date": "2018-02-02",
+   "period": "baseline",
+   "total_payments": 3
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-02-03",
+   "period": "baseline",
+   "total_payments": 2
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-02-04",
+   "period": "baseline",
+   "total_payments": 1
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-02-05",
+   "period": "baseline",
+   "total_payments": 1
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-02-06",
+   "period": "baseline",
+   "total_payments": 1
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-02-07",
+   "period": "baseline",
+   "total_payments": 5
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-02-08",
+   "period": "baseline",
+   "total_payments": 1
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-02-09",
+   "period": "baseline",
+   "total_payments": 2
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-02-10",
+   "period": "baseline",
+   "total_payments": 3
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-02-11",
+   "period": "baseline",
+   "total_payments": 2
+  },
+  {
+   "boleto_payments": 1,
+   "boleto_share": 0.05,
+   "order_date": "2018-02-12",
+   "period": "baseline",
+   "total_payments": 20
+  },
+  {
+   "boleto_payments": 4,
+   "boleto_share": 0.2353,
+   "order_date": "2018-02-13",
+   "period": "baseline",
+   "total_payments": 17
+  },
+  {
+   "boleto_payments": 10,
+   "boleto_share": 0.2439,
+   "order_date": "2018-02-14",
+   "period": "baseline",
+   "total_payments": 41
+  },
+  {
+   "boleto_payments": 4,
+   "boleto_share": 0.16,
+   "order_date": "2018-02-15",
+   "period": "baseline",
+   "total_payments": 25
+  },
+  {
+   "boleto_payments": 6,
+   "boleto_share": 0.1935,
+   "order_date": "2018-02-16",
+   "period": "baseline",
+   "total_payments": 31
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.1304,
+   "order_date": "2018-02-17",
+   "period": "baseline",
+   "total_payments": 23
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.1364,
+   "order_date": "2018-02-18",
+   "period": "baseline",
+   "total_payments": 22
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.1111,
+   "order_date": "2018-02-19",
+   "period": "baseline",
+   "total_payments": 27
+  },
+  {
+   "boleto_payments": 8,
+   "boleto_share": 0.2222,
+   "order_date": "2018-02-20",
+   "period": "baseline",
+   "total_payments": 36
+  },
+  {
+   "boleto_payments": 4,
+   "boleto_share": 0.129,
+   "order_date": "2018-02-21",
+   "period": "baseline",
+   "total_payments": 31
+  },
+  {
+   "boleto_payments": 12,
+   "boleto_share": 0.3333,
+   "order_date": "2018-02-22",
+   "period": "baseline",
+   "total_payments": 36
+  },
+  {
+   "boleto_payments": 7,
+   "boleto_share": 0.2414,
+   "order_date": "2018-02-23",
+   "period": "baseline",
+   "total_payments": 29
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.125,
+   "order_date": "2018-02-24",
+   "period": "baseline",
+   "total_payments": 24
+  },
+  {
+   "boleto_payments": 5,
+   "boleto_share": 0.1786,
+   "order_date": "2018-02-25",
+   "period": "baseline",
+   "total_payments": 28
+  },
+  {
+   "boleto_payments": 10,
+   "boleto_share": 0.2857,
+   "order_date": "2018-02-26",
+   "period": "baseline",
+   "total_payments": 35
+  },
+  {
+   "boleto_payments": 9,
+   "boleto_share": 0.3,
+   "order_date": "2018-02-27",
+   "period": "baseline",
+   "total_payments": 30
+  },
+  {
+   "boleto_payments": 9,
+   "boleto_share": 0.2647,
+   "order_date": "2018-02-28",
+   "period": "baseline",
+   "total_payments": 34
+  },
+  {
+   "boleto_payments": 10,
+   "boleto_share": 0.3125,
+   "order_date": "2018-03-01",
+   "period": "window",
+   "total_payments": 32
+  },
+  {
+   "boleto_payments": 4,
+   "boleto_share": 0.1111,
+   "order_date": "2018-03-02",
+   "period": "window",
+   "total_payments": 36
+  },
+  {
+   "boleto_payments": 1,
+   "boleto_share": 0.05,
+   "order_date": "2018-03-03",
+   "period": "window",
+   "total_payments": 20
+  },
+  {
+   "boleto_payments": 5,
+   "boleto_share": 0.1351,
+   "order_date": "2018-03-04",
+   "period": "window",
+   "total_payments": 37
+  },
+  {
+   "boleto_payments": 2,
+   "boleto_share": 0.069,
+   "order_date": "2018-03-05",
+   "period": "window",
+   "total_payments": 29
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.0698,
+   "order_date": "2018-03-06",
+   "period": "window",
+   "total_payments": 43
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.1034,
+   "order_date": "2018-03-07",
+   "period": "window",
+   "total_payments": 29
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.0811,
+   "order_date": "2018-03-08",
+   "period": "window",
+   "total_payments": 37
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-03-09",
+   "period": "window",
+   "total_payments": 29
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.1154,
+   "order_date": "2018-03-10",
+   "period": "window",
+   "total_payments": 26
+  },
+  {
+   "boleto_payments": 2,
+   "boleto_share": 0.0556,
+   "order_date": "2018-03-11",
+   "period": "window",
+   "total_payments": 36
+  },
+  {
+   "boleto_payments": 4,
+   "boleto_share": 0.1429,
+   "order_date": "2018-03-12",
+   "period": "window",
+   "total_payments": 28
+  },
+  {
+   "boleto_payments": 6,
+   "boleto_share": 0.15,
+   "order_date": "2018-03-13",
+   "period": "window",
+   "total_payments": 40
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.0938,
+   "order_date": "2018-03-14",
+   "period": "window",
+   "total_payments": 32
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.0698,
+   "order_date": "2018-03-15",
+   "period": "window",
+   "total_payments": 43
+  },
+  {
+   "boleto_payments": 2,
+   "boleto_share": 0.0571,
+   "order_date": "2018-03-16",
+   "period": "window",
+   "total_payments": 35
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-03-17",
+   "period": "window",
+   "total_payments": 15
+  },
+  {
+   "boleto_payments": 2,
+   "boleto_share": 0.1429,
+   "order_date": "2018-03-18",
+   "period": "window",
+   "total_payments": 14
+  },
+  {
+   "boleto_payments": 2,
+   "boleto_share": 0.0769,
+   "order_date": "2018-03-19",
+   "period": "window",
+   "total_payments": 26
+  },
+  {
+   "boleto_payments": 4,
+   "boleto_share": 0.1053,
+   "order_date": "2018-03-20",
+   "period": "window",
+   "total_payments": 38
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.0909,
+   "order_date": "2018-03-21",
+   "period": "window",
+   "total_payments": 33
+  },
+  {
+   "boleto_payments": 4,
+   "boleto_share": 0.0976,
+   "order_date": "2018-03-22",
+   "period": "window",
+   "total_payments": 41
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.1304,
+   "order_date": "2018-03-23",
+   "period": "window",
+   "total_payments": 23
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-03-24",
+   "period": "window",
+   "total_payments": 24
+  },
+  {
+   "boleto_payments": 3,
+   "boleto_share": 0.1364,
+   "order_date": "2018-03-25",
+   "period": "window",
+   "total_payments": 22
+  },
+  {
+   "boleto_payments": 1,
+   "boleto_share": 0.5,
+   "order_date": "2018-03-27",
+   "period": "window",
+   "total_payments": 2
+  },
+  {
+   "boleto_payments": 1,
+   "boleto_share": 1.0,
+   "order_date": "2018-03-29",
+   "period": "window",
+   "total_payments": 1
+  },
+  {
+   "boleto_payments": 0,
+   "boleto_share": 0.0,
+   "order_date": "2018-03-30",
+   "period": "window",
+   "total_payments": 1
+  }
+ ],
+ "source": null,
+ "sql": "WITH mg_payments AS (\n  SELECT\n    CAST(o.order_purchase_timestamp AS DATE) AS order_date,\n    p.payment_type,\n    CASE\n      WHEN o.order_purchase_timestamp >= DATE '2018-02-01' AND o.order_purchase_timestamp < DATE '2018-03-01' THEN 'baseline'\n      WHEN o.order_purchase_timestamp >= DATE '2018-03-01' AND o.order_purchase_timestamp < DATE '2018-04-01' THEN 'window'\n    END AS period\n  FROM payments.order_payments AS p\n  JOIN orders.orders AS o ON o.order_id = p.order_id\n  JOIN orders.customers AS c ON c.customer_id = o.customer_id\n  WHERE c.customer_state = 'MG'\n    AND o.order_purchase_timestamp >= DATE '2018-02-01'\n    AND o.order_purchase_timestamp < DATE '2018-04-01'\n)\nSELECT\n  period,\n  order_date,\n  COUNT(*) AS total_payments,\n  SUM(CASE WHEN payment_type = 'boleto' THEN 1 ELSE 0 END) AS boleto_payments,\n  ROUND(SUM(CASE WHEN payment_type = 'boleto' THEN 1 ELSE 0 END)::DOUBLE / COUNT(*), 4) AS boleto_share\nFROM mg_payments\nGROUP BY period, order_date\nORDER BY period, order_date;",
+ "truncated": false
+}

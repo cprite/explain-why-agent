@@ -1,0 +1,40 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_n_days",
+  "baseline_n_days",
+  "value_per_day",
+  "baseline_per_day",
+  "window_n_orders",
+  "baseline_n_orders",
+  "window_n_orders_with_payment",
+  "baseline_n_orders_with_payment",
+  "window_n_orders_missing_payment",
+  "baseline_n_orders_missing_payment",
+  "window_avg_payment_rows_per_order",
+  "baseline_avg_payment_rows_per_order"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 43780.82,
+   "baseline_avg_payment_rows_per_order": 1.0375,
+   "baseline_n_days": 11,
+   "baseline_n_orders": 267,
+   "baseline_n_orders_missing_payment": 0,
+   "baseline_n_orders_with_payment": 267,
+   "baseline_per_day": 3980.0745,
+   "value": 70778.35,
+   "value_per_day": 3725.1763,
+   "window_avg_payment_rows_per_order": 1.0423,
+   "window_n_days": 19,
+   "window_n_orders": 449,
+   "window_n_orders_missing_payment": 0,
+   "window_n_orders_with_payment": 449
+  }
+ ],
+ "source": null,
+ "sql": "WITH rj_orders AS (\n  SELECT o.order_id, o.order_purchase_timestamp\n  FROM orders.orders o\n  JOIN orders.customers c ON o.customer_id = c.customer_id\n  WHERE c.customer_state = 'RJ'\n),\norder_payment_agg AS (\n  SELECT\n    order_id,\n    COUNT(*) AS payment_rows,\n    SUM(payment_value) AS order_payment_total\n  FROM payments.order_payments\n  GROUP BY order_id\n),\nwindow_orders AS (\n  SELECT * FROM rj_orders\n  WHERE order_purchase_timestamp >= DATE '2018-06-12'\n    AND order_purchase_timestamp < DATE '2018-07-01'\n),\nbaseline_orders AS (\n  SELECT * FROM rj_orders\n  WHERE order_purchase_timestamp >= DATE '2018-06-01'\n    AND order_purchase_timestamp < DATE '2018-06-12'\n),\nwindow_stats AS (\n  SELECT\n    COUNT(*) AS n_orders,\n    COUNT(opa.order_id) AS n_orders_with_payment,\n    SUM(COALESCE(opa.order_payment_total, 0)) AS total_payment_value,\n    SUM(CASE WHEN opa.order_id IS NULL THEN 1 ELSE 0 END) AS n_orders_missing_payment,\n    AVG(COALESCE(opa.payment_rows, 0)) AS avg_payment_rows_per_order,\n    COUNT(DISTINCT CAST(order_purchase_timestamp AS DATE)) AS n_days\n  FROM window_orders wo\n  LEFT JOIN order_payment_agg opa ON wo.order_id = opa.order_id\n),\nbaseline_stats AS (\n  SELECT\n    COUNT(*) AS n_orders,\n    COUNT(opa.order_id) AS n_orders_with_payment,\n    SUM(COALESCE(opa.order_payment_total, 0)) AS total_payment_value,\n    SUM(CASE WHEN opa.order_id IS NULL THEN 1 ELSE 0 END) AS n_orders_missing_payment,\n    AVG(COALESCE(opa.payment_rows, 0)) AS avg_payment_rows_per_order,\n    COUNT(DISTINCT CAST(order_purchase_timestamp AS DATE)) AS n_days\n  FROM baseline_orders bo\n  LEFT JOIN order_payment_agg opa ON bo.order_id = opa.order_id\n)\nSELECT\n  ROUND(w.total_payment_value, 4) AS value,\n  ROUND(b.total_payment_value, 4) AS baseline,\n  w.n_days AS window_n_days,\n  b.n_days AS baseline_n_days,\n  ROUND(w.total_payment_value / NULLIF(w.n_days, 0), 4) AS value_per_day,\n  ROUND(b.total_payment_value / NULLIF(b.n_days, 0), 4) AS baseline_per_day,\n  w.n_orders AS window_n_orders,\n  b.n_orders AS baseline_n_orders,\n  w.n_orders_with_payment AS window_n_orders_with_payment,\n  b.n_orders_with_payment AS baseline_n_orders_with_payment,\n  w.n_orders_missing_payment AS window_n_orders_missing_payment,\n  b.n_orders_missing_payment AS baseline_n_orders_missing_payment,\n  ROUND(w.avg_payment_rows_per_order, 4) AS window_avg_payment_rows_per_order,\n  ROUND(b.avg_payment_rows_per_order, 4) AS baseline_avg_payment_rows_per_order\nFROM window_stats w, baseline_stats b;",
+ "truncated": false
+}

@@ -1,0 +1,24 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_avg_payment_per_order",
+  "baseline_avg_payment_per_order_per_day",
+  "window_items",
+  "baseline_items_per_day"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 19.3604,
+   "baseline_avg_payment_per_order_per_day": 26.3754,
+   "baseline_items_per_day": 158.85714285714286,
+   "value": 111.7524,
+   "window_avg_payment_per_order": 152.381,
+   "window_items": 1366
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_orders AS (\n  SELECT order_id\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-24'\n    AND order_purchase_timestamp < DATE '2017-11-25'\n),\nbaseline_orders AS (\n  SELECT order_id\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-17'\n    AND order_purchase_timestamp < DATE '2017-11-24'\n),\nwindow_item_stats AS (\n  SELECT AVG(oi.price) AS avg_price, COUNT(*) AS n_items\n  FROM window_orders wo\n  JOIN orders.order_items oi ON oi.order_id = wo.order_id\n),\nbaseline_item_stats AS (\n  SELECT AVG(oi.price) AS avg_price, COUNT(*) AS n_items\n  FROM baseline_orders bo\n  JOIN orders.order_items oi ON oi.order_id = bo.order_id\n),\nwindow_payment_stats AS (\n  SELECT AVG(order_payment) AS avg_payment\n  FROM (\n    SELECT wo.order_id, SUM(op.payment_value) AS order_payment\n    FROM window_orders wo\n    JOIN payments.order_payments op ON op.order_id = wo.order_id\n    GROUP BY wo.order_id\n  ) p\n),\nbaseline_payment_stats AS (\n  SELECT AVG(order_payment) AS avg_payment\n  FROM (\n    SELECT bo.order_id, SUM(op.payment_value) AS order_payment\n    FROM baseline_orders bo\n    JOIN payments.order_payments op ON op.order_id = bo.order_id\n    GROUP BY bo.order_id\n  ) p\n)\nSELECT\n  ROUND(wis.avg_price, 4) AS value,\n  ROUND(bis.avg_price / 7, 4) AS baseline,\n  ROUND(wps.avg_payment, 4) AS window_avg_payment_per_order,\n  ROUND(bps.avg_payment / 7, 4) AS baseline_avg_payment_per_order_per_day,\n  wis.n_items AS window_items,\n  bis.n_items / 7.0 AS baseline_items_per_day\nFROM window_item_stats wis, baseline_item_stats bis, window_payment_stats wps, baseline_payment_stats bps;",
+ "truncated": false
+}

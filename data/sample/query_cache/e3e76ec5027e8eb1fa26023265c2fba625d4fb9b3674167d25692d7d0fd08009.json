@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 109.699,
+   "value": 142.6916
+  }
+ ],
+ "source": null,
+ "sql": "WITH order_values AS (\n  SELECT\n    o.order_id,\n    CAST(o.order_purchase_timestamp AS DATE) AS order_date,\n    SUM(p.payment_value) AS order_value\n  FROM orders.orders o\n  JOIN payments.order_payments p ON p.order_id = o.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-07-01'\n    AND o.order_purchase_timestamp < DATE '2017-09-01'\n  GROUP BY o.order_id, CAST(o.order_purchase_timestamp AS DATE)\n)\nSELECT\n  ROUND(AVG(CASE WHEN order_date >= DATE '2017-08-01' THEN order_value END)::DOUBLE, 4) AS value,\n  ROUND(AVG(CASE WHEN order_date >= DATE '2017-07-01' AND order_date < DATE '2017-08-01' THEN order_value END)::DOUBLE, 4) AS baseline\nFROM order_values;",
+ "truncated": false
+}
