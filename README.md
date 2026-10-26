@@ -156,7 +156,11 @@ curl -sS -X POST localhost:8000/run -H 'Content-Type: application/json' \
 **Web page**: with the API running, open `http://localhost:8000/`. It shows the anomaly board
 (first load runs one scan, about 25 s), an "Explain" button per card, a box for a typed question,
 and the result view with causes, evidence, ruled-out explanations, limitations and a "Download
-trace" link. Files: `web/index.html`, `web/app.js`, `web/style.css`.
+trace" link. While a question runs, an "Agents at work" panel follows the run's trace (polled from
+`GET /runs/{id}/trace`): the active agent, each hand-off (Planner to Investigator, Investigator to
+the data layer, the Critic's verdict), every model call with its Nemotron route, and a hypothesis
+board that updates as the Critic judges. After the run, "Replay step by step" plays the hand-offs
+again. Files: `web/index.html`, `web/app.js`, `web/style.css`.
 
 **Anomaly scanner** on its own: `python -m app.scanner` (add `--json` to write the report to `logs/`).
 
@@ -542,8 +546,8 @@ is what an analyst needs to trust the answer.
   the next live run.
 - **Live run time** is not measured yet. Each Meterless call may take up to 180 s before it times
   out, and the run is capped by `MARKOVIAN_RUN_TIMEOUT_S`.
-- **Cut from the build plan:** the live trace on the web page and `GET /runs/{id}/events` (the page
-  offers the trace as a download), trend lines on the board tiles, and H-MEM (each run is one
+- **Cut from the build plan:** `GET /runs/{id}/events` (the page polls the trace file every two
+  seconds instead of streaming events), trend lines on the board tiles, and H-MEM (each run is one
   self-contained investigation). The Docker image is not pushed to a registry; build it locally.
 - Reusing a `--run-id` appends to that run's trace and query log.
 

@@ -177,6 +177,234 @@ const EW = (() => {
     return root;
   }
 
+  // ---------------------------------------------------------------- agents at work (live trace)
+  // The run's trace (GET /runs/{id}/trace, served while the run is going) read as hand-offs between
+  // the agents. readTrace() is pure: events in, a summary out; renderLive() turns it into elements.
+  const TEAM = ["Orchestrator", "Planner", "Investigator", "Data", "World Model", "Critic", "Reporter"];
+  const AGENT_NAMES = { planner: "Planner", investigator: "Investigator", critic: "Critic", reporter: "Reporter",
+                        DataLayer: "Data", WorldModel: "World Model" };
+  const VERDICT_MARK = { supported: "✔ supported", refuted: "✘ refuted", insufficient: "? not enough evidence",
+                         testing: "… testing", untested: "untested" };
+  const HYP_RE = /(H\d+)\s+([a-z_]+):\s*([^"…]*)/g;
+
+  function agentName(raw) { return AGENT_NAMES[raw] || raw || ""; }
+
+  function clip(text, n) {
+    const s = String(text === null || text === undefined ? "" : text).replace(/\s+/g, " ").trim();
+    return s.length > n ? `${s.slice(0, n - 1)}…` : s;
+  }
+
+  function duration(ms) {
+    const s = Math.max(0, Math.round(Number(ms) / 1000));
+    return s < 60 ? `${s} s` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  }
+
+  function shortModel(routed) {
+    const name = String(routed || "").split("/").pop();
+    return name.replace(/-\d+b(-a\d+b)?$/, "") || "model";
+  }
+
+  function parseJson(text) {
+    if (text && typeof text === "object") return text;
+    try { return JSON.parse(text); } catch (_) { return null; }
+  }
+
+  function parseTrace(text) {
+    const events = [];
+    for (const line of String(text || "").split("\n")) {
+      const e = line.trim() ? parseJson(line) : null;
+      if (e && e.action) events.push(e);
+    }
+    return events;
+  }
+
+  function readTrace(events) {
+    const steps = [];
+    const hyps = new Map();
+    const seen = new Set();
+    let active = null;
+    let lastAt = null;
+    let finished = false;
+    let calls = 0;
+    let failedCalls = 0;
+    let queries = 0;
+    const hyp = (id, family, statement) => {
+      const h = hyps.get(id) || { id, family, statement: "", state: "untested" };
+      if (family) h.family = family;
+      if (statement && statement.length > h.statement.length) h.statement = statement;
+      hyps.set(id, h);
+      return h;
+    };
+    const step = (from, to, text, extra) => {
+      steps.push({ from, to, text, tone: "info", ...extra });
+      if (from) seen.add(from);
+      if (to) seen.add(to);
+    };
+
+    for (const e of events) {
+      const at = Date.parse(e.timestamp);
+      if (!Number.isNaN(at)) lastAt = at;
+      const who = agentName(e.agent);
+      const to = agentName(e.target_agent);
+      const out = e.output_summary;
+      const failed = !["ok", "success", "retried"].includes(e.status);
+      switch (e.action) {
+        case "start":
+          step("Orchestrator", "Planner", `Question: ${clip(e.input_summary, 160)}`);
+          active = "Planner";
+          break;
+        case "model_call":
+        case "model_repair_call": {
+          calls += 1;
+          const recorded = e.provider === "cache" ? " · recorded reply" : "";
+          const took = !recorded && e.duration_ms !== undefined && e.duration_ms !== null ? ` · ${duration(e.duration_ms)}` : "";
+          if (failed) {
+            failedCalls += 1;
+            step(who, null, `model call ${e.status}${took}${e.error ? `: ${clip(e.error, 80)}` : ""}`,
+                 { kind: "model", tone: "bad" });
+          } else {
+            const tokens = e.tokens && e.tokens.total_tokens ? ` · ${e.tokens.total_tokens} tokens` : "";
+            step(who, null, `${e.action === "model_repair_call" ? "fixed its reply with" : "asked"} ${shortModel(e.model_routed)}${took}${tokens}${recorded}`,
+                 { kind: "model" });
+          }
+          active = who;
+          break;
+        }
+        case "plan": {
+          for (const m of String(out || "").matchAll(HYP_RE)) hyp(m[1], m[2], m[3].trim());
+          const metric = /"metric":\s*"([^"]*)/.exec(String(out || ""));
+          step("Planner", "Investigator", `Plan ready${metric ? `: ${clip(metric[1], 120)}` : ""}`, { kind: "handoff" });
+          active = "Investigator";
+          break;
+        }
+        case "delegate": {
+          const m = /^(H\d+)\s+([a-z_]+):\s*(.*)$/.exec(String(e.input_summary || ""));
+          if (m) {
+            const h = hyp(m[1], m[2], m[3]);
+            h.state = "testing";
+            step(who, to, `Test ${h.id} ${h.family}: ${clip(h.statement, 140)}`, { kind: "handoff" });
+          } else if (e.input_summary === "change_check") {
+            step(who, to, "First check that the change is real (window against baseline)", { kind: "handoff" });
+          } else {
+            step(who, to, `Write the answer from ${clip(e.input_summary, 60)}`, { kind: "handoff" });
+          }
+          active = to;
+          break;
+        }
+        case "write_sql":
+          if (failed) step("Investigator", null, `could not write SQL: ${clip(out, 120)}`, { tone: "bad" });
+          else step("Investigator", "Data", "Wrote a query", { kind: "sql", code: String(out || "") });
+          active = failed ? "Investigator" : "Data";
+          break;
+        case "repair_sql":
+          step("Investigator", "Data", failed ? "could not fix the query" : `Fixed the query after: ${clip(e.previous_error, 100)}`,
+               { kind: "sql", code: failed ? "" : String(out || ""), tone: failed ? "bad" : "warn" });
+          active = failed ? "Investigator" : "Data";
+          break;
+        case "run_query":
+          queries += 1;
+          step("Data", "Investigator", failed ? `query failed: ${clip(String(out || "").replace(/^failed:\s*/, ""), 120)}`
+            : `${String(out || "").replace(/^1 rows/, "1 row")} back${e.query_id ? ` (${e.query_id})` : ""}`,
+               { tone: failed ? "bad" : "info" });
+          active = "Investigator";
+          break;
+        case "observe":
+          step("Investigator", "World Model", failed ? `no finding: ${clip(out, 120)}` : clip(out, 220),
+               { kind: "finding", tone: failed ? "bad" : "info" });
+          active = "World Model";
+          break;
+        case "ingest":
+          step("World Model", "Critic", `Stored: ${clip(out, 80)}`);
+          active = "Critic";
+          break;
+        case "critique": {
+          const verdict = e.verdict || (parseJson(out) || {}).verdict || "insufficient";
+          const reason = (parseJson(out) || {}).reason || "";
+          if (e.hypothesis_id) hyp(e.hypothesis_id, e.family).state = verdict;
+          step("Critic", "Orchestrator", `${e.hypothesis_id || ""} ${VERDICT_MARK[verdict] || verdict}${reason ? `: ${clip(reason, 200)}` : ""}`,
+               { kind: "verdict", tone: verdict === "supported" ? "good" : verdict === "refuted" ? "bad" : "warn" });
+          active = "Orchestrator";
+          break;
+        }
+        case "request_revision":
+          step("Critic", "Investigator", `Not convinced yet: test ${e.hypothesis_id || "it"} again`, { kind: "handoff", tone: "warn" });
+          active = "Investigator";
+          break;
+        case "request_follow_up":
+          step("Reporter", "Investigator", "Needs more evidence before answering", { kind: "handoff", tone: "warn" });
+          active = "Investigator";
+          break;
+        case "chunk":
+          step(null, null, `Step ${e.chunk}/${e.max_chunks}${e.rounds_left !== undefined ? ` · ${e.rounds_left} rounds left` : ""}`,
+               { kind: "divider" });
+          active = to || active;
+          break;
+        case "branch":
+          if (e.branch !== "promotion") step("Orchestrator", null, clip(e.why || out, 160)); // promotion repeats the verdict
+          break;
+        case "report": {
+          const text = String(out || "");
+          const causes = [...text.matchAll(/"\d+\.\s*([a-z_]+)/g)].map((m) => m[1]);
+          step("Reporter", "Orchestrator", failed ? `could not write the answer: ${clip(out, 120)}`
+            : /"determinable":\s*false/.test(text) ? "Answer: cannot be determined from the data"
+              : `Answer drafted${causes.length ? `: ${causes.join(", ")}` : ""}`,
+               { kind: "handoff", tone: failed ? "bad" : "good" });
+          active = "Orchestrator";
+          break;
+        }
+        case "finish":
+          finished = true;
+          active = null;
+          step("Orchestrator", null, `Finished (${e.stop_reason || e.status})`, { kind: "divider" });
+          break;
+        default:
+          step(who, to || null, `${e.action.replace(/_/g, " ")}${out ? `: ${clip(out, 120)}` : ""}`);
+      }
+    }
+    if (active) seen.add(active);
+    return { steps, hypotheses: [...hyps.values()], active, seen, lastAt, finished, calls, failedCalls, queries };
+  }
+
+  function renderLive(view, opts) {
+    const o = opts || {};
+    const team = el("div", { className: "team" });
+    TEAM.forEach((name, i) => {
+      if (i) team.appendChild(el("span", { className: "team-arrow", text: "→" }));
+      const state = view.active === name ? " active" : view.seen.has(name) ? " seen" : "";
+      team.appendChild(el("span", { className: `agent${state}`, text: name }));
+    });
+    const root = el("div", { className: "live-body" }, [team]);
+    if (view.active && !view.finished) {
+      const since = o.now && view.lastAt ? ` ${duration(o.now - view.lastAt)}` : "";
+      root.appendChild(el("p", { className: "thinking" }, [
+        el("span", { className: "dot" }),
+        el("span", { text: `${view.active} is working…` }),
+        el("span", { className: "clock", text: since }),
+      ]));
+    }
+    if (view.hypotheses.length) {
+      root.appendChild(el("ul", { className: "hyps" }, view.hypotheses.map((h) => el("li", {
+        className: `hyp ${h.state}`, attrs: { title: h.statement } }, [
+        el("span", { className: "hyp-id", text: h.id }),
+        el("span", { className: "hyp-family", text: h.family || "" }),
+        el("span", { className: "hyp-state", text: VERDICT_MARK[h.state] || h.state }),
+      ]))));
+    }
+    const feed = el("ol", { className: "feed" }, view.steps.map((s) => {
+      const who = s.from && s.to ? `${s.from} → ${s.to}` : s.from || "";
+      const item = el("li", { className: `step ${s.kind || "note"} ${s.tone}` }, [
+        who ? el("span", { className: "who", text: who }) : null,
+        el("span", { className: "what", text: s.text }),
+      ]);
+      if (s.code) item.appendChild(el("details", {}, [el("summary", { text: "SQL" }), el("pre", { text: s.code })]));
+      return item;
+    }));
+    root.appendChild(feed);
+    root.appendChild(el("p", { className: "live-stats",
+      text: `${view.calls} model calls${view.failedCalls ? ` (${view.failedCalls} failed and retried)` : ""} · ${view.queries} queries` }));
+    return root;
+  }
+
   // ---------------------------------------------------------------- errors
   function errorMessage(status, body) {
     const err = body && body.error;
@@ -186,13 +414,13 @@ const EW = (() => {
     return `The server answered HTTP ${status} without a readable message.`;
   }
 
-  async function requestJson(url, init, timeoutMs) {
+  async function requestJson(url, init, timeoutMs, asText) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await fetch(url, { ...init, signal: controller.signal });
       let body = null;
-      try { body = await response.json(); } catch (_) { body = null; }
+      try { body = asText ? await response.text() : await response.json(); } catch (_) { body = null; }
       return { ok: response.ok, status: response.status, body };
     } catch (exc) {
       const text = exc && exc.name === "AbortError"
@@ -211,6 +439,9 @@ const EW = (() => {
     const runTimeoutMs = Math.max(1, Number(meta && meta.content) || 600) * 1000;
     let running = false;
     let ticker = null;
+    let replaying = null;
+    const LIVE_POLL_MS = 2000;
+    const REPLAY_STEP_MS = 450;
 
     function showMessage(text, kind) {
       const box = $("message");
@@ -235,18 +466,81 @@ const EW = (() => {
 
     function setRunning(on) {
       running = on;
-      for (const b of document.querySelectorAll("button.explain, #ask")) b.disabled = on;
+      for (const b of document.querySelectorAll("button.explain, #ask, button.replay")) b.disabled = on;
+    }
+
+    // The live view: redrawn when the trace grows; the "working" clock ticks on its own so an open
+    // SQL box is not closed every second.
+    function drawLive(events, done) {
+      const view = readTrace(events);
+      const children = [el("h2", { text: done ? "How the agents worked it out" : "Agents at work" }),
+        renderLive(view, { now: done ? null : Date.now() })];
+      if (done && events.length) {
+        const replay = el("button", { className: "replay", text: "Replay step by step", attrs: { type: "button" } });
+        replay.addEventListener("click", () => replayTrace(events));
+        children.push(replay);
+      }
+      $("live").replaceChildren(...children);
+      $("live").hidden = false;
+      const feed = $("live").querySelector(".feed");
+      if (feed) feed.scrollTop = feed.scrollHeight;
+      return view;
+    }
+
+    function replayTrace(events) {
+      clearInterval(replaying);
+      let shown = 0;
+      replaying = setInterval(() => {
+        shown += 1;
+        if (shown >= events.length) { clearInterval(replaying); replaying = null; drawLive(events, true); return; }
+        if (!running) drawLive(events.slice(0, shown), false);
+      }, REPLAY_STEP_MS);
+    }
+
+    async function followTrace(runId, state) {
+      const url = `/runs/${encodeURIComponent(runId)}/trace`;
+      let size = -1;
+      while (!state.done) {
+        const t = await requestJson(url, {}, 10000, true);
+        if (state.done) break;
+        if (t.ok && typeof t.body === "string" && t.body.length !== size) {
+          size = t.body.length;
+          state.events = parseTrace(t.body);
+          state.view = drawLive(state.events, false);
+        }
+        await new Promise((resolve) => setTimeout(resolve, LIVE_POLL_MS));
+      }
+    }
+
+    function tickLive(state) {
+      const clock = $("live").querySelector(".thinking .clock");
+      if (clock && state.view && state.view.lastAt) clock.textContent = ` ${duration(Date.now() - state.view.lastAt)}`;
+    }
+
+    function newRunId() {
+      return `web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
     }
 
     async function startRun(payload, label) {
       if (running) return;
       setRunning(true);
+      clearInterval(replaying);
       showMessage("");
       $("result").hidden = true;
+      $("live").hidden = true;
       setProgress(label);
+      const runId = newRunId();
+      const state = { done: false, events: [], view: null };
+      followTrace(runId, state);
+      const clock = setInterval(() => tickLive(state), 1000);
       const r = await requestJson("/run", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...payload, run_id: runId }),
       }, runTimeoutMs);
+      state.done = true;
+      clearInterval(clock);
+      const t = await requestJson(`/runs/${encodeURIComponent(runId)}/trace`, {}, 10000, true);
+      if (t.ok && typeof t.body === "string") state.events = parseTrace(t.body);
+      if (state.events.length) drawLive(state.events, true);
       clearProgress();
       setRunning(false);
       if (r.ok && r.body) {
@@ -309,7 +603,7 @@ const EW = (() => {
     loadBoard();
   }
 
-  return { renderCard, renderTile, renderResult, errorMessage, changeText, periodText, fmt, init,
+  return { readTrace, parseTrace, renderLive, renderCard, renderTile, renderResult, errorMessage, changeText, periodText, fmt, init,
            CACHE_MISS_TEXT, UNDETERMINABLE_TEXT };
 })();
 

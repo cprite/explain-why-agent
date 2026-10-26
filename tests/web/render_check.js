@@ -182,4 +182,54 @@ check("structured errors become readable messages", () => {
   assert.equal(EW.errorMessage(502, null), "The server answered HTTP 502 without a readable message.");
 });
 
+
+const TRACE = [
+  { timestamp: "2026-10-26T10:00:00Z", agent: "Orchestrator", action: "start", target_agent: "Planner", input_summary: "Why did lateness spike?", status: "ok" },
+  { timestamp: "2026-10-26T10:01:00Z", agent: "planner", action: "model_call", status: "ok", provider: "meterless",
+    model_routed: "nvidia/nvidia/nemotron-3.5-lightning-30b-a3b", duration_ms: 61000, tokens: { total_tokens: 1200 } },
+  { timestamp: "2026-10-26T10:01:01Z", agent: "Planner", action: "plan", target_agent: "Investigator", status: "ok",
+    output_summary: '{"metric": "late share", "hypotheses": ["H1 logistics_delay: carriers were slow", "H2 volume: fewer deliveries…' },
+  { timestamp: "2026-10-26T10:01:02Z", agent: "Planner", action: "delegate", target_agent: "Investigator", status: "ok",
+    input_summary: `H1 logistics_delay: ${XSS}` },
+  { timestamp: "2026-10-26T10:02:00Z", agent: "Investigator", action: "write_sql", status: "ok", output_summary: "SELECT 1" },
+  { timestamp: "2026-10-26T10:02:01Z", agent: "Investigator", action: "run_query", target_agent: "DataLayer", status: "ok", output_summary: "1 rows", query_id: "q001" },
+  { timestamp: "2026-10-26T10:03:00Z", agent: "critic", action: "model_call", status: "timeout", duration_ms: 180000, error: "meterless timed out" },
+  { timestamp: "2026-10-26T10:04:00Z", agent: "Critic", action: "critique", target_agent: "Orchestrator", status: "ok",
+    verdict: "supported", hypothesis_id: "H1", family: "logistics_delay", output_summary: '{"verdict": "supported", "reason": "moved 53%"}' },
+];
+
+check("trace reads as hand-offs: active agent, hypotheses, verdicts and failed calls", () => {
+  const text = TRACE.map((e) => JSON.stringify(e)).join("\n") + "\nnot json\n";
+  const events = EW.parseTrace(text);
+  assert.equal(events.length, TRACE.length);
+  const mid = EW.readTrace(events.slice(0, 5));
+  assert.equal(mid.active, "Data");
+  assert.equal(mid.hypotheses.find((h) => h.id === "H1").state, "testing");
+  assert.equal(mid.hypotheses.find((h) => h.id === "H2").state, "untested");
+  const view = EW.readTrace(events);
+  assert.equal(view.active, "Orchestrator");
+  assert.equal(view.hypotheses.find((h) => h.id === "H1").state, "supported");
+  assert.equal(view.calls, 2);
+  assert.equal(view.failedCalls, 1);
+  assert.equal(view.queries, 1);
+  assert.ok(view.steps.some((s) => s.from === "Planner" && s.to === "Investigator" && s.text.startsWith("Test H1")));
+  assert.ok(view.steps.some((s) => s.kind === "model" && s.text.includes("nemotron-3.5-lightning")));
+  assert.ok(view.steps.some((s) => s.tone === "bad" && s.text.includes("timeout")));
+});
+
+check("live view shows the team, the working agent and markup from the trace as text", () => {
+  const view = EW.readTrace(EW.parseTrace(TRACE.slice(0, 5).map((e) => JSON.stringify(e)).join("\n")));
+  const node = EW.renderLive(view, { now: Date.parse("2026-10-26T10:03:30Z") });
+  assert.equal(byClass(node, "agent").length, 7);
+  assert.equal(byClass(node, "active")[0].textContent, "Data");
+  assert.ok(byClass(node, "thinking")[0].textContent.includes("Data is working… 1:30"));
+  assert.equal(byTag(node, "img").length, 0);
+  assert.ok(node.textContent.includes(XSS));
+  assert.equal(byTag(node, "pre")[0].textContent, "SELECT 1");
+  const done = EW.renderLive(EW.readTrace([...EW.parseTrace(TRACE.map((e) => JSON.stringify(e)).join("\n")),
+    { timestamp: "2026-10-26T10:05:00Z", agent: "Orchestrator", action: "finish", status: "success", stop_reason: "completed" }]), {});
+  assert.equal(byClass(done, "thinking").length, 0);
+  assert.equal(byClass(done, "supported").length, 1);
+});
+
 console.log("ALL RENDER CHECKS PASSED");
