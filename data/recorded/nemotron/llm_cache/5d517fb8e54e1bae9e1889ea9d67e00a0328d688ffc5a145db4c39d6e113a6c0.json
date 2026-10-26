@@ -1,0 +1,27 @@
+{
+  "key": "5d517fb8e54e1bae9e1889ea9d67e00a0328d688ffc5a145db4c39d6e113a6c0",
+  "role": "investigator",
+  "schema": "ObservationDraft",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are the Investigator. You ran a query to test a hypothesis (or the change check). Read the rows\nin the INPUT and record what they show.\n\n- `finding`: one sentence with the actual numbers from the rows, the window and the baseline.\n- `value` and `baseline`: the measure in the window and in the baseline, copied from the rows.\n- `effect`: value / baseline - 1 when both exist, otherwise empty.\n- `supports`: true if the rows support the hypothesis, false if they refute it, empty if they cannot\n  tell. For the change check, true means the change is real and not within normal variation.\n\nReport only what the rows show. Do not add numbers that are not in the rows."
+    },
+    {
+      "role": "user",
+      "content": "INPUT:\n{\"columns\":[\"value\",\"baseline\",\"spread\",\"n\",\"n_baseline\"],\"plan\":{\"baseline_window\":{\"end\":\"2018-01-10\",\"start\":\"2018-01-01\"},\"metric\":\"total payment_value (revenue) for seller f8db351d8c4c4c22c6835c19a46f01b0\",\"question\":\"Why did seller f8db351d8c4c4c22c6835c19a46f01b0's revenue drop to zero in mid-January 2018?\",\"segment\":\"seller f8db351d8c4c4c22c6835c19a46f01b0\",\"window\":{\"end\":\"2018-01-20\",\"start\":\"2018-01-10\"}},\"rows\":[{\"baseline\":562.76,\"n\":13,\"n_baseline\":1,\"spread\":null,\"value\":1560.53}],\"rows_returned\":1,\"sql\":\"WITH seller_order_ids AS (\\n  SELECT DISTINCT order_id\\n  FROM orders.order_items\\n  WHERE seller_id = 'f8db351d8c4c4c22c6835c19a46f01b0'\\n),\\nseller_revenue AS (\\n  SELECT\\n    o.order_id,\\n    CAST(o.order_purchase_timestamp AS DATE) AS order_date,\\n    SUM(p.payment_value) AS revenue\\n  FROM orders.orders o\\n  JOIN payments.order_payments p ON p.order_id = o.order_id\\n  WHERE o.order_id IN (SELECT order_id FROM seller_order_ids)\\n  GROUP BY o.order_id, CAST(o.order_purchase_timestamp AS DATE)\\n),\\nwindow_stats AS (\\n  SELECT\\n    SUM(revenue) AS value,\\n    COUNT(*) AS n\\n  FROM seller_revenue\\n  WHERE order_date >= DATE '2018-01-10' AND order_date < DATE '2018-01-20'\\n),\\nbaseline_periods AS (\\n  SELECT\\n    SUM(revenue) AS period_revenue\\n  FROM seller_revenue\\n  WHERE order_date >= DATE '2018-01-01' AND order_date < DATE '2018-01-10'\\n),\\nbaseline_stats AS (\\n  SELECT\\n    SUM(period_revenue) AS baseline,\\n    COUNT(*) AS n_baseline,\\n    CASE WHEN COUNT(*) >= 2 THEN STDDEV(period_revenue) ELSE NULL END AS spread\\n  FROM baseline_periods\\n)\\nSELECT\\n  ROUND(w.value, 4) AS value,\\n  ROUND(b.baseline, 4) AS baseline,\\n  ROUND(b.spread, 4) AS spread,\\n  w.n AS n,\\n  b.n_baseline AS n_baseline\\nFROM window_stats w, baseline_stats b;\",\"task\":{\"id\":null,\"kind\":\"change_check\",\"statement\":\"The total payment_value (revenue) for seller f8db351d8c4c4c22c6835c19a46f01b0 for seller f8db351d8c4c4c22c6835c19a46f01b0 changed in the window against the baseline.\",\"test\":{\"description\":\"total payment_value for seller f8db351d8c4c4c22c6835c19a46f01b0 in the window versus the baseline\",\"sources\":[\"payments.order_payments\",\"orders.orders\"]}},\"truncated\":false}"
+    }
+  ],
+  "reply": "{\n  \"finding\": \"For seller f8db351d8c4c4c22c6835c19a46f01b0, revenue was 1560.53 across 13 orders in the window 2018-01-10 to 2018-01-20, compared with a baseline of 562.76 over 2018-01-01 to 2018-01-10 (one baseline period, spread null).\",\n  \"value\": 1560.53,\n  \"baseline\": 562.76,\n  \"effect\": 1.773,\n  \"supports\": true\n}",
+  "provider": "meterless",
+  "model_requested": "meterless/fast",
+  "model_routed": "nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+  "receipt_id": "rcpt_req_on8g1sww",
+  "usage": {
+    "prompt_tokens": 3966,
+    "completion_tokens": 7445,
+    "total_tokens": 11411
+  },
+  "recorded_with": "meterless",
+  "recorded_at": "2026-10-25T19:23:27.949587+00:00"
+}

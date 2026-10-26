@@ -1,0 +1,27 @@
+{
+  "key": "ec47e6c776987f17c2a86628843152d58addd4a771f1d9008b24a62e087835e4",
+  "role": "investigator",
+  "schema": "ObservationDraft",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are the Investigator. You ran a query to test a hypothesis (or the change check). Read the rows\nin the INPUT and record what they show.\n\n- `finding`: one sentence with the actual numbers from the rows, the window and the baseline.\n- `value` and `baseline`: the measure in the window and in the baseline, copied from the rows.\n- `effect`: value / baseline - 1 when both exist, otherwise empty.\n- `supports`: true if the rows support the hypothesis, false if they refute it, empty if they cannot\n  tell. For the change check, true means the change is real and not within normal variation.\n\nReport only what the rows show. Do not add numbers that are not in the rows."
+    },
+    {
+      "role": "user",
+      "content": "INPUT:\n{\"columns\":[\"value\",\"baseline\",\"window_completed\",\"window_late\",\"baseline_completed\",\"baseline_late\"],\"plan\":{\"baseline_window\":{\"end\":\"2018-05-28\",\"start\":\"2018-05-21\"},\"metric\":\"Share of completed deliveries that arrived after the estimated delivery date (order_delivered_customer_date > order_estimated_delivery_date), measured against order_delivered_customer_date\",\"question\":\"Why did delivery lateness spike for deliveries completed the week of 28 May 2018?\",\"segment\":\"all\",\"window\":{\"end\":\"2018-06-04\",\"start\":\"2018-05-28\"}},\"rows\":[{\"baseline\":0.0251,\"baseline_completed\":1434,\"baseline_late\":36,\"value\":0.1007,\"window_completed\":606,\"window_late\":61}],\"rows_returned\":1,\"sql\":\"WITH completed AS (\\n  SELECT\\n    order_id,\\n    CAST(order_delivered_customer_date AS DATE) AS delivery_date,\\n    order_estimated_delivery_date,\\n    CASE WHEN CAST(order_delivered_customer_date AS DATE) > order_estimated_delivery_date THEN 1 ELSE 0 END AS is_late\\n  FROM orders.orders\\n  WHERE order_delivered_customer_date IS NOT NULL\\n    AND order_estimated_delivery_date IS NOT NULL\\n),\\nwindow_stats AS (\\n  SELECT\\n    COUNT(*) AS completed_deliveries,\\n    SUM(is_late) AS late_deliveries,\\n    ROUND(SUM(is_late)::DOUBLE / NULLIF(COUNT(*), 0), 4) AS late_share\\n  FROM completed\\n  WHERE delivery_date >= DATE '2018-05-28' AND delivery_date < DATE '2018-06-04'\\n),\\nbaseline_stats AS (\\n  SELECT\\n    COUNT(*) AS completed_deliveries,\\n    SUM(is_late) AS late_deliveries,\\n    ROUND(SUM(is_late)::DOUBLE / NULLIF(COUNT(*), 0), 4) AS late_share\\n  FROM completed\\n  WHERE delivery_date >= DATE '2018-05-21' AND delivery_date < DATE '2018-05-28'\\n)\\nSELECT\\n  ROUND(w.late_share, 4) AS value,\\n  ROUND(b.late_share, 4) AS baseline,\\n  w.completed_deliveries AS window_completed,\\n  w.late_deliveries AS window_late,\\n  b.completed_deliveries AS baseline_completed,\\n  b.late_deliveries AS baseline_late\\nFROM window_stats w, baseline_stats b;\",\"task\":{\"family\":\"logistics_delay\",\"id\":\"H3\",\"kind\":\"hypothesis\",\"statement\":\"Actual delivery performance worsened, so a larger share of completed deliveries arrived after the estimated date.\",\"test\":{\"description\":\"Count late completed deliveries and the late share in the window versus the baseline week.\",\"sources\":[\"orders.orders\"]}},\"truncated\":false}"
+    }
+  ],
+  "reply": "{\"finding\":\"Late completed deliveries rose sharply: 61 of 606 (10.07%) in the week of 2018-05-28 to 2018-06-04 versus 36 of 1,434 (2.51%) in the baseline week of 2018-05-21 to 2018-05-28, about a fourfold increase in the late share.\",\"value\":0.1007,\"baseline\":0.0251,\"window_completed\":606,\"window_late\":61,\"baseline_completed\":1434,\"baseline_late\":36,\"supports\":true,\"note\":\"The data support the hypothesis that actual delivery performance worsened, with a larger share of completed deliveries arriving after the estimated date. The provided orders table contains no root-cause dimension (carrier, volume, weather, exception reason), so a specific driver of the spike cannot be identified from this input alone.\"}",
+  "provider": "meterless",
+  "model_requested": "meterless/fast",
+  "model_routed": "nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b",
+  "receipt_id": "rcpt_req_j9dotglb",
+  "usage": {
+    "prompt_tokens": 4901,
+    "completion_tokens": 5257,
+    "total_tokens": 10158
+  },
+  "recorded_with": "meterless",
+  "recorded_at": "2026-10-25T22:48:15.292846+00:00"
+}

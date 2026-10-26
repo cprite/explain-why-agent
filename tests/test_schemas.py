@@ -12,6 +12,7 @@ from pydantic import ValidationError
 
 from app.schemas import (
     ALL_MODELS,
+    CauseDraft,
     HYPOTHESIS_FAMILIES,
     Plan,
     Result,
@@ -109,3 +110,17 @@ def test_schemas_cli_validates_example() -> None:
     )
     assert out.returncode == 0, out.stdout + out.stderr
     assert out.stdout.startswith("[PASS] example-result.json: valid Result")
+
+
+def test_cause_draft_takes_ids_from_statements() -> None:
+    cause = {
+        "hypothesis_id": "H3", "type": "mix_shift", "summary": "s", "confidence": 0.8,
+        "statements": [
+            {"text": "a", "kind": "measured", "observation_ids": ["obs-0"]},
+            {"text": "b", "kind": "inferred", "observation_ids": ["obs-5", "obs-0"]},
+        ],
+    }
+    assert CauseDraft.model_validate(cause).observation_ids == ["obs-0", "obs-5"]
+    assert CauseDraft.model_validate({**cause, "observation_ids": ["obs-9"]}).observation_ids == ["obs-9"]
+    with pytest.raises(ValidationError):
+        CauseDraft.model_validate({**cause, "statements": []})

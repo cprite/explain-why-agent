@@ -1,0 +1,27 @@
+{
+  "key": "b74f5bea68f215366ed13b2ce647bd76d69737ae1f49687ab89ad765446cb0d8",
+  "role": "investigator",
+  "schema": "ObservationDraft",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are the Investigator. You ran a query to test a hypothesis (or the change check). Read the rows\nin the INPUT and record what they show.\n\n- `finding`: one sentence with the actual numbers from the rows, the window and the baseline.\n- `value` and `baseline`: the measure in the window and in the baseline, copied from the rows.\n- `effect`: value / baseline - 1 when both exist, otherwise empty.\n- `supports`: true if the rows support the hypothesis, false if they refute it, empty if they cannot\n  tell. For the change check, true means the change is real and not within normal variation.\n\nReport only what the rows show. Do not add numbers that are not in the rows."
+    },
+    {
+      "role": "user",
+      "content": "INPUT:\n{\"columns\":[\"value\",\"baseline\",\"window_duplicate_order_rows\",\"baseline_duplicate_order_rows_per_day\",\"window_total_rows\",\"baseline_total_rows_per_day\"],\"plan\":{\"baseline_window\":{\"end\":\"2017-11-24\",\"start\":\"2017-11-17\"},\"metric\":\"Daily count of distinct orders (order_id) measured by order_purchase_timestamp\",\"question\":\"Why did order volume spike on 24 November 2017?\",\"segment\":\"all\",\"window\":{\"end\":\"2017-11-25\",\"start\":\"2017-11-24\"}},\"rows\":[{\"baseline\":136.571,\"baseline_duplicate_order_rows_per_day\":0.0,\"baseline_total_rows_per_day\":136.571,\"value\":1176.0,\"window_duplicate_order_rows\":0,\"window_total_rows\":1176}],\"rows_returned\":1,\"sql\":\"WITH window_orders AS (\\n  SELECT order_id\\n  FROM orders.orders\\n  WHERE order_purchase_timestamp >= DATE '2017-11-24'\\n    AND order_purchase_timestamp < DATE '2017-11-25'\\n),\\nbaseline_orders AS (\\n  SELECT order_id\\n  FROM orders.orders\\n  WHERE order_purchase_timestamp >= DATE '2017-11-17'\\n    AND order_purchase_timestamp < DATE '2017-11-24'\\n),\\nwindow_stats AS (\\n  SELECT\\n    COUNT(*) AS total_rows,\\n    COUNT(DISTINCT order_id) AS distinct_orders,\\n    COUNT(*) - COUNT(DISTINCT order_id) AS duplicate_order_rows\\n  FROM window_orders\\n),\\nbaseline_stats AS (\\n  SELECT\\n    COUNT(*) AS total_rows,\\n    COUNT(DISTINCT order_id) AS distinct_orders,\\n    COUNT(*) - COUNT(DISTINCT order_id) AS duplicate_order_rows\\n  FROM baseline_orders\\n)\\nSELECT\\n  ROUND(ws.distinct_orders::DOUBLE, 4) AS value,\\n  ROUND(bs.distinct_orders::DOUBLE / 7, 4) AS baseline,\\n  ROUND(ws.duplicate_order_rows, 4) AS window_duplicate_order_rows,\\n  ROUND(bs.duplicate_order_rows::DOUBLE / 7, 4) AS baseline_duplicate_order_rows_per_day,\\n  ROUND(ws.total_rows, 4) AS window_total_rows,\\n  ROUND(bs.total_rows::DOUBLE / 7, 4) AS baseline_total_rows_per_day\\nFROM window_stats ws, baseline_stats bs;\",\"task\":{\"family\":\"volume\",\"id\":\"H1\",\"kind\":\"hypothesis\",\"statement\":\"The 24 Nov order spike was broad-based, with most sellers, product categories, and customer states recording higher order counts than their baseline daily average.\",\"test\":{\"description\":\"Follow-up requested by the Critic: Count duplicate order rows and check ingestion source on 24 Nov versus baseline to test whether the spike (H3) is an artefact rather than real orders.\",\"sources\":[\"orders.orders\",\"orders.order_items\",\"orders.products\",\"orders.customers\"]}},\"truncated\":false}"
+    }
+  ],
+  "reply": "{\"finding\":\"On 24 November 2017, the daily distinct order count was 1,176 (1,176 total rows, 0 duplicate order rows) versus a baseline average of 136.571 orders per day over 17–23 November 2017 (136.571 total rows per day, 0.0 duplicate rows per day)\",\"value\":1176.0,\"baseline\":136.571,\"effect\":7.611,\"supports\":true}",
+  "provider": "meterless",
+  "model_requested": "meterless/fast",
+  "model_routed": "nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+  "receipt_id": "rcpt_req_458idy2h",
+  "usage": {
+    "prompt_tokens": 3387,
+    "completion_tokens": 4961,
+    "total_tokens": 8348
+  },
+  "recorded_with": "meterless",
+  "recorded_at": "2026-10-25T18:35:46.761542+00:00"
+}

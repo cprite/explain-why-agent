@@ -1,0 +1,27 @@
+{
+  "key": "8380d5ad5d20d2fd6511cb5b43d802c50999ebb5396bbb321bff181905e87086",
+  "role": "investigator",
+  "schema": "ObservationDraft",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are the Investigator. You ran a query to test a hypothesis (or the change check). Read the rows\nin the INPUT and record what they show.\n\n- `finding`: one sentence with the actual numbers from the rows, the window and the baseline.\n- `value` and `baseline`: the measure in the window and in the baseline, copied from the rows.\n- `effect`: value / baseline - 1 when both exist, otherwise empty.\n- `supports`: true if the rows support the hypothesis, false if they refute it, empty if they cannot\n  tell. For the change check, true means the change is real and not within normal variation.\n\nReport only what the rows show. Do not add numbers that are not in the rows."
+    },
+    {
+      "role": "user",
+      "content": "INPUT:\n{\"columns\":[\"value\",\"baseline\",\"window_customers\",\"baseline_customers\",\"window_new_customers\",\"baseline_new_customers\"],\"plan\":{\"baseline_window\":{\"end\":\"2017-08-01\",\"start\":\"2017-07-01\"},\"metric\":\"Average order value: SUM(payment_value) per order (payments.order_payments grouped by order_id) averaged across all orders, measured over orders.order_purchase_timestamp.\",\"question\":\"Why has average order value been declining since August 2017?\",\"segment\":\"all\",\"window\":{\"end\":\"2017-09-01\",\"start\":\"2017-08-01\"}},\"rows\":[{\"baseline\":1.0,\"baseline_customers\":140,\"baseline_new_customers\":140,\"value\":1.0,\"window_customers\":2958,\"window_new_customers\":2958}],\"rows_returned\":1,\"sql\":\"WITH customer_first AS (\\n  SELECT customer_id, MIN(CAST(order_purchase_timestamp AS DATE)) AS first_order_date\\n  FROM orders.orders GROUP BY customer_id\\n),\\nperiod_orders AS (\\n  SELECT o.order_id,\\n         o.customer_id,\\n         CAST(o.order_purchase_timestamp AS DATE) AS order_date,\\n         CASE WHEN CAST(o.order_purchase_timestamp AS DATE) >= DATE '2017-08-01' AND CAST(o.order_purchase_timestamp AS DATE) < DATE '2017-09-01' THEN 'window'\\n              WHEN CAST(o.order_purchase_timestamp AS DATE) >= DATE '2017-07-01' AND CAST(o.order_purchase_timestamp AS DATE) < DATE '2017-08-01' THEN 'baseline'\\n            END AS period\\n  FROM orders.orders o\\n  WHERE CAST(o.order_purchase_timestamp AS DATE) >= DATE '2017-07-01'\\n    AND CAST(o.order_purchase_timestamp AS DATE) < DATE '2017-09-01'\\n),\\ncust_type AS (\\n  SELECT po.customer_id,\\n         po.period,\\n         CASE WHEN cf.first_order_date >= CASE po.period WHEN 'window' THEN DATE '2017-08-01' ELSE DATE '2017-07-01' END\\n              AND cf.first_order_date < CASE po.period WHEN 'window' THEN DATE '2017-09-01' ELSE DATE '2017-08-01' END\\n              THEN 'new' ELSE 'returning' END AS cust_type\\n  FROM period_orders po\\n  JOIN customer_first cf ON cf.customer_id = po.customer_id\\n  WHERE po.period IS NOT NULL\\n)\\nSELECT\\n  ROUND(CAST(COUNT(DISTINCT CASE WHEN period = 'window' AND cust_type = 'new' THEN customer_id END) AS DOUBLE)\\n        / NULLIF(COUNT(DISTINCT CASE WHEN period = 'window' THEN customer_id END), 0), 4) AS value,\\n  ROUND(CAST(COUNT(DISTINCT CASE WHEN period = 'baseline' AND cust_type = 'new' THEN customer_id END) AS DOUBLE)\\n        / NULLIF(COUNT(DISTINCT CASE WHEN period = 'baseline' THEN customer_id END), 0), 4) AS baseline,\\n  COUNT(DISTINCT CASE WHEN period = 'window' THEN customer_id END) AS window_customers,\\n  COUNT(DISTINCT CASE WHEN period = 'baseline' THEN customer_id END) AS baseline_customers,\\n  COUNT(DISTINCT CASE WHEN period = 'window' AND cust_type = 'new' THEN customer_id END) AS window_new_customers,\\n  COUNT(DISTINCT CASE WHEN period = 'baseline' AND cust_type = 'new' THEN customer_id END) AS baseline_new_customers\\nFROM cust_type;\",\"task\":{\"family\":\"volume\",\"id\":\"H5\",\"kind\":\"hypothesis\",\"statement\":\"Average order value may have declined in periods after September 2017 due to changing order volume or customer base.\",\"test\":{\"description\":\"Follow-up requested by the Critic: Measure proportion of new vs returning customers in August versus September–October to test volume/customer base shift.\",\"sources\":[\"orders+payments\"]}},\"truncated\":false}"
+    }
+  ],
+  "reply": "{\n  \"finding\": \"In the August 2017 window, new customers made up 1.0 of all customers (2,958 of 2,958), matching the July 2017 baseline of 1.0 (140 of 140 customers), so the new-customer mix did not change and cannot explain the average order value decline.\",\n  \"value\": 1.0,\n  \"baseline\": 1.0,\n  \"effect\": 0,\n  \"supports\": false\n}",
+  "provider": "meterless",
+  "model_requested": "meterless/fast",
+  "model_routed": "nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b",
+  "receipt_id": "rcpt_req_14yrewcz",
+  "usage": {
+    "prompt_tokens": 5339,
+    "completion_tokens": 8062,
+    "total_tokens": 13401
+  },
+  "recorded_with": "meterless",
+  "recorded_at": "2026-10-25T20:17:57.342616+00:00"
+}

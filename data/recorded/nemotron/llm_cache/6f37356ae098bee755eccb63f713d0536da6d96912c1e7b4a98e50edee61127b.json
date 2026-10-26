@@ -1,0 +1,27 @@
+{
+  "key": "6f37356ae098bee755eccb63f713d0536da6d96912c1e7b4a98e50edee61127b",
+  "role": "investigator",
+  "schema": "ObservationDraft",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are the Investigator. You ran a query to test a hypothesis (or the change check). Read the rows\nin the INPUT and record what they show.\n\n- `finding`: one sentence with the actual numbers from the rows, the window and the baseline.\n- `value` and `baseline`: the measure in the window and in the baseline, copied from the rows.\n- `effect`: value / baseline - 1 when both exist, otherwise empty.\n- `supports`: true if the rows support the hypothesis, false if they refute it, empty if they cannot\n  tell. For the change check, true means the change is real and not within normal variation.\n\nReport only what the rows show. Do not add numbers that are not in the rows."
+    },
+    {
+      "role": "user",
+      "content": "INPUT:\n{\"columns\":[\"window_reviews\",\"baseline_reviews\",\"window_null_score\",\"baseline_null_score\",\"window_out_of_range\",\"baseline_out_of_range\",\"window_avg_score\",\"baseline_avg_score\"],\"plan\":{\"baseline_window\":{\"end\":\"2017-12-01\",\"start\":\"2017-11-24\"},\"metric\":\"Average review_score for seller 1430239a858e7682bbc43b20758af153, measured over review_creation_date in reviews.order_reviews joined to orders.order_items on order_id.\",\"question\":\"Why did seller 1430239a858e7682bbc43b20758af153's review scores drop in early December 2017?\",\"segment\":\"seller 1430239a858e7682bbc43b20758af153\",\"window\":{\"end\":\"2017-12-08\",\"start\":\"2017-12-01\"}},\"rows\":[{\"baseline_avg_score\":null,\"baseline_null_score\":null,\"baseline_out_of_range\":null,\"baseline_reviews\":0,\"window_avg_score\":2.0,\"window_null_score\":0,\"window_out_of_range\":0,\"window_reviews\":3}],\"rows_returned\":1,\"sql\":\"WITH seller_reviews AS (\\n  SELECT\\n    r.review_score,\\n    r.review_creation_date\\n  FROM reviews.order_reviews r\\n  JOIN orders.order_items oi ON r.order_id = oi.order_id\\n  WHERE oi.seller_id = '1430239a858e7682bbc43b20758af153'\\n),\\nwindow_stats AS (\\n  SELECT\\n    COUNT(*) AS n_reviews,\\n    SUM(CASE WHEN review_score IS NULL THEN 1 ELSE 0 END) AS n_null_score,\\n    SUM(CASE WHEN review_score IS NOT NULL AND (review_score < 1 OR review_score > 5) THEN 1 ELSE 0 END) AS n_out_of_range,\\n    AVG(CAST(review_score AS DOUBLE)) AS avg_score\\n  FROM seller_reviews\\n  WHERE review_creation_date >= DATE '2017-12-01' AND review_creation_date < DATE '2017-12-08'\\n),\\nbaseline_stats AS (\\n  SELECT\\n    COUNT(*) AS n_reviews,\\n    SUM(CASE WHEN review_score IS NULL THEN 1 ELSE 0 END) AS n_null_score,\\n    SUM(CASE WHEN review_score IS NOT NULL AND (review_score < 1 OR review_score > 5) THEN 1 ELSE 0 END) AS n_out_of_range,\\n    AVG(CAST(review_score AS DOUBLE)) AS avg_score\\n  FROM seller_reviews\\n  WHERE review_creation_date >= DATE '2017-11-24' AND review_creation_date < DATE '2017-12-01'\\n)\\nSELECT\\n  w.n_reviews AS window_reviews,\\n  b.n_reviews AS baseline_reviews,\\n  w.n_null_score AS window_null_score,\\n  b.n_null_score AS baseline_null_score,\\n  w.n_out_of_range AS window_out_of_range,\\n  b.n_out_of_range AS baseline_out_of_range,\\n  ROUND(w.avg_score, 4) AS window_avg_score,\\n  ROUND(b.avg_score, 4) AS baseline_avg_score\\nFROM window_stats w, baseline_stats b;\",\"task\":{\"family\":\"data_artefact\",\"id\":\"H1\",\"kind\":\"hypothesis\",\"statement\":\"The drop is not genuine; it is caused by missing, null, or out-of-range review_score values, or an abrupt change in review volume, in early December.\",\"test\":{\"description\":\"Count reviews and reviews with null or out-of-range review_score for this seller in the window versus the baseline week.\",\"sources\":[\"reviews.order_reviews\",\"orders.order_items\"]}},\"truncated\":false}"
+    }
+  ],
+  "reply": "{\n  \"finding\": \"In the window (2017-12-01 to 2017-12-08), the seller had 3 reviews averaging 2.0, while the baseline (2017-11-24 to 2017-12-01) had 0 reviews and no average score.\",\n  \"value\": 2.0,\n  \"baseline\": null,\n  \"effect\": null,\n  \"supports\": true\n}",
+  "provider": "meterless",
+  "model_requested": "meterless/fast",
+  "model_routed": "nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+  "receipt_id": "rcpt_req_0xiwvlw2",
+  "usage": {
+    "prompt_tokens": 4102,
+    "completion_tokens": 2080,
+    "total_tokens": 6182
+  },
+  "recorded_with": "meterless",
+  "recorded_at": "2026-10-25T18:51:18.797332+00:00"
+}

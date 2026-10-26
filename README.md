@@ -259,12 +259,15 @@ Investigator and Reporter without the engines or the Critic.
 Every number below comes from the committed file in its Source column; `tests/test_docs.py` checks
 that each number appears in that file. Where no committed measurement exists the row says
 "not measured yet". The sample-mode score replays the scripted stand-in model, so it shows that the
-loop, the queries and the scoring work, not how well a model explains; the score with a real model
-is the coordinator's recorded run (`logs/eval-after-*.json`), not committed yet.
+loop, the queries and the scoring work, not how well a model explains. The score with a real model
+replays replies recorded live from Nemotron through Nightshift, committed in
+`data/recorded/nemotron/llm_cache/`; run it with
+`LLM_CACHE_DIR=data/recorded/nemotron/llm_cache SAMPLE_MODE=true python eval/run_eval.py --sample`.
 
 | Measure | Value | Source |
 |---|---|---|
-| Evaluation score (answer key, live or with model-recorded replies for every question) | not measured yet | none committed |
+| Evaluation score (answer key, Nemotron replies recorded live through Nightshift for every question, replayed) | `Score: 5/10 (answered 10, no_cache 0, errors 0)` | `logs/eval-after-20261025T235356Z.json` |
+| Evaluation score (answer key, live run scored as it happens) | not measured yet | none committed |
 | Evaluation score, sample mode (Markovian loop, stub-recorded replies: measures the plumbing, not a model) | `Score: 5/10 (answered 5, no_cache 5, errors 0)` | `docs/sprints/11c-prompt-tuning.md` |
 | Scanner recall (planted incident flagged on its metric, segment and window) | 1/8 | `docs/sprints/12-anomaly-scanner.md` |
 | Scanner: rank of the one planted incident it flags (incident-06) | overall rank 37 of 206 | `docs/sprints/12-anomaly-scanner.md` |
@@ -285,6 +288,16 @@ Per incident, evaluation in sample mode (Markovian loop, stub-recorded replies):
 | incident-09 | found | `docs/sprints/11c-prompt-tuning.md` |
 | incident-10 | found | `docs/sprints/11c-prompt-tuning.md` |
 | incident-03, -04, -05, -07, -08 | no_cache (no recording) | `docs/sprints/11c-prompt-tuning.md` |
+
+Per incident, evaluation with Nemotron replies recorded through Nightshift (Markovian loop, replayed):
+
+| Incident | Result | Source |
+|---|---|---|
+| incident-01, -02, -05 | found | `logs/eval-after-20261025T235356Z.json` |
+| incident-09, -10 | found (correctly undeterminable) | `logs/eval-after-20261025T235356Z.json` |
+| incident-03, -04, -06, -07, -08 | not_found | `logs/eval-after-20261025T235356Z.json` |
+
+Why each one was or was not found is in `docs/sprints/17-nemotron-recordings.md`.
 
 The Markovian loop with the Critic in sample mode (CI plan check N, stub-recorded replies):
 
@@ -506,13 +519,14 @@ is what an analyst needs to trust the answer.
 - **Sample mode answers only recorded questions, and those replies are the stand-in model's.** Every
   question with a recording (the Day 1 question, incident-02, -06, -09, -10 and the 21 September
   no-change question) replays stub-recorded replies, not a live model's. The live Nemotron recording
-  of 23 Oct is kept in the cache but no longer replays since the Sprint 11c prompt changes; until the
-  questions are re-recorded through Nightshift, sample mode shows the mechanics, not the model.
+  of 23 Oct is kept in the cache but no longer replays since the Sprint 11c prompt changes. The ten
+  evaluation questions were re-recorded through Nightshift on 25 Oct; set
+  `LLM_CACHE_DIR=data/recorded/nemotron/llm_cache` to replay the model instead of the stand-in.
   Explaining a scanner card in sample mode gives `cache_miss`.
-- **The evaluation is not yet measured with a real model.** The sample-mode score replays the stand-in
-  model on the Markovian loop for the five questions it has recordings for; the real before/after
-  score through Nightshift is the coordinator's recorded run after Sprint 11c. The prompts were tuned
-  against the same ten incidents they are scored on, so that score will be an optimistic estimate.
+- **The real-model score is a replay of one recorded run.** Every question was recorded once through
+  Nightshift (Nemotron) and is replayed from `data/recorded/nemotron/llm_cache/`; a new live run can
+  answer differently. The prompts were tuned against the same ten incidents they are scored on, so
+  that score is an optimistic estimate.
   `freight_cost` (incident-04) is not in the cause vocabulary, so that incident cannot be found yet.
 - **Sample size and sampling artefacts.** The sample is drawn around the incident windows, so
   absolute counts and sums are not comparable across months. The scanner therefore scans counts as
