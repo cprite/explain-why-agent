@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.2004,
+   "value": 0.0997
+  }
+ ],
+ "source": null,
+ "sql": "WITH mg AS (\n  SELECT\n    p.payment_type,\n    o.order_purchase_timestamp\n  FROM payments.order_payments AS p\n  JOIN orders.orders AS o ON o.order_id = p.order_id\n  JOIN orders.customers AS c ON c.customer_id = o.customer_id\n  WHERE c.customer_state = 'MG'\n    AND o.order_purchase_timestamp >= DATE '2018-02-01'\n    AND o.order_purchase_timestamp < DATE '2018-04-01'\n),\nperiodized AS (\n  SELECT\n    payment_type,\n    CASE\n      WHEN order_purchase_timestamp < DATE '2018-03-01' THEN 'baseline'\n      ELSE 'window'\n    END AS period\n  FROM mg\n)\nSELECT\n  ROUND(\n    SUM(CASE WHEN period = 'window' AND payment_type = 'boleto' THEN 1 ELSE 0 END)::DOUBLE\n    / NULLIF(SUM(CASE WHEN period = 'window' THEN 1 ELSE 0 END), 0),\n    4\n  ) AS value,\n  ROUND(\n    SUM(CASE WHEN period = 'baseline' AND payment_type = 'boleto' THEN 1 ELSE 0 END)::DOUBLE\n    / NULLIF(SUM(CASE WHEN period = 'baseline' THEN 1 ELSE 0 END), 0),\n    4\n  ) AS baseline\nFROM periodized;",
+ "truncated": false
+}

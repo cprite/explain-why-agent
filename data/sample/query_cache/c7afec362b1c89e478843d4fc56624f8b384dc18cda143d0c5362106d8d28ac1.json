@@ -1,0 +1,20 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_days",
+  "baseline_days"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 11.8,
+   "baseline_days": 30,
+   "value": 10.9643,
+   "window_days": 28
+  }
+ ],
+ "source": null,
+ "sql": "WITH filtered_reviews AS (\n  SELECT r.review_id, CAST(r.review_creation_date AS DATE) AS review_date\n  FROM reviews.order_reviews AS r\n  JOIN orders.order_items AS oi ON oi.order_id = r.order_id\n  JOIN orders.products AS p ON p.product_id = oi.product_id\n  WHERE p.product_category_name = 'relogios_presentes'\n    AND r.review_creation_date IS NOT NULL\n),\ndaily_counts AS (\n  SELECT\n    CASE\n      WHEN review_date >= DATE '2018-01-01' AND review_date < DATE '2018-02-01' THEN 'window'\n      WHEN review_date >= DATE '2017-12-01' AND review_date < DATE '2018-01-01' THEN 'baseline'\n    END AS period,\n    review_date,\n    COUNT(DISTINCT review_id) AS daily_reviews\n  FROM filtered_reviews\n  WHERE (review_date >= DATE '2018-01-01' AND review_date < DATE '2018-02-01')\n     OR (review_date >= DATE '2017-12-01' AND review_date < DATE '2018-01-01')\n  GROUP BY period, review_date\n)\nSELECT\n  ROUND(AVG(CASE WHEN period = 'window' THEN daily_reviews END)::DOUBLE, 4) AS value,\n  ROUND(AVG(CASE WHEN period = 'baseline' THEN daily_reviews END)::DOUBLE, 4) AS baseline,\n  COUNT(CASE WHEN period = 'window' THEN 1 END) AS window_days,\n  COUNT(CASE WHEN period = 'baseline' THEN 1 END) AS baseline_days\nFROM daily_counts;",
+ "truncated": false
+}

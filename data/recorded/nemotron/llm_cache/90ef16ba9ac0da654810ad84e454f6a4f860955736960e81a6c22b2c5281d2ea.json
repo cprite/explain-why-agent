@@ -1,0 +1,27 @@
+{
+  "key": "90ef16ba9ac0da654810ad84e454f6a4f860955736960e81a6c22b2c5281d2ea",
+  "role": "investigator",
+  "schema": "ObservationDraft",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are the Investigator. You ran a query to test a hypothesis (or the change check). Read the rows\nin the INPUT and record what they show.\n\n- `finding`: one sentence with the actual numbers from the rows, the window and the baseline.\n- `value` and `baseline`: the measure in the window and in the baseline, copied from the rows.\n- `effect`: value / baseline - 1 when both exist, otherwise empty.\n- `supports`: true if the rows support the hypothesis, false if they refute it, empty if they cannot\n  tell. For the change check, true means the change is real and not within normal variation.\n\nReport only what the rows show. Do not add numbers that are not in the rows."
+    },
+    {
+      "role": "user",
+      "content": "INPUT:\n{\"columns\":[\"value_avg_item_price\",\"baseline_avg_item_price\",\"value_avg_payment_per_order\",\"baseline_avg_payment_per_order\",\"window_items\",\"baseline_items\",\"window_orders\",\"baseline_orders\"],\"plan\":{\"baseline_window\":{\"end\":\"2018-06-12\",\"start\":\"2018-06-01\"},\"metric\":\"SUM(payment_value) from payments.order_payments for orders placed by customers with customer_state = 'RJ', measured over orders.order_purchase_timestamp\",\"question\":\"Why did Rio de Janeiro's total revenue drop in late June 2018 (12-30 Jun, vs 1-11 Jun)?\",\"segment\":\"customer_state = 'RJ' (Rio de Janeiro state)\",\"window\":{\"end\":\"2018-07-01\",\"start\":\"2018-06-12\"}},\"rows\":[{\"baseline_avg_item_price\":118.553,\"baseline_avg_payment_per_order\":163.973,\"baseline_items\":307,\"baseline_orders\":267,\"value_avg_item_price\":114.873,\"value_avg_payment_per_order\":157.636,\"window_items\":511,\"window_orders\":449}],\"rows_returned\":1,\"sql\":\"WITH rj_orders AS (\\n  SELECT o.order_id, o.order_purchase_timestamp\\n  FROM orders.orders o\\n  JOIN orders.customers c ON c.customer_id = o.customer_id\\n  WHERE c.customer_state = 'RJ'\\n    AND o.order_purchase_timestamp >= DATE '2018-06-01'\\n    AND o.order_purchase_timestamp < DATE '2018-07-01'\\n),\\nwindow_orders AS (\\n  SELECT * FROM rj_orders\\n  WHERE order_purchase_timestamp >= DATE '2018-06-12'\\n    AND order_purchase_timestamp < DATE '2018-07-01'\\n),\\nbaseline_orders AS (\\n  SELECT * FROM rj_orders\\n  WHERE order_purchase_timestamp >= DATE '2018-06-01'\\n    AND order_purchase_timestamp < DATE '2018-06-12'\\n),\\nwindow_item_stats AS (\\n  SELECT AVG(oi.price) AS avg_price, COUNT(*) AS n_items\\n  FROM window_orders wo\\n  JOIN orders.order_items oi ON oi.order_id = wo.order_id\\n),\\nbaseline_item_stats AS (\\n  SELECT AVG(oi.price) AS avg_price, COUNT(*) AS n_items\\n  FROM baseline_orders bo\\n  JOIN orders.order_items oi ON oi.order_id = bo.order_id\\n),\\nwindow_payment_stats AS (\\n  SELECT AVG(order_payment) AS avg_payment, COUNT(*) AS n_orders\\n  FROM (\\n    SELECT wo.order_id, SUM(op.payment_value) AS order_payment\\n    FROM window_orders wo\\n    JOIN payments.order_payments op ON op.order_id = wo.order_id\\n    GROUP BY wo.order_id\\n  ) p\\n),\\nbaseline_payment_stats AS (\\n  SELECT AVG(order_payment) AS avg_payment, COUNT(*) AS n_orders\\n  FROM (\\n    SELECT bo.order_id, SUM(op.payment_value) AS order_payment\\n    FROM baseline_orders bo\\n    JOIN payments.order_payments op ON op.order_id = bo.order_id\\n    GROUP BY bo.order_id\\n  ) p\\n)\\nSELECT\\n  ROUND(wis.avg_price, 4) AS value_avg_item_price,\\n  ROUND(bis.avg_price, 4) AS baseline_avg_item_price,\\n  ROUND(wps.avg_payment, 4) AS value_avg_payment_per_order,\\n  ROUND(bps.avg_payment, 4) AS baseline_avg_payment_per_order,\\n  wis.n_items AS window_items,\\n  bis.n_items AS baseline_items,\\n  wps.n_orders AS window_orders,\\n  bps.n_orders AS baseline_orders\\nFROM window_item_stats wis, baseline_item_stats bis, window_payment_stats wps, baseline_payment_stats bps;\",\"task\":{\"family\":\"price_discount\",\"id\":\"H4\",\"kind\":\"hypothesis\",\"statement\":\"Rio de Janeiro customers paid less per order because item prices or order totals fell (discounts or lower pricing) in late June 2018.\",\"test\":{\"description\":\"Compare average price per order item and average payment_value per order for RJ customers in the window versus baseline.\",\"sources\":[\"orders.orders\",\"orders.customers\",\"orders.order_items\",\"payments.order_payments\"]}},\"truncated\":false}"
+    }
+  ],
+  "reply": "{\"finding\":\"Average payment per order for Rio de Janeiro customers decreased from 163.973 at baseline to 157.636 in the late June window, with average item price also falling from 118.553 to 114.873.\",\"value\":157.636,\"baseline\":163.973,\"effect\":-0.0386,\"supports\":true}",
+  "provider": "meterless",
+  "model_requested": "meterless/fast",
+  "model_routed": "nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b",
+  "receipt_id": "rcpt_req_gs6funff",
+  "usage": {
+    "prompt_tokens": 4343,
+    "completion_tokens": 5498,
+    "total_tokens": 9841
+  },
+  "recorded_with": "meterless",
+  "recorded_at": "2026-10-25T20:23:42.468522+00:00"
+}

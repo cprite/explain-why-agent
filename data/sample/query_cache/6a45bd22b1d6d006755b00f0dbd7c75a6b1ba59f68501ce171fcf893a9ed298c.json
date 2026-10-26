@@ -1,0 +1,365 @@
+{
+ "columns": [
+  "product_category_name",
+  "value",
+  "baseline",
+  "window_n",
+  "baseline_n"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 11.0,
+   "baseline_n": 1,
+   "product_category_name": "fashion_roupa_masculina",
+   "value": 32.0,
+   "window_n": 1
+  },
+  {
+   "baseline": 12.2,
+   "baseline_n": 5,
+   "product_category_name": "construcao_ferramentas_seguranca",
+   "value": 24.0,
+   "window_n": 1
+  },
+  {
+   "baseline": 8.0,
+   "baseline_n": 10,
+   "product_category_name": "malas_acessorios",
+   "value": 18.0,
+   "window_n": 2
+  },
+  {
+   "baseline": 9.1818,
+   "baseline_n": 33,
+   "product_category_name": "papelaria",
+   "value": 17.8,
+   "window_n": 5
+  },
+  {
+   "baseline": 8.125,
+   "baseline_n": 8,
+   "product_category_name": "construcao_ferramentas_iluminacao",
+   "value": 16.0,
+   "window_n": 5
+  },
+  {
+   "baseline": 9.7429,
+   "baseline_n": 35,
+   "product_category_name": "cool_stuff",
+   "value": 17.25,
+   "window_n": 12
+  },
+  {
+   "baseline": 8.0,
+   "baseline_n": 1,
+   "product_category_name": "moveis_quarto",
+   "value": 15.0,
+   "window_n": 2
+  },
+  {
+   "baseline": 9.0064,
+   "baseline_n": 157,
+   "product_category_name": "cama_mesa_banho",
+   "value": 15.4,
+   "window_n": 55
+  },
+  {
+   "baseline": 7.6667,
+   "baseline_n": 3,
+   "product_category_name": "dvds_blu_ray",
+   "value": 14.0,
+   "window_n": 1
+  },
+  {
+   "baseline": 5.2857,
+   "baseline_n": 7,
+   "product_category_name": "consoles_games",
+   "value": 11.5,
+   "window_n": 2
+  },
+  {
+   "baseline": 6.6571,
+   "baseline_n": 35,
+   "product_category_name": "perfumaria",
+   "value": 12.8261,
+   "window_n": 23
+  },
+  {
+   "baseline": 12.0,
+   "baseline_n": 1,
+   "product_category_name": "artigos_de_natal",
+   "value": 18.0,
+   "window_n": 1
+  },
+  {
+   "baseline": 9.5222,
+   "baseline_n": 90,
+   "product_category_name": "informatica_acessorios",
+   "value": 15.325,
+   "window_n": 40
+  },
+  {
+   "baseline": 10.1667,
+   "baseline_n": 6,
+   "product_category_name": null,
+   "value": 15.8,
+   "window_n": 5
+  },
+  {
+   "baseline": 8.3667,
+   "baseline_n": 30,
+   "product_category_name": "construcao_ferramentas_construcao",
+   "value": 13.72,
+   "window_n": 25
+  },
+  {
+   "baseline": 12.0,
+   "baseline_n": 5,
+   "product_category_name": "artes",
+   "value": 17.0,
+   "window_n": 2
+  },
+  {
+   "baseline": 8.9474,
+   "baseline_n": 38,
+   "product_category_name": "pet_shop",
+   "value": 13.8571,
+   "window_n": 7
+  },
+  {
+   "baseline": 7.7778,
+   "baseline_n": 18,
+   "product_category_name": "fashion_bolsas_e_acessorios",
+   "value": 12.2,
+   "window_n": 10
+  },
+  {
+   "baseline": 9.3125,
+   "baseline_n": 48,
+   "product_category_name": "bebes",
+   "value": 13.3636,
+   "window_n": 11
+  },
+  {
+   "baseline": 11.0,
+   "baseline_n": 2,
+   "product_category_name": "fashion_underwear_e_moda_praia",
+   "value": 15.0,
+   "window_n": 1
+  },
+  {
+   "baseline": 8.125,
+   "baseline_n": 8,
+   "product_category_name": "casa_conforto",
+   "value": 12.0,
+   "window_n": 1
+  },
+  {
+   "baseline": 12.5347,
+   "baseline_n": 144,
+   "product_category_name": "relogios_presentes",
+   "value": 16.3265,
+   "window_n": 49
+  },
+  {
+   "baseline": 8.6316,
+   "baseline_n": 57,
+   "product_category_name": "automotivo",
+   "value": 12.4138,
+   "window_n": 29
+  },
+  {
+   "baseline": 9.0,
+   "baseline_n": 8,
+   "product_category_name": "alimentos",
+   "value": 12.5,
+   "window_n": 2
+  },
+  {
+   "baseline": 5.0,
+   "baseline_n": 7,
+   "product_category_name": "bebidas",
+   "value": 8.5,
+   "window_n": 2
+  },
+  {
+   "baseline": 9.4904,
+   "baseline_n": 104,
+   "product_category_name": "moveis_decoracao",
+   "value": 12.6111,
+   "window_n": 54
+  },
+  {
+   "baseline": 6.75,
+   "baseline_n": 12,
+   "product_category_name": "eletrodomesticos",
+   "value": 9.75,
+   "window_n": 8
+  },
+  {
+   "baseline": 8.2178,
+   "baseline_n": 101,
+   "product_category_name": "esporte_lazer",
+   "value": 11.1143,
+   "window_n": 35
+  },
+  {
+   "baseline": 10.5156,
+   "baseline_n": 64,
+   "product_category_name": "eletronicos",
+   "value": 13.25,
+   "window_n": 24
+  },
+  {
+   "baseline": 8.9787,
+   "baseline_n": 47,
+   "product_category_name": "ferramentas_jardim",
+   "value": 11.3871,
+   "window_n": 31
+  },
+  {
+   "baseline": 9.8036,
+   "baseline_n": 56,
+   "product_category_name": "telefonia",
+   "value": 12.1818,
+   "window_n": 22
+  },
+  {
+   "baseline": 6.6667,
+   "baseline_n": 3,
+   "product_category_name": "audio",
+   "value": 9.0,
+   "window_n": 1
+  },
+  {
+   "baseline": 10.0,
+   "baseline_n": 2,
+   "product_category_name": "construcao_ferramentas_jardim",
+   "value": 12.3333,
+   "window_n": 3
+  },
+  {
+   "baseline": 9.4565,
+   "baseline_n": 46,
+   "product_category_name": "brinquedos",
+   "value": 11.6667,
+   "window_n": 21
+  },
+  {
+   "baseline": 10.4375,
+   "baseline_n": 144,
+   "product_category_name": "beleza_saude",
+   "value": 12.4706,
+   "window_n": 68
+  },
+  {
+   "baseline": 6.5,
+   "baseline_n": 2,
+   "product_category_name": "moveis_cozinha_area_de_servico_jantar_e_jardim",
+   "value": 8.0,
+   "window_n": 2
+  },
+  {
+   "baseline": 13.4667,
+   "baseline_n": 15,
+   "product_category_name": "livros_interesse_geral",
+   "value": 14.5,
+   "window_n": 6
+  },
+  {
+   "baseline": 5.0,
+   "baseline_n": 1,
+   "product_category_name": "telefonia_fixa",
+   "value": 5.8571,
+   "window_n": 7
+  },
+  {
+   "baseline": 9.0157,
+   "baseline_n": 127,
+   "product_category_name": "utilidades_domesticas",
+   "value": 9.6719,
+   "window_n": 64
+  },
+  {
+   "baseline": 19.8,
+   "baseline_n": 20,
+   "product_category_name": "moveis_escritorio",
+   "value": 20.4211,
+   "window_n": 19
+  },
+  {
+   "baseline": 10.0,
+   "baseline_n": 3,
+   "product_category_name": "eletroportateis",
+   "value": 10.4,
+   "window_n": 10
+  },
+  {
+   "baseline": 11.375,
+   "baseline_n": 16,
+   "product_category_name": "instrumentos_musicais",
+   "value": 10.6667,
+   "window_n": 6
+  },
+  {
+   "baseline": 5.75,
+   "baseline_n": 4,
+   "product_category_name": "cine_foto",
+   "value": 5.0,
+   "window_n": 2
+  },
+  {
+   "baseline": 9.1333,
+   "baseline_n": 15,
+   "product_category_name": "livros_tecnicos",
+   "value": 8.3333,
+   "window_n": 3
+  },
+  {
+   "baseline": 8.2941,
+   "baseline_n": 17,
+   "product_category_name": "industria_comercio_e_negocios",
+   "value": 5.2,
+   "window_n": 5
+  },
+  {
+   "baseline": 12.9333,
+   "baseline_n": 15,
+   "product_category_name": "casa_construcao",
+   "value": 9.25,
+   "window_n": 4
+  },
+  {
+   "baseline": 9.0,
+   "baseline_n": 2,
+   "product_category_name": "market_place",
+   "value": 5.0,
+   "window_n": 2
+  },
+  {
+   "baseline": 15.1667,
+   "baseline_n": 6,
+   "product_category_name": "moveis_sala",
+   "value": 11.0,
+   "window_n": 2
+  },
+  {
+   "baseline": 10.5,
+   "baseline_n": 6,
+   "product_category_name": "eletrodomesticos_2",
+   "value": 5.75,
+   "window_n": 4
+  },
+  {
+   "baseline": 24.0,
+   "baseline_n": 1,
+   "product_category_name": "musica",
+   "value": 3.0,
+   "window_n": 1
+  }
+ ],
+ "source": null,
+ "sql": "WITH order_leads AS (\n  SELECT\n    p.product_category_name,\n    CASE\n      WHEN o.order_delivered_customer_date >= DATE '2018-05-28' AND o.order_delivered_customer_date < DATE '2018-06-04' THEN 'window'\n      WHEN o.order_delivered_customer_date >= DATE '2018-05-21' AND o.order_delivered_customer_date < DATE '2018-05-28' THEN 'baseline'\n    END AS period,\n    DATE_DIFF('day', o.order_purchase_timestamp, o.order_delivered_customer_date) AS lead_days\n  FROM orders.orders o\n  JOIN orders.order_items oi ON o.order_id = oi.order_id\n  JOIN orders.products p ON oi.product_id = p.product_id\n  WHERE o.order_status = 'delivered'\n    AND o.order_delivered_customer_date IS NOT NULL\n    AND o.order_purchase_timestamp IS NOT NULL\n    AND (\n      (o.order_delivered_customer_date >= DATE '2018-05-28' AND o.order_delivered_customer_date < DATE '2018-06-04')\n      OR (o.order_delivered_customer_date >= DATE '2018-05-21' AND o.order_delivered_customer_date < DATE '2018-05-28')\n    )\n)\nSELECT\n  product_category_name,\n  ROUND(AVG(CASE WHEN period = 'window' THEN lead_days END), 4) AS value,\n  ROUND(AVG(CASE WHEN period = 'baseline' THEN lead_days END), 4) AS baseline,\n  COUNT(CASE WHEN period = 'window' THEN 1 END) AS window_n,\n  COUNT(CASE WHEN period = 'baseline' THEN 1 END) AS baseline_n\nFROM order_leads\nWHERE period IS NOT NULL\nGROUP BY product_category_name\nORDER BY (value - baseline) DESC NULLS LAST\nLIMIT 50;",
+ "truncated": false
+}

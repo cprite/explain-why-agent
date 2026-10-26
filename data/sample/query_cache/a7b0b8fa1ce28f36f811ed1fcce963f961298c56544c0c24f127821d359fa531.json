@@ -1,0 +1,28 @@
+{
+ "columns": [
+  "window_reviews",
+  "baseline_reviews",
+  "window_null_score",
+  "baseline_null_score",
+  "window_out_of_range",
+  "baseline_out_of_range",
+  "window_avg_score",
+  "baseline_avg_score"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline_avg_score": null,
+   "baseline_null_score": null,
+   "baseline_out_of_range": null,
+   "baseline_reviews": 0,
+   "window_avg_score": 2.0,
+   "window_null_score": 0,
+   "window_out_of_range": 0,
+   "window_reviews": 3
+  }
+ ],
+ "source": null,
+ "sql": "WITH seller_reviews AS (\n  SELECT\n    r.review_score,\n    r.review_creation_date\n  FROM reviews.order_reviews r\n  JOIN orders.order_items oi ON r.order_id = oi.order_id\n  WHERE oi.seller_id = '1430239a858e7682bbc43b20758af153'\n),\nwindow_stats AS (\n  SELECT\n    COUNT(*) AS n_reviews,\n    SUM(CASE WHEN review_score IS NULL THEN 1 ELSE 0 END) AS n_null_score,\n    SUM(CASE WHEN review_score IS NOT NULL AND (review_score < 1 OR review_score > 5) THEN 1 ELSE 0 END) AS n_out_of_range,\n    AVG(CAST(review_score AS DOUBLE)) AS avg_score\n  FROM seller_reviews\n  WHERE review_creation_date >= DATE '2017-12-01' AND review_creation_date < DATE '2017-12-08'\n),\nbaseline_stats AS (\n  SELECT\n    COUNT(*) AS n_reviews,\n    SUM(CASE WHEN review_score IS NULL THEN 1 ELSE 0 END) AS n_null_score,\n    SUM(CASE WHEN review_score IS NOT NULL AND (review_score < 1 OR review_score > 5) THEN 1 ELSE 0 END) AS n_out_of_range,\n    AVG(CAST(review_score AS DOUBLE)) AS avg_score\n  FROM seller_reviews\n  WHERE review_creation_date >= DATE '2017-11-24' AND review_creation_date < DATE '2017-12-01'\n)\nSELECT\n  w.n_reviews AS window_reviews,\n  b.n_reviews AS baseline_reviews,\n  w.n_null_score AS window_null_score,\n  b.n_null_score AS baseline_null_score,\n  w.n_out_of_range AS window_out_of_range,\n  b.n_out_of_range AS baseline_out_of_range,\n  ROUND(w.avg_score, 4) AS window_avg_score,\n  ROUND(b.avg_score, 4) AS baseline_avg_score\nFROM window_stats w, baseline_stats b;",
+ "truncated": false
+}

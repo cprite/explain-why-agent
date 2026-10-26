@@ -1,0 +1,24 @@
+{
+ "columns": [
+  "window_completed",
+  "baseline_completed",
+  "window_null_delivered",
+  "baseline_null_delivered",
+  "window_null_estimated",
+  "baseline_null_estimated"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline_completed": 1434,
+   "baseline_null_delivered": 0,
+   "baseline_null_estimated": 0,
+   "window_completed": 606,
+   "window_null_delivered": 0,
+   "window_null_estimated": 0
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_stats AS (\n  SELECT\n    COUNT(*) AS n_completed,\n    SUM(CASE WHEN order_delivered_customer_date IS NULL THEN 1 ELSE 0 END) AS n_null_delivered,\n    SUM(CASE WHEN order_estimated_delivery_date IS NULL THEN 1 ELSE 0 END) AS n_null_estimated\n  FROM orders.orders\n  WHERE order_status = 'delivered'\n    AND order_delivered_customer_date >= DATE '2018-05-28'\n    AND order_delivered_customer_date < DATE '2018-06-04'\n),\nbaseline_stats AS (\n  SELECT\n    COUNT(*) AS n_completed,\n    SUM(CASE WHEN order_delivered_customer_date IS NULL THEN 1 ELSE 0 END) AS n_null_delivered,\n    SUM(CASE WHEN order_estimated_delivery_date IS NULL THEN 1 ELSE 0 END) AS n_null_estimated\n  FROM orders.orders\n  WHERE order_status = 'delivered'\n    AND order_delivered_customer_date >= DATE '2018-05-21'\n    AND order_delivered_customer_date < DATE '2018-05-28'\n)\nSELECT\n  w.n_completed AS window_completed,\n  b.n_completed AS baseline_completed,\n  w.n_null_delivered AS window_null_delivered,\n  b.n_null_delivered AS baseline_null_delivered,\n  w.n_null_estimated AS window_null_estimated,\n  b.n_null_estimated AS baseline_null_estimated\nFROM window_stats w, baseline_stats b;",
+ "truncated": false
+}

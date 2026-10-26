@@ -1,0 +1,22 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spread",
+  "n",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 109.699,
+   "n": 2958,
+   "n_baseline": 140,
+   "spread": null,
+   "value": 142.6916
+  }
+ ],
+ "source": null,
+ "sql": "WITH order_totals AS (\n  SELECT\n    o.order_id,\n    CAST(o.order_purchase_timestamp AS DATE) AS order_date,\n    SUM(p.payment_value) AS order_value\n  FROM orders.orders o\n  JOIN payments.order_payments p ON p.order_id = o.order_id\n  GROUP BY o.order_id, CAST(o.order_purchase_timestamp AS DATE)\n),\nwindow_stats AS (\n  SELECT\n    AVG(order_value) AS value,\n    COUNT(*) AS n\n  FROM order_totals\n  WHERE order_date >= DATE '2017-08-01' AND order_date < DATE '2017-09-01'\n),\nbaseline_stats AS (\n  SELECT\n    AVG(order_value) AS baseline,\n    COUNT(*) AS n_baseline\n  FROM order_totals\n  WHERE order_date >= DATE '2017-07-01' AND order_date < DATE '2017-08-01'\n),\nbaseline_periods AS (\n  SELECT\n    DATE_TRUNC('month', order_date) AS period_start,\n    AVG(order_value) AS period_value\n  FROM order_totals\n  WHERE order_date >= DATE '2017-07-01' AND order_date < DATE '2017-08-01'\n  GROUP BY DATE_TRUNC('month', order_date)\n),\nspread_calc AS (\n  SELECT\n    CASE WHEN COUNT(*) >= 2 THEN STDDEV(period_value) ELSE NULL END AS spread\n  FROM baseline_periods\n)\nSELECT\n  ROUND(w.value, 4) AS value,\n  ROUND(b.baseline, 4) AS baseline,\n  ROUND(s.spread, 4) AS spread,\n  w.n AS n,\n  b.n_baseline AS n_baseline\nFROM window_stats w, baseline_stats b, spread_calc s;",
+ "truncated": false
+}

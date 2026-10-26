@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 3.979,
+   "value": 2.6292
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_reviews AS (SELECT r.review_score FROM reviews.order_reviews r JOIN orders.orders o ON r.order_id = o.order_id JOIN orders.order_items i ON o.order_id = i.order_id JOIN orders.products p ON i.product_id = p.product_id WHERE p.product_category_name = 'relogios_presentes' AND r.review_creation_date >= DATE '2018-01-01' AND r.review_creation_date < DATE '2018-02-01'), baseline_reviews AS (SELECT r.review_score FROM reviews.order_reviews r JOIN orders.orders o ON r.order_id = o.order_id JOIN orders.order_items i ON o.order_id = i.order_id JOIN orders.products p ON i.product_id = p.product_id WHERE p.product_category_name = 'relogios_presentes' AND r.review_creation_date >= DATE '2017-12-01' AND r.review_creation_date < DATE '2018-01-01') SELECT ROUND(AVG(w.review_score), 4) AS value, ROUND(AVG(b.review_score), 4) AS baseline FROM window_reviews w CROSS JOIN baseline_reviews b;",
+ "truncated": false
+}

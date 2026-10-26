@@ -1,0 +1,22 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spread",
+  "n",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": null,
+   "n": 14,
+   "n_baseline": 0,
+   "spread": null,
+   "value": 1436.59
+  }
+ ],
+ "source": null,
+ "sql": "WITH march_sellers AS (\n  SELECT DISTINCT cd.seller_id\n  FROM marketing.marketing_qualified_leads mql\n  JOIN marketing.closed_deals cd ON cd.mql_id = mql.mql_id\n  WHERE mql.origin = 'paid_search'\n    AND cd.won_date >= DATE '2018-03-01'\n    AND cd.won_date < DATE '2018-04-01'\n),\nfeb_sellers AS (\n  SELECT DISTINCT cd.seller_id\n  FROM marketing.marketing_qualified_leads mql\n  JOIN marketing.closed_deals cd ON cd.mql_id = mql.mql_id\n  WHERE mql.origin = 'paid_search'\n    AND cd.won_date >= DATE '2018-02-01'\n    AND cd.won_date < DATE '2018-03-01'\n),\nmarch_rev AS (\n  SELECT SUM(oi.price) AS value, COUNT(*) AS n\n  FROM orders.order_items oi\n  JOIN orders.orders o ON o.order_id = oi.order_id\n  JOIN march_sellers ms ON ms.seller_id = oi.seller_id\n  WHERE o.order_purchase_timestamp >= DATE '2018-03-01'\n    AND o.order_purchase_timestamp < DATE '2018-04-01'\n),\nfeb_rev AS (\n  SELECT SUM(oi.price) AS baseline, COUNT(*) AS n_baseline\n  FROM orders.order_items oi\n  JOIN orders.orders o ON o.order_id = oi.order_id\n  JOIN feb_sellers fs ON fs.seller_id = oi.seller_id\n  WHERE o.order_purchase_timestamp >= DATE '2018-02-01'\n    AND o.order_purchase_timestamp < DATE '2018-03-01'\n),\nfeb_periods AS (\n  SELECT DATE_TRUNC('month', o.order_purchase_timestamp) AS period_start,\n         SUM(oi.price) AS period_rev\n  FROM orders.order_items oi\n  JOIN orders.orders o ON o.order_id = oi.order_id\n  JOIN feb_sellers fs ON fs.seller_id = oi.seller_id\n  WHERE o.order_purchase_timestamp >= DATE '2018-02-01'\n    AND o.order_purchase_timestamp < DATE '2018-03-01'\n  GROUP BY 1\n),\nspread_calc AS (\n  SELECT CASE WHEN COUNT(*) >= 2 THEN STDDEV(period_rev) ELSE NULL END AS spread\n  FROM feb_periods\n)\nSELECT\n  ROUND(mr.value, 4) AS value,\n  ROUND(fr.baseline, 4) AS baseline,\n  ROUND(sc.spread, 4) AS spread,\n  mr.n AS n,\n  fr.n_baseline AS n_baseline\nFROM march_rev mr, feb_rev fr, spread_calc sc;",
+ "truncated": false
+}

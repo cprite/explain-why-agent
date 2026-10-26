@@ -1,0 +1,18 @@
+{
+ "columns": [
+  "window_valid_avg_score",
+  "baseline_valid_avg_score",
+  "missing_date_avg_score"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline_valid_avg_score": 3.979,
+   "missing_date_avg_score": null,
+   "window_valid_avg_score": 2.6292
+  }
+ ],
+ "source": null,
+ "sql": "SELECT\n  ROUND(AVG(CASE WHEN review_creation_date >= DATE '2018-01-01' AND review_creation_date < DATE '2018-02-01' AND review_creation_date IS NOT NULL THEN CAST(review_score AS DOUBLE) END), 4) AS window_valid_avg_score,\n  ROUND(AVG(CASE WHEN review_creation_date >= DATE '2017-12-01' AND review_creation_date < DATE '2018-01-01' AND review_creation_date IS NOT NULL THEN CAST(review_score AS DOUBLE) END), 4) AS baseline_valid_avg_score,\n  ROUND(AVG(CASE WHEN review_creation_date IS NULL THEN CAST(review_score AS DOUBLE) END), 4) AS missing_date_avg_score\nFROM reviews.order_reviews r\nJOIN orders.orders o ON r.order_id = o.order_id\nJOIN orders.order_items i ON o.order_id = i.order_id\nJOIN orders.products p ON i.product_id = p.product_id\nWHERE p.product_category_name = 'relogios_presentes';",
+ "truncated": false
+}

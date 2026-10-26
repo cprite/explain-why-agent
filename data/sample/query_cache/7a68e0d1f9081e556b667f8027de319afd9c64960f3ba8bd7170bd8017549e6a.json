@@ -1,0 +1,20 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_orders",
+  "baseline_orders"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 142.6916,
+   "baseline_orders": 2958,
+   "value": 136.405,
+   "window_orders": 6066
+  }
+ ],
+ "source": null,
+ "sql": "WITH order_totals AS (\n  SELECT\n    o.order_id,\n    CAST(o.order_purchase_timestamp AS DATE) AS order_date,\n    SUM(p.payment_value) AS order_value\n  FROM orders.orders o\n  JOIN payments.order_payments p ON p.order_id = o.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-08-01'\n    AND o.order_purchase_timestamp < DATE '2017-11-01'\n  GROUP BY o.order_id, CAST(o.order_purchase_timestamp AS DATE)\n)\nSELECT\n  ROUND(AVG(CASE WHEN order_date >= DATE '2017-09-01' THEN order_value END), 4) AS value,\n  ROUND(AVG(CASE WHEN order_date < DATE '2017-09-01' THEN order_value END), 4) AS baseline,\n  COUNT(CASE WHEN order_date >= DATE '2017-09-01' THEN 1 END) AS window_orders,\n  COUNT(CASE WHEN order_date < DATE '2017-09-01' THEN 1 END) AS baseline_orders\nFROM order_totals;",
+ "truncated": false
+}

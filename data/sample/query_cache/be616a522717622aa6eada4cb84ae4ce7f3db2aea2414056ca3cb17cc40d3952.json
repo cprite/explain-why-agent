@@ -1,0 +1,176 @@
+{
+ "columns": [
+  "product_category",
+  "window_orders",
+  "baseline_orders",
+  "window_share",
+  "baseline_daily_share",
+  "share_point_change"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline_daily_share": 0.013,
+   "baseline_orders": 87,
+   "product_category": "cama_mesa_banho",
+   "share_point_change": 0.1205,
+   "window_orders": 157,
+   "window_share": 0.1335
+  },
+  {
+   "baseline_daily_share": 0.0093,
+   "baseline_orders": 62,
+   "product_category": "moveis_decoracao",
+   "share_point_change": 0.0664,
+   "window_orders": 89,
+   "window_share": 0.0757
+  },
+  {
+   "baseline_daily_share": 0.0076,
+   "baseline_orders": 51,
+   "product_category": "ferramentas_jardim",
+   "share_point_change": 0.0655,
+   "window_orders": 86,
+   "window_share": 0.0731
+  },
+  {
+   "baseline_daily_share": 0.0111,
+   "baseline_orders": 74,
+   "product_category": "beleza_saude",
+   "share_point_change": 0.0587,
+   "window_orders": 82,
+   "window_share": 0.0697
+  },
+  {
+   "baseline_daily_share": 0.0051,
+   "baseline_orders": 34,
+   "product_category": "telefonia",
+   "share_point_change": 0.057,
+   "window_orders": 73,
+   "window_share": 0.0621
+  },
+  {
+   "baseline_daily_share": 0.0105,
+   "baseline_orders": 70,
+   "product_category": "esporte_lazer",
+   "share_point_change": 0.0567,
+   "window_orders": 79,
+   "window_share": 0.0672
+  },
+  {
+   "baseline_daily_share": 0.0085,
+   "baseline_orders": 57,
+   "product_category": "relogios_presentes",
+   "share_point_change": 0.0493,
+   "window_orders": 68,
+   "window_share": 0.0578
+  },
+  {
+   "baseline_daily_share": 0.0093,
+   "baseline_orders": 62,
+   "product_category": "brinquedos",
+   "share_point_change": 0.0477,
+   "window_orders": 67,
+   "window_share": 0.057
+  },
+  {
+   "baseline_daily_share": 0.0087,
+   "baseline_orders": 58,
+   "product_category": "informatica_acessorios",
+   "share_point_change": 0.0441,
+   "window_orders": 62,
+   "window_share": 0.0527
+  },
+  {
+   "baseline_daily_share": 0.0058,
+   "baseline_orders": 39,
+   "product_category": "perfumaria",
+   "share_point_change": 0.0435,
+   "window_orders": 58,
+   "window_share": 0.0493
+  },
+  {
+   "baseline_daily_share": 0.0069,
+   "baseline_orders": 46,
+   "product_category": "utilidades_domesticas",
+   "share_point_change": 0.0348,
+   "window_orders": 49,
+   "window_share": 0.0417
+  },
+  {
+   "baseline_daily_share": 0.0048,
+   "baseline_orders": 32,
+   "product_category": "automotivo",
+   "share_point_change": 0.0309,
+   "window_orders": 42,
+   "window_share": 0.0357
+  },
+  {
+   "baseline_daily_share": 0.0037,
+   "baseline_orders": 25,
+   "product_category": "fashion_bolsas_e_acessorios",
+   "share_point_change": 0.0269,
+   "window_orders": 36,
+   "window_share": 0.0306
+  },
+  {
+   "baseline_daily_share": 0.0028,
+   "baseline_orders": 19,
+   "product_category": "consoles_games",
+   "share_point_change": 0.0201,
+   "window_orders": 27,
+   "window_share": 0.023
+  },
+  {
+   "baseline_daily_share": 0.0054,
+   "baseline_orders": 36,
+   "product_category": "cool_stuff",
+   "share_point_change": 0.0193,
+   "window_orders": 29,
+   "window_share": 0.0247
+  },
+  {
+   "baseline_daily_share": 0.004,
+   "baseline_orders": 27,
+   "product_category": "bebes",
+   "share_point_change": 0.0155,
+   "window_orders": 23,
+   "window_share": 0.0196
+  },
+  {
+   "baseline_daily_share": 0.0027,
+   "baseline_orders": 18,
+   "product_category": "papelaria",
+   "share_point_change": 0.0118,
+   "window_orders": 17,
+   "window_share": 0.0145
+  },
+  {
+   "baseline_daily_share": 0.0028,
+   "baseline_orders": 19,
+   "product_category": "eletronicos",
+   "share_point_change": 0.0116,
+   "window_orders": 17,
+   "window_share": 0.0145
+  },
+  {
+   "baseline_daily_share": 0.0,
+   "baseline_orders": 0,
+   "product_category": null,
+   "share_point_change": 0.0077,
+   "window_orders": 9,
+   "window_share": 0.0077
+  },
+  {
+   "baseline_daily_share": 0.0009,
+   "baseline_orders": 6,
+   "product_category": "instrumentos_musicais",
+   "share_point_change": 0.0068,
+   "window_orders": 9,
+   "window_share": 0.0077
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_stats AS (\n  SELECT p.product_category_name AS product_category,\n         COUNT(DISTINCT o.order_id) AS window_orders\n  FROM orders.orders o\n  JOIN orders.order_items oi ON oi.order_id = o.order_id\n  JOIN orders.products p ON p.product_id = oi.product_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-24'\n    AND o.order_purchase_timestamp < DATE '2017-11-25'\n  GROUP BY p.product_category_name\n),\nbaseline_stats AS (\n  SELECT p.product_category_name AS product_category,\n         COUNT(DISTINCT o.order_id) AS baseline_orders\n  FROM orders.orders o\n  JOIN orders.order_items oi ON oi.order_id = o.order_id\n  JOIN orders.products p ON p.product_id = oi.product_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-17'\n    AND o.order_purchase_timestamp < DATE '2017-11-24'\n  GROUP BY p.product_category_name\n),\nwindow_total AS (\n  SELECT COUNT(DISTINCT order_id) AS total_orders\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-24'\n    AND order_purchase_timestamp < DATE '2017-11-25'\n),\nbaseline_total AS (\n  SELECT COUNT(DISTINCT order_id) AS total_orders\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-17'\n    AND order_purchase_timestamp < DATE '2017-11-24'\n),\ncombined AS (\n  SELECT COALESCE(w.product_category, b.product_category) AS product_category,\n         COALESCE(w.window_orders, 0) AS window_orders,\n         COALESCE(b.baseline_orders, 0) AS baseline_orders,\n         ROUND(COALESCE(w.window_orders, 0)::DOUBLE / wt.total_orders, 4) AS window_share,\n         ROUND(COALESCE(b.baseline_orders, 0)::DOUBLE / bt.total_orders / 7, 4) AS baseline_daily_share,\n         ROUND(COALESCE(w.window_orders, 0)::DOUBLE / wt.total_orders - COALESCE(b.baseline_orders, 0)::DOUBLE / bt.total_orders / 7, 4) AS share_point_change\n  FROM window_stats w\n  FULL OUTER JOIN baseline_stats b ON w.product_category = b.product_category\n  CROSS JOIN window_total wt\n  CROSS JOIN baseline_total bt\n)\nSELECT product_category,\n       window_orders,\n       baseline_orders,\n       window_share,\n       baseline_daily_share,\n       share_point_change\nFROM combined\nORDER BY ABS(share_point_change) DESC\nLIMIT 20;",
+ "truncated": false
+}

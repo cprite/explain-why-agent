@@ -1,0 +1,467 @@
+{
+ "columns": [
+  "product_category_name",
+  "window_items",
+  "baseline_items",
+  "window_share",
+  "baseline_share",
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 28.4467,
+   "baseline_items": 57,
+   "baseline_share": 0.0704,
+   "product_category_name": "utilidades_domesticas",
+   "value": 35.1204,
+   "window_items": 83,
+   "window_share": 0.1016
+  },
+  {
+   "baseline": 19.305,
+   "baseline_items": 76,
+   "baseline_share": 0.0938,
+   "product_category_name": "beleza_saude",
+   "value": 28.6652,
+   "window_items": 81,
+   "window_share": 0.0991
+  },
+  {
+   "baseline": 23.499,
+   "baseline_items": 104,
+   "baseline_share": 0.1284,
+   "product_category_name": "cama_mesa_banho",
+   "value": 37.3566,
+   "window_items": 79,
+   "window_share": 0.0967
+  },
+  {
+   "baseline": 21.267,
+   "baseline_items": 54,
+   "baseline_share": 0.0667,
+   "product_category_name": "esporte_lazer",
+   "value": 32.9927,
+   "window_items": 55,
+   "window_share": 0.0673
+  },
+  {
+   "baseline": 22.8004,
+   "baseline_items": 50,
+   "baseline_share": 0.0617,
+   "product_category_name": "informatica_acessorios",
+   "value": 32.7314,
+   "window_items": 49,
+   "window_share": 0.06
+  },
+  {
+   "baseline": 31.8863,
+   "baseline_items": 59,
+   "baseline_share": 0.0728,
+   "product_category_name": "moveis_decoracao",
+   "value": 35.4569,
+   "window_items": 48,
+   "window_share": 0.0588
+  },
+  {
+   "baseline": 16.2272,
+   "baseline_items": 69,
+   "baseline_share": 0.0852,
+   "product_category_name": "relogios_presentes",
+   "value": 25.744,
+   "window_items": 43,
+   "window_share": 0.0526
+  },
+  {
+   "baseline": 19.2965,
+   "baseline_items": 23,
+   "baseline_share": 0.0284,
+   "product_category_name": "automotivo",
+   "value": 33.2651,
+   "window_items": 35,
+   "window_share": 0.0428
+  },
+  {
+   "baseline": 16.6944,
+   "baseline_items": 16,
+   "baseline_share": 0.0198,
+   "product_category_name": "perfumaria",
+   "value": 24.9106,
+   "window_items": 32,
+   "window_share": 0.0392
+  },
+  {
+   "baseline": 19.3154,
+   "baseline_items": 13,
+   "baseline_share": 0.016,
+   "product_category_name": "telefonia",
+   "value": 29.5997,
+   "window_items": 31,
+   "window_share": 0.0379
+  },
+  {
+   "baseline": 25.0629,
+   "baseline_items": 14,
+   "baseline_share": 0.0173,
+   "product_category_name": "pet_shop",
+   "value": 21.3947,
+   "window_items": 30,
+   "window_share": 0.0367
+  },
+  {
+   "baseline": 32.4423,
+   "baseline_items": 22,
+   "baseline_share": 0.0272,
+   "product_category_name": "bebes",
+   "value": 37.8956,
+   "window_items": 27,
+   "window_share": 0.033
+  },
+  {
+   "baseline": 16.8036,
+   "baseline_items": 14,
+   "baseline_share": 0.0173,
+   "product_category_name": "brinquedos",
+   "value": 28.2041,
+   "window_items": 22,
+   "window_share": 0.0269
+  },
+  {
+   "baseline": 18.5347,
+   "baseline_items": 15,
+   "baseline_share": 0.0185,
+   "product_category_name": "eletronicos",
+   "value": 33.52,
+   "window_items": 21,
+   "window_share": 0.0257
+  },
+  {
+   "baseline": 25.7565,
+   "baseline_items": 20,
+   "baseline_share": 0.0247,
+   "product_category_name": "cool_stuff",
+   "value": 34.8164,
+   "window_items": 14,
+   "window_share": 0.0171
+  },
+  {
+   "baseline": 41.9506,
+   "baseline_items": 18,
+   "baseline_share": 0.0222,
+   "product_category_name": "ferramentas_jardim",
+   "value": 44.5057,
+   "window_items": 14,
+   "window_share": 0.0171
+  },
+  {
+   "baseline": 16.3883,
+   "baseline_items": 6,
+   "baseline_share": 0.0074,
+   "product_category_name": "fashion_bolsas_e_acessorios",
+   "value": 24.6415,
+   "window_items": 13,
+   "window_share": 0.0159
+  },
+  {
+   "baseline": 18.58,
+   "baseline_items": 4,
+   "baseline_share": 0.0049,
+   "product_category_name": "malas_acessorios",
+   "value": 39.5131,
+   "window_items": 13,
+   "window_share": 0.0159
+  },
+  {
+   "baseline": 19.4418,
+   "baseline_items": 11,
+   "baseline_share": 0.0136,
+   "product_category_name": "construcao_ferramentas_construcao",
+   "value": 40.6542,
+   "window_items": 12,
+   "window_share": 0.0147
+  },
+  {
+   "baseline": 20.7405,
+   "baseline_items": 20,
+   "baseline_share": 0.0247,
+   "product_category_name": "papelaria",
+   "value": 40.2873,
+   "window_items": 11,
+   "window_share": 0.0135
+  },
+  {
+   "baseline": 28.9007,
+   "baseline_items": 14,
+   "baseline_share": 0.0173,
+   "product_category_name": "moveis_sala",
+   "value": 37.064,
+   "window_items": 10,
+   "window_share": 0.0122
+  },
+  {
+   "baseline": 18.34,
+   "baseline_items": 4,
+   "baseline_share": 0.0049,
+   "product_category_name": "alimentos",
+   "value": 26.8211,
+   "window_items": 9,
+   "window_share": 0.011
+  },
+  {
+   "baseline": 19.5675,
+   "baseline_items": 4,
+   "baseline_share": 0.0049,
+   "product_category_name": "audio",
+   "value": 27.36,
+   "window_items": 8,
+   "window_share": 0.0098
+  },
+  {
+   "baseline": 19.1517,
+   "baseline_items": 6,
+   "baseline_share": 0.0074,
+   "product_category_name": "consoles_games",
+   "value": 26.25,
+   "window_items": 8,
+   "window_share": 0.0098
+  },
+  {
+   "baseline": 41.85,
+   "baseline_items": 2,
+   "baseline_share": 0.0025,
+   "product_category_name": "construcao_ferramentas_iluminacao",
+   "value": 31.08,
+   "window_items": 7,
+   "window_share": 0.0086
+  },
+  {
+   "baseline": 24.82,
+   "baseline_items": 8,
+   "baseline_share": 0.0099,
+   "product_category_name": "casa_construcao",
+   "value": 29.8083,
+   "window_items": 6,
+   "window_share": 0.0073
+  },
+  {
+   "baseline": 19.9886,
+   "baseline_items": 7,
+   "baseline_share": 0.0086,
+   "product_category_name": "eletrodomesticos",
+   "value": 32.0083,
+   "window_items": 6,
+   "window_share": 0.0073
+  },
+  {
+   "baseline": 48.365,
+   "baseline_items": 4,
+   "baseline_share": 0.0049,
+   "product_category_name": "moveis_cozinha_area_de_servico_jantar_e_jardim",
+   "value": 78.992,
+   "window_items": 5,
+   "window_share": 0.0061
+  },
+  {
+   "baseline": 42.85,
+   "baseline_items": 2,
+   "baseline_share": 0.0025,
+   "product_category_name": "alimentos_bebidas",
+   "value": 29.09,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 27.4975,
+   "baseline_items": 4,
+   "baseline_share": 0.0049,
+   "product_category_name": "climatizacao",
+   "value": 30.65,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "baseline_share": 0.0,
+   "product_category_name": null,
+   "value": 34.535,
+   "window_items": 4,
+   "window_share": 0.0049
+  },
+  {
+   "baseline": 21.44,
+   "baseline_items": 5,
+   "baseline_share": 0.0062,
+   "product_category_name": "casa_conforto",
+   "value": 28.8933,
+   "window_items": 3,
+   "window_share": 0.0037
+  },
+  {
+   "baseline": 22.3814,
+   "baseline_items": 7,
+   "baseline_share": 0.0086,
+   "product_category_name": "livros_tecnicos",
+   "value": 29.0867,
+   "window_items": 3,
+   "window_share": 0.0037
+  },
+  {
+   "baseline": 23.15,
+   "baseline_items": 2,
+   "baseline_share": 0.0025,
+   "product_category_name": "bebidas",
+   "value": 29.14,
+   "window_items": 2,
+   "window_share": 0.0024
+  },
+  {
+   "baseline": 17.76,
+   "baseline_items": 1,
+   "baseline_share": 0.0012,
+   "product_category_name": "construcao_ferramentas_ferramentas",
+   "value": 30.12,
+   "window_items": 2,
+   "window_share": 0.0024
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "baseline_share": 0.0,
+   "product_category_name": "construcao_ferramentas_seguranca",
+   "value": 26.11,
+   "window_items": 2,
+   "window_share": 0.0024
+  },
+  {
+   "baseline": 34.674,
+   "baseline_items": 5,
+   "baseline_share": 0.0062,
+   "product_category_name": "eletrodomesticos_2",
+   "value": 36.835,
+   "window_items": 2,
+   "window_share": 0.0024
+  },
+  {
+   "baseline": 34.3733,
+   "baseline_items": 3,
+   "baseline_share": 0.0037,
+   "product_category_name": "eletroportateis",
+   "value": 32.135,
+   "window_items": 2,
+   "window_share": 0.0024
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "baseline_share": 0.0,
+   "product_category_name": "instrumentos_musicais",
+   "value": 17.915,
+   "window_items": 2,
+   "window_share": 0.0024
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "baseline_share": 0.0,
+   "product_category_name": "livros_interesse_geral",
+   "value": 23.355,
+   "window_items": 2,
+   "window_share": 0.0024
+  },
+  {
+   "baseline": 59.9,
+   "baseline_items": 2,
+   "baseline_share": 0.0025,
+   "product_category_name": "moveis_quarto",
+   "value": 91.125,
+   "window_items": 2,
+   "window_share": 0.0024
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "baseline_share": 0.0,
+   "product_category_name": "sinalizacao_e_seguranca",
+   "value": 31.7,
+   "window_items": 2,
+   "window_share": 0.0024
+  },
+  {
+   "baseline": 32.995,
+   "baseline_items": 4,
+   "baseline_share": 0.0049,
+   "product_category_name": "agro_industria_e_comercio",
+   "value": 22.84,
+   "window_items": 1,
+   "window_share": 0.0012
+  },
+  {
+   "baseline": 23.5,
+   "baseline_items": 3,
+   "baseline_share": 0.0037,
+   "product_category_name": "artes",
+   "value": 34.94,
+   "window_items": 1,
+   "window_share": 0.0012
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "baseline_share": 0.0,
+   "product_category_name": "artigos_de_festas",
+   "value": 40.39,
+   "window_items": 1,
+   "window_share": 0.0012
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "baseline_share": 0.0,
+   "product_category_name": "cine_foto",
+   "value": 25.64,
+   "window_items": 1,
+   "window_share": 0.0012
+  },
+  {
+   "baseline": null,
+   "baseline_items": 0,
+   "baseline_share": 0.0,
+   "product_category_name": "fashion_roupa_masculina",
+   "value": 36.09,
+   "window_items": 1,
+   "window_share": 0.0012
+  },
+  {
+   "baseline": 47.5771,
+   "baseline_items": 31,
+   "baseline_share": 0.0383,
+   "product_category_name": "moveis_escritorio",
+   "value": 33.0,
+   "window_items": 1,
+   "window_share": 0.0012
+  },
+  {
+   "baseline": 132.19,
+   "baseline_items": 1,
+   "baseline_share": 0.0012,
+   "product_category_name": "pcs",
+   "value": 27.51,
+   "window_items": 1,
+   "window_share": 0.0012
+  },
+  {
+   "baseline": 48.55,
+   "baseline_items": 3,
+   "baseline_share": 0.0037,
+   "product_category_name": "portateis_casa_forno_e_cafe",
+   "value": 28.18,
+   "window_items": 1,
+   "window_share": 0.0012
+  }
+ ],
+ "source": null,
+ "sql": "WITH rj_base AS (\n  SELECT\n    oi.freight_value,\n    o.order_purchase_timestamp,\n    p.product_category_name\n  FROM orders.order_items oi\n  JOIN orders.orders o ON oi.order_id = o.order_id\n  JOIN orders.customers c ON o.customer_id = c.customer_id\n  JOIN orders.products p ON oi.product_id = p.product_id\n  WHERE c.customer_state = 'RJ'\n    AND o.order_purchase_timestamp >= DATE '2018-07-01'\n    AND o.order_purchase_timestamp < DATE '2018-09-01'\n),\nwindow_cat AS (\n  SELECT\n    product_category_name,\n    COUNT(*) AS window_items,\n    AVG(freight_value) AS window_avg_freight\n  FROM rj_base\n  WHERE order_purchase_timestamp >= DATE '2018-08-01'\n    AND order_purchase_timestamp < DATE '2018-09-01'\n  GROUP BY product_category_name\n),\nbaseline_cat AS (\n  SELECT\n    product_category_name,\n    COUNT(*) AS baseline_items,\n    AVG(freight_value) AS baseline_avg_freight\n  FROM rj_base\n  WHERE order_purchase_timestamp >= DATE '2018-07-01'\n    AND order_purchase_timestamp < DATE '2018-08-01'\n  GROUP BY product_category_name\n),\nwindow_total AS (\n  SELECT COUNT(*) AS total_items FROM rj_base\n  WHERE order_purchase_timestamp >= DATE '2018-08-01'\n    AND order_purchase_timestamp < DATE '2018-09-01'\n),\nbaseline_total AS (\n  SELECT COUNT(*) AS total_items FROM rj_base\n  WHERE order_purchase_timestamp >= DATE '2018-07-01'\n    AND order_purchase_timestamp < DATE '2018-08-01'\n)\nSELECT\n  COALESCE(w.product_category_name, b.product_category_name) AS product_category_name,\n  COALESCE(w.window_items, 0) AS window_items,\n  COALESCE(b.baseline_items, 0) AS baseline_items,\n  ROUND(COALESCE(w.window_items, 0)::DOUBLE / wt.total_items, 4) AS window_share,\n  ROUND(COALESCE(b.baseline_items, 0)::DOUBLE / bt.total_items, 4) AS baseline_share,\n  ROUND(w.window_avg_freight, 4) AS value,\n  ROUND(b.baseline_avg_freight, 4) AS baseline\nFROM window_cat w\nFULL OUTER JOIN baseline_cat b ON w.product_category_name = b.product_category_name\nCROSS JOIN window_total wt\nCROSS JOIN baseline_total bt\nORDER BY COALESCE(w.window_items, 0) DESC, product_category_name\nLIMIT 50;",
+ "truncated": false
+}

@@ -1,0 +1,48 @@
+{
+ "columns": [
+  "payment_type",
+  "window_n",
+  "baseline_n",
+  "window_share",
+  "baseline_share",
+  "share_point_change"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline_n": 103,
+   "baseline_share": 0.2004,
+   "payment_type": "boleto",
+   "share_point_change": -0.1006,
+   "window_n": 77,
+   "window_share": 0.0997
+  },
+  {
+   "baseline_n": 398,
+   "baseline_share": 0.7743,
+   "payment_type": "credit_card",
+   "share_point_change": 0.0689,
+   "window_n": 651,
+   "window_share": 0.8433
+  },
+  {
+   "baseline_n": 4,
+   "baseline_share": 0.0078,
+   "payment_type": "debit_card",
+   "share_point_change": -0.0013,
+   "window_n": 5,
+   "window_share": 0.0065
+  },
+  {
+   "baseline_n": 9,
+   "baseline_share": 0.0175,
+   "payment_type": "voucher",
+   "share_point_change": 0.033,
+   "window_n": 39,
+   "window_share": 0.0505
+  }
+ ],
+ "source": null,
+ "sql": "WITH mg_payments AS (\n  SELECT\n    p.payment_type,\n    CASE\n      WHEN o.order_purchase_timestamp >= DATE '2018-03-01' AND o.order_purchase_timestamp < DATE '2018-04-01' THEN 'window'\n      WHEN o.order_purchase_timestamp >= DATE '2018-02-01' AND o.order_purchase_timestamp < DATE '2018-03-01' THEN 'baseline'\n    END AS period\n  FROM payments.order_payments p\n  JOIN orders.orders o ON o.order_id = p.order_id\n  JOIN orders.customers c ON c.customer_id = o.customer_id\n  WHERE c.customer_state = 'MG'\n    AND o.order_purchase_timestamp >= DATE '2018-02-01'\n    AND o.order_purchase_timestamp < DATE '2018-04-01'\n),\ncounts AS (\n  SELECT\n    payment_type,\n    period,\n    COUNT(*) AS n\n  FROM mg_payments\n  GROUP BY payment_type, period\n),\npivoted AS (\n  SELECT\n    payment_type,\n    MAX(CASE WHEN period = 'window' THEN n END) AS window_n,\n    MAX(CASE WHEN period = 'baseline' THEN n END) AS baseline_n\n  FROM counts\n  GROUP BY payment_type\n),\ntotals AS (\n  SELECT\n    SUM(window_n) AS total_window,\n    SUM(baseline_n) AS total_baseline\n  FROM pivoted\n)\nSELECT\n  p.payment_type,\n  p.window_n,\n  p.baseline_n,\n  ROUND(CAST(p.window_n AS DOUBLE) / NULLIF(t.total_window, 0), 4) AS window_share,\n  ROUND(CAST(p.baseline_n AS DOUBLE) / NULLIF(t.total_baseline, 0), 4) AS baseline_share,\n  ROUND(CAST(p.window_n AS DOUBLE) / NULLIF(t.total_window, 0) - CAST(p.baseline_n AS DOUBLE) / NULLIF(t.total_baseline, 0), 4) AS share_point_change\nFROM pivoted p, totals t\nORDER BY p.payment_type;",
+ "truncated": false
+}

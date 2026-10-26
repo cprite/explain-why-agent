@@ -1,0 +1,20 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "n_window",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 3.979,
+   "n_baseline": 381,
+   "n_window": 329,
+   "value": 2.6292
+  }
+ ],
+ "source": null,
+ "sql": "WITH base AS (\n  SELECT r.review_score, r.review_creation_date\n  FROM reviews.order_reviews r\n  JOIN orders.order_items oi ON oi.order_id = r.order_id\n  JOIN orders.products p ON p.product_id = oi.product_id\n  WHERE p.product_category_name = 'relogios_presentes'\n    AND r.review_creation_date IS NOT NULL\n),\nwindow_agg AS (\n  SELECT ROUND(AVG(CAST(review_score AS DOUBLE)), 4) AS value, COUNT(*) AS n_window\n  FROM base\n  WHERE review_creation_date >= DATE '2018-01-01' AND review_creation_date < DATE '2018-02-01'\n),\nbaseline_agg AS (\n  SELECT ROUND(AVG(CAST(review_score AS DOUBLE)), 4) AS baseline, COUNT(*) AS n_baseline\n  FROM base\n  WHERE review_creation_date >= DATE '2017-12-01' AND review_creation_date < DATE '2018-01-01'\n)\nSELECT value, baseline, n_window, n_baseline\nFROM window_agg CROSS JOIN baseline_agg;",
+ "truncated": false
+}

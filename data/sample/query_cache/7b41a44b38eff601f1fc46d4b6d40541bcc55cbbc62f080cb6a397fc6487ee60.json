@@ -1,0 +1,32 @@
+{
+ "columns": [
+  "value_n_orders",
+  "baseline_n_orders",
+  "value_n_orders_with_payment",
+  "baseline_n_orders_with_payment",
+  "value_total_payment_value",
+  "baseline_total_payment_value",
+  "value_n_orders_zero_or_missing_payment",
+  "baseline_n_orders_zero_or_missing_payment",
+  "value_avg_payment_rows_per_order",
+  "baseline_avg_payment_rows_per_order"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline_avg_payment_rows_per_order": 1.0286,
+   "baseline_n_orders": 140,
+   "baseline_n_orders_with_payment": 140,
+   "baseline_n_orders_zero_or_missing_payment": 0,
+   "baseline_total_payment_value": 15357.86,
+   "value_avg_payment_rows_per_order": 1.0517,
+   "value_n_orders": 2958,
+   "value_n_orders_with_payment": 2958,
+   "value_n_orders_zero_or_missing_payment": 0,
+   "value_total_payment_value": 422081.86
+  }
+ ],
+ "source": null,
+ "sql": "WITH order_payment_agg AS (\n  SELECT\n    order_id,\n    COUNT(*) AS payment_rows,\n    SUM(payment_value) AS order_payment_total,\n    SUM(CASE WHEN payment_value IS NULL OR payment_value = 0 THEN 1 ELSE 0 END) AS zero_or_missing_payment_rows\n  FROM payments.order_payments\n  GROUP BY order_id\n),\nwindow_orders AS (\n  SELECT order_id\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-08-01'\n    AND order_purchase_timestamp < DATE '2017-09-01'\n),\nbaseline_orders AS (\n  SELECT order_id\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-07-01'\n    AND order_purchase_timestamp < DATE '2017-08-01'\n),\nwindow_stats AS (\n  SELECT\n    COUNT(*) AS n_orders,\n    COUNT(opa.order_id) AS n_orders_with_payment,\n    SUM(opa.order_payment_total) AS total_payment_value,\n    SUM(CASE WHEN opa.order_id IS NULL OR opa.zero_or_missing_payment_rows > 0 THEN 1 ELSE 0 END) AS n_orders_zero_or_missing_payment,\n    AVG(COALESCE(opa.payment_rows, 0)) AS avg_payment_rows_per_order\n  FROM window_orders wo\n  LEFT JOIN order_payment_agg opa ON wo.order_id = opa.order_id\n),\nbaseline_stats AS (\n  SELECT\n    COUNT(*) AS n_orders,\n    COUNT(opa.order_id) AS n_orders_with_payment,\n    SUM(opa.order_payment_total) AS total_payment_value,\n    SUM(CASE WHEN opa.order_id IS NULL OR opa.zero_or_missing_payment_rows > 0 THEN 1 ELSE 0 END) AS n_orders_zero_or_missing_payment,\n    AVG(COALESCE(opa.payment_rows, 0)) AS avg_payment_rows_per_order\n  FROM baseline_orders bo\n  LEFT JOIN order_payment_agg opa ON bo.order_id = opa.order_id\n)\nSELECT\n  ROUND(w.n_orders, 4) AS value_n_orders,\n  ROUND(b.n_orders, 4) AS baseline_n_orders,\n  ROUND(w.n_orders_with_payment, 4) AS value_n_orders_with_payment,\n  ROUND(b.n_orders_with_payment, 4) AS baseline_n_orders_with_payment,\n  ROUND(w.total_payment_value, 4) AS value_total_payment_value,\n  ROUND(b.total_payment_value, 4) AS baseline_total_payment_value,\n  ROUND(w.n_orders_zero_or_missing_payment, 4) AS value_n_orders_zero_or_missing_payment,\n  ROUND(b.n_orders_zero_or_missing_payment, 4) AS baseline_n_orders_zero_or_missing_payment,\n  ROUND(w.avg_payment_rows_per_order, 4) AS value_avg_payment_rows_per_order,\n  ROUND(b.avg_payment_rows_per_order, 4) AS baseline_avg_payment_rows_per_order\nFROM window_stats w, baseline_stats b;",
+ "truncated": false
+}

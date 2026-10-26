@@ -1,0 +1,30 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "diff",
+  "window_active_sellers",
+  "baseline_active_sellers",
+  "window_active_categories",
+  "baseline_active_categories",
+  "share_sellers_decreased",
+  "share_categories_decreased"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 4100.71,
+   "baseline_active_categories": 43,
+   "baseline_active_sellers": 171,
+   "diff": -286.9,
+   "share_categories_decreased": 0.2432,
+   "share_sellers_decreased": 0.4595,
+   "value": 3813.81,
+   "window_active_categories": 44,
+   "window_active_sellers": 271
+  }
+ ],
+ "source": null,
+ "sql": "WITH rj_orders AS (\n  SELECT\n    o.order_id,\n    CAST(o.order_purchase_timestamp AS DATE) AS purchase_date,\n    CASE\n      WHEN o.order_purchase_timestamp >= DATE '2018-06-12' AND o.order_purchase_timestamp < DATE '2018-07-01' THEN 'window'\n      WHEN o.order_purchase_timestamp >= DATE '2018-06-01' AND o.order_purchase_timestamp < DATE '2018-06-12' THEN 'baseline'\n    END AS period\n  FROM orders.orders o\n  JOIN orders.customers c ON c.customer_id = o.customer_id\n  WHERE c.customer_state = 'RJ'\n    AND o.order_purchase_timestamp >= DATE '2018-06-01'\n    AND o.order_purchase_timestamp < DATE '2018-07-01'\n),\norder_payment AS (\n  SELECT\n    ro.order_id,\n    ro.purchase_date,\n    ro.period,\n    SUM(p.payment_value) AS order_payment\n  FROM rj_orders ro\n  JOIN payments.order_payments p ON p.order_id = ro.order_id\n  GROUP BY ro.order_id, ro.purchase_date, ro.period\n),\norder_seller AS (\n  SELECT DISTINCT\n    op.order_id,\n    op.purchase_date,\n    op.period,\n    op.order_payment,\n    oi.seller_id\n  FROM order_payment op\n  JOIN orders.order_items oi ON oi.order_id = op.order_id\n),\norder_category AS (\n  SELECT DISTINCT\n    op.order_id,\n    op.purchase_date,\n    op.period,\n    op.order_payment,\n    pr.product_category_name\n  FROM order_payment op\n  JOIN orders.order_items oi ON oi.order_id = op.order_id\n  JOIN orders.products pr ON pr.product_id = oi.product_id\n),\nseller_daily AS (\n  SELECT seller_id, period, purchase_date, SUM(order_payment) AS daily_rev\n  FROM order_seller\n  GROUP BY seller_id, period, purchase_date\n),\nseller_period AS (\n  SELECT seller_id, period, SUM(daily_rev) AS period_rev\n  FROM seller_daily\n  GROUP BY seller_id, period\n),\nseller_both AS (\n  SELECT\n    b.seller_id,\n    b.period_rev AS baseline_rev,\n    w.period_rev AS window_rev\n  FROM seller_period b\n  JOIN seller_period w ON w.seller_id = b.seller_id AND w.period = 'window'\n  WHERE b.period = 'baseline'\n),\ncategory_daily AS (\n  SELECT product_category_name, period, purchase_date, SUM(order_payment) AS daily_rev\n  FROM order_category\n  GROUP BY product_category_name, period, purchase_date\n),\ncategory_period AS (\n  SELECT product_category_name, period, SUM(daily_rev) AS period_rev\n  FROM category_daily\n  GROUP BY product_category_name, period\n),\ncategory_both AS (\n  SELECT\n    b.product_category_name,\n    b.period_rev AS baseline_rev,\n    w.period_rev AS window_rev\n  FROM category_period b\n  JOIN category_period w ON w.product_category_name = b.product_category_name AND w.period = 'window'\n  WHERE b.period = 'baseline'\n),\nperiod_seller AS (\n  SELECT\n    period,\n    SUM(daily_rev) AS total_rev,\n    COUNT(DISTINCT seller_id) AS active_sellers,\n    COUNT(DISTINCT purchase_date) AS n_days\n  FROM seller_daily\n  GROUP BY period\n),\nperiod_category AS (\n  SELECT\n    period,\n    COUNT(DISTINCT product_category_name) AS active_categories\n  FROM category_daily\n  GROUP BY period\n),\nseller_stats AS (\n  SELECT\n    COUNT(*) AS n_sellers,\n    SUM(CASE WHEN window_rev < baseline_rev THEN 1 ELSE 0 END) AS n_sellers_decreased\n  FROM seller_both\n),\ncategory_stats AS (\n  SELECT\n    COUNT(*) AS n_categories,\n    SUM(CASE WHEN window_rev < baseline_rev THEN 1 ELSE 0 END) AS n_categories_decreased\n  FROM category_both\n)\nSELECT\n  ROUND(MAX(CASE WHEN ps.period = 'window' THEN ps.total_rev::DOUBLE / NULLIF(ps.n_days, 0) END), 2) AS value,\n  ROUND(MAX(CASE WHEN ps.period = 'baseline' THEN ps.total_rev::DOUBLE / NULLIF(ps.n_days, 0) END), 2) AS baseline,\n  ROUND(\n    MAX(CASE WHEN ps.period = 'window' THEN ps.total_rev::DOUBLE / NULLIF(ps.n_days, 0) END)\n    - MAX(CASE WHEN ps.period = 'baseline' THEN ps.total_rev::DOUBLE / NULLIF(ps.n_days, 0) END),\n    2\n  ) AS diff,\n  MAX(CASE WHEN ps.period = 'window' THEN ps.active_sellers END) AS window_active_sellers,\n  MAX(CASE WHEN ps.period = 'baseline' THEN ps.active_sellers END) AS baseline_active_sellers,\n  MAX(CASE WHEN pc.period = 'window' THEN pc.active_categories END) AS window_active_categories,\n  MAX(CASE WHEN pc.period = 'baseline' THEN pc.active_categories END) AS baseline_active_categories,\n  ROUND(MAX(ss.n_sellers_decreased)::DOUBLE / NULLIF(MAX(ss.n_sellers), 0), 4) AS share_sellers_decreased,\n  ROUND(MAX(cs.n_categories_decreased)::DOUBLE / NULLIF(MAX(cs.n_categories), 0), 4) AS share_categories_decreased\nFROM period_seller ps\nJOIN period_category pc ON pc.period = ps.period\nCROSS JOIN seller_stats ss\nCROSS JOIN category_stats cs;",
+ "truncated": false
+}

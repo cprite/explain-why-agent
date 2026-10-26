@@ -1,0 +1,22 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spread",
+  "n",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 562.76,
+   "n": 13,
+   "n_baseline": 1,
+   "spread": null,
+   "value": 1560.53
+  }
+ ],
+ "source": null,
+ "sql": "WITH seller_order_ids AS (\n  SELECT DISTINCT order_id\n  FROM orders.order_items\n  WHERE seller_id = 'f8db351d8c4c4c22c6835c19a46f01b0'\n),\nseller_revenue AS (\n  SELECT\n    o.order_id,\n    CAST(o.order_purchase_timestamp AS DATE) AS order_date,\n    SUM(p.payment_value) AS revenue\n  FROM orders.orders o\n  JOIN payments.order_payments p ON p.order_id = o.order_id\n  WHERE o.order_id IN (SELECT order_id FROM seller_order_ids)\n  GROUP BY o.order_id, CAST(o.order_purchase_timestamp AS DATE)\n),\nwindow_stats AS (\n  SELECT\n    SUM(revenue) AS value,\n    COUNT(*) AS n\n  FROM seller_revenue\n  WHERE order_date >= DATE '2018-01-10' AND order_date < DATE '2018-01-20'\n),\nbaseline_periods AS (\n  SELECT\n    SUM(revenue) AS period_revenue\n  FROM seller_revenue\n  WHERE order_date >= DATE '2018-01-01' AND order_date < DATE '2018-01-10'\n),\nbaseline_stats AS (\n  SELECT\n    SUM(period_revenue) AS baseline,\n    COUNT(*) AS n_baseline,\n    CASE WHEN COUNT(*) >= 2 THEN STDDEV(period_revenue) ELSE NULL END AS spread\n  FROM baseline_periods\n)\nSELECT\n  ROUND(w.value, 4) AS value,\n  ROUND(b.baseline, 4) AS baseline,\n  ROUND(b.spread, 4) AS spread,\n  w.n AS n,\n  b.n_baseline AS n_baseline\nFROM window_stats w, baseline_stats b;",
+ "truncated": false
+}

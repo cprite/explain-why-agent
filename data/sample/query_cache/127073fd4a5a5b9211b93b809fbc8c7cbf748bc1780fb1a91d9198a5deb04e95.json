@@ -1,0 +1,20 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_items",
+  "baseline_items"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 24.8632,
+   "baseline_items": 810,
+   "value": 32.6192,
+   "window_items": 817
+  }
+ ],
+ "source": null,
+ "sql": "WITH rj_order_items AS (\n  SELECT\n    oi.freight_value,\n    CAST(o.order_purchase_timestamp AS DATE) AS order_date\n  FROM orders.orders o\n  JOIN orders.customers c ON c.customer_id = o.customer_id\n  JOIN orders.order_items oi ON oi.order_id = o.order_id\n  WHERE c.customer_state = 'RJ'\n)\nSELECT\n  ROUND(AVG(CASE WHEN order_date >= DATE '2018-08-01' AND order_date < DATE '2018-09-01' THEN freight_value END), 4) AS value,\n  ROUND(AVG(CASE WHEN order_date >= DATE '2018-07-01' AND order_date < DATE '2018-08-01' THEN freight_value END), 4) AS baseline,\n  COUNT(CASE WHEN order_date >= DATE '2018-08-01' AND order_date < DATE '2018-09-01' THEN 1 END) AS window_items,\n  COUNT(CASE WHEN order_date >= DATE '2018-07-01' AND order_date < DATE '2018-08-01' THEN 1 END) AS baseline_items\nFROM rj_order_items;",
+ "truncated": false
+}

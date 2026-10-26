@@ -1,0 +1,30 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "seller_share_increased",
+  "category_share_increased",
+  "state_share_increased",
+  "active_sellers_window",
+  "active_categories_window",
+  "active_states_window",
+  "n_baseline_days"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "active_categories_window": 48,
+   "active_sellers_window": 383,
+   "active_states_window": 26,
+   "baseline": 136.5714,
+   "category_share_increased": 0.875,
+   "n_baseline_days": 7,
+   "seller_share_increased": 0.765,
+   "state_share_increased": 0.8077,
+   "value": 1176
+  }
+ ],
+ "source": null,
+ "sql": "WITH\nwindow_orders AS (\n  SELECT order_id, customer_id, CAST(order_purchase_timestamp AS DATE) AS d\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-24'\n    AND order_purchase_timestamp < DATE '2017-11-25'\n),\nbaseline_orders AS (\n  SELECT order_id, customer_id, CAST(order_purchase_timestamp AS DATE) AS d\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-17'\n    AND order_purchase_timestamp < DATE '2017-11-24'\n),\nwindow_daily AS (\n  SELECT COUNT(DISTINCT order_id) AS window_daily_orders\n  FROM window_orders\n),\nbaseline_daily AS (\n  SELECT d, COUNT(DISTINCT order_id) AS cnt\n  FROM baseline_orders\n  GROUP BY 1\n),\nbaseline_stats AS (\n  SELECT AVG(cnt) AS baseline_avg_daily_orders, COUNT(*) AS n_baseline_days\n  FROM baseline_daily\n),\nwindow_seller AS (\n  SELECT oi.seller_id, COUNT(DISTINCT wo.order_id) AS window_orders\n  FROM window_orders wo\n  JOIN orders.order_items oi ON oi.order_id = wo.order_id\n  GROUP BY 1\n),\nbaseline_seller_daily AS (\n  SELECT oi.seller_id, bo.d, COUNT(DISTINCT bo.order_id) AS daily_orders\n  FROM baseline_orders bo\n  JOIN orders.order_items oi ON oi.order_id = bo.order_id\n  GROUP BY 1, 2\n),\nbaseline_seller_avg AS (\n  SELECT seller_id, AVG(daily_orders) AS avg_daily_orders\n  FROM baseline_seller_daily\n  GROUP BY 1\n),\nseller_compare AS (\n  SELECT\n    ws.seller_id,\n    CASE WHEN ws.window_orders > COALESCE(bsa.avg_daily_orders, 0) THEN 1 ELSE 0 END AS increased\n  FROM window_seller ws\n  LEFT JOIN baseline_seller_avg bsa ON bsa.seller_id = ws.seller_id\n),\nseller_agg AS (\n  SELECT COUNT(*) AS n_sellers, SUM(increased) AS n_sellers_increased\n  FROM seller_compare\n),\nwindow_category AS (\n  SELECT p.product_category_name, COUNT(DISTINCT wo.order_id) AS window_orders\n  FROM window_orders wo\n  JOIN orders.order_items oi ON oi.order_id = wo.order_id\n  JOIN orders.products p ON p.product_id = oi.product_id\n  GROUP BY 1\n),\nbaseline_category_daily AS (\n  SELECT p.product_category_name, bo.d, COUNT(DISTINCT bo.order_id) AS daily_orders\n  FROM baseline_orders bo\n  JOIN orders.order_items oi ON oi.order_id = bo.order_id\n  JOIN orders.products p ON p.product_id = oi.product_id\n  GROUP BY 1, 2\n),\nbaseline_category_avg AS (\n  SELECT product_category_name, AVG(daily_orders) AS avg_daily_orders\n  FROM baseline_category_daily\n  GROUP BY 1\n),\ncategory_compare AS (\n  SELECT\n    wc.product_category_name,\n    CASE WHEN wc.window_orders > COALESCE(bca.avg_daily_orders, 0) THEN 1 ELSE 0 END AS increased\n  FROM window_category wc\n  LEFT JOIN baseline_category_avg bca ON bca.product_category_name = wc.product_category_name\n),\ncategory_agg AS (\n  SELECT COUNT(*) AS n_categories, SUM(increased) AS n_categories_increased\n  FROM category_compare\n),\nwindow_state AS (\n  SELECT c.customer_state, COUNT(DISTINCT wo.order_id) AS window_orders\n  FROM window_orders wo\n  JOIN orders.customers c ON c.customer_id = wo.customer_id\n  GROUP BY 1\n),\nbaseline_state_daily AS (\n  SELECT c.customer_state, bo.d, COUNT(DISTINCT bo.order_id) AS daily_orders\n  FROM baseline_orders bo\n  JOIN orders.customers c ON c.customer_id = bo.customer_id\n  GROUP BY 1, 2\n),\nbaseline_state_avg AS (\n  SELECT customer_state, AVG(daily_orders) AS avg_daily_orders\n  FROM baseline_state_daily\n  GROUP BY 1\n),\nstate_compare AS (\n  SELECT\n    ws.customer_state,\n    CASE WHEN ws.window_orders > COALESCE(bsa.avg_daily_orders, 0) THEN 1 ELSE 0 END AS increased\n  FROM window_state ws\n  LEFT JOIN baseline_state_avg bsa ON bsa.customer_state = ws.customer_state\n),\nstate_agg AS (\n  SELECT COUNT(*) AS n_states, SUM(increased) AS n_states_increased\n  FROM state_compare\n)\nSELECT\n  ROUND(wd.window_daily_orders, 4) AS value,\n  ROUND(bs.baseline_avg_daily_orders, 4) AS baseline,\n  ROUND(sa.n_sellers_increased::DOUBLE / NULLIF(sa.n_sellers, 0), 4) AS seller_share_increased,\n  ROUND(ca.n_categories_increased::DOUBLE / NULLIF(ca.n_categories, 0), 4) AS category_share_increased,\n  ROUND(sta.n_states_increased::DOUBLE / NULLIF(sta.n_states, 0), 4) AS state_share_increased,\n  sa.n_sellers AS active_sellers_window,\n  ca.n_categories AS active_categories_window,\n  sta.n_states AS active_states_window,\n  bs.n_baseline_days\nFROM window_daily wd, baseline_stats bs, seller_agg sa, category_agg ca, state_agg sta;",
+ "truncated": false
+}

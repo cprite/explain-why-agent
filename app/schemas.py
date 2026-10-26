@@ -355,6 +355,22 @@ class CauseDraft(_Model):
     observation_ids: list[str] = Field(min_length=1, description="Observations that support the cause.")
     next_checks: list[str] = Field(default_factory=list)
 
+    @model_validator(mode="before")
+    @classmethod
+    def _ids_from_statements(cls, data: Any) -> Any:
+        """Nemotron often puts the ids only on the statements; collect them for the cause."""
+        if isinstance(data, dict) and not data.get("observation_ids"):
+            ids = [
+                oid
+                for st in data.get("statements") or []
+                if isinstance(st, dict)
+                for oid in st.get("observation_ids") or []
+                if isinstance(oid, str)
+            ]
+            if ids:
+                data = {**data, "observation_ids": list(dict.fromkeys(ids))}
+        return data
+
 
 class RuledOutDraft(_Model):
     """A rejected hypothesis as drafted by the Reporter."""

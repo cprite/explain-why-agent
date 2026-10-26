@@ -1,0 +1,184 @@
+{
+ "columns": [
+  "seller_id",
+  "value",
+  "baseline",
+  "diff",
+  "n_window",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 4.8571,
+   "diff": -3.1904,
+   "n_baseline": 7,
+   "n_window": 3,
+   "seller_id": "2bf6a2c1e71bbd29a4ad64e6d3c3629f",
+   "value": 1.6667
+  },
+  {
+   "baseline": 4.6667,
+   "diff": -2.6667,
+   "n_baseline": 6,
+   "n_window": 1,
+   "seller_id": "715bbd5ba4e6b74cb0d2f29eb45058b0",
+   "value": 2.0
+  },
+  {
+   "baseline": 5.0,
+   "diff": -2.6,
+   "n_baseline": 5,
+   "n_window": 5,
+   "seller_id": "8ae520247981aa06bc94abddf5f46d34",
+   "value": 2.4
+  },
+  {
+   "baseline": 4.6,
+   "diff": -2.6,
+   "n_baseline": 5,
+   "n_window": 1,
+   "seller_id": "3d871de0142ce09b7081e2b9d1733cb1",
+   "value": 2.0
+  },
+  {
+   "baseline": 3.875,
+   "diff": -1.875,
+   "n_baseline": 8,
+   "n_window": 4,
+   "seller_id": "86ccac0b835037332a596a33b6949ee1",
+   "value": 2.0
+  },
+  {
+   "baseline": 3.75,
+   "diff": -1.75,
+   "n_baseline": 4,
+   "n_window": 2,
+   "seller_id": "95e03ca3d4146e4011985981aeb959b9",
+   "value": 2.0
+  },
+  {
+   "baseline": 3.9691,
+   "diff": -1.6013,
+   "n_baseline": 97,
+   "n_window": 87,
+   "seller_id": "6560211a19b47992c3666cc44a7e94c0",
+   "value": 2.3678
+  },
+  {
+   "baseline": 4.3333,
+   "diff": -1.5208,
+   "n_baseline": 12,
+   "n_window": 16,
+   "seller_id": "634964b17796e64304cadf1ad3050fb7",
+   "value": 2.8125
+  },
+  {
+   "baseline": 3.6667,
+   "diff": -1.3334,
+   "n_baseline": 3,
+   "n_window": 3,
+   "seller_id": "ececbfcff9804a2d6b40f589df8eef2b",
+   "value": 2.3333
+  },
+  {
+   "baseline": 4.5714,
+   "diff": -1.3047,
+   "n_baseline": 7,
+   "n_window": 15,
+   "seller_id": "b1fc4f64df5a0e8b6913ab38803c57a9",
+   "value": 3.2667
+  },
+  {
+   "baseline": 4.3103,
+   "diff": -1.1475,
+   "n_baseline": 58,
+   "n_window": 43,
+   "seller_id": "fa1c13f2614d7b5c4749cbc52fecda94",
+   "value": 3.1628
+  },
+  {
+   "baseline": 3.0,
+   "diff": 1.0,
+   "n_baseline": 1,
+   "n_window": 1,
+   "seller_id": "1782ce2db72c3dda627d5e7c898104e1",
+   "value": 4.0
+  },
+  {
+   "baseline": 4.0492,
+   "diff": -0.9615,
+   "n_baseline": 61,
+   "n_window": 57,
+   "seller_id": "4869f7a5dfa277a7dca6462dcf3b52b2",
+   "value": 3.0877
+  },
+  {
+   "baseline": 3.25,
+   "diff": -0.8864,
+   "n_baseline": 16,
+   "n_window": 22,
+   "seller_id": "7e93a43ef30c4f03f38b393420bc753a",
+   "value": 2.3636
+  },
+  {
+   "baseline": 4.125,
+   "diff": -0.525,
+   "n_baseline": 32,
+   "n_window": 10,
+   "seller_id": "b33e7c55446eabf8fe1a42d037ac7d6d",
+   "value": 3.6
+  },
+  {
+   "baseline": 2.5,
+   "diff": 0.5,
+   "n_baseline": 2,
+   "n_window": 2,
+   "seller_id": "056b4ada5bbc2c50cc7842547dda6b51",
+   "value": 3.0
+  },
+  {
+   "baseline": 4.75,
+   "diff": 0.25,
+   "n_baseline": 4,
+   "n_window": 1,
+   "seller_id": "744dac408745240a2c2528fb1b6028f3",
+   "value": 5.0
+  },
+  {
+   "baseline": 3.75,
+   "diff": -0.0357,
+   "n_baseline": 4,
+   "n_window": 7,
+   "seller_id": "381c83fdca332ea6afd896da20bf6e4a",
+   "value": 3.7143
+  },
+  {
+   "baseline": 4.0,
+   "diff": 0.0,
+   "n_baseline": 1,
+   "n_window": 2,
+   "seller_id": "dee656f0f566ed1aa85bd137c943f08f",
+   "value": 4.0
+  },
+  {
+   "baseline": 2.0,
+   "diff": 0.0,
+   "n_baseline": 1,
+   "n_window": 1,
+   "seller_id": "522620dcb18a6b31cd7bdf73665113a9",
+   "value": 2.0
+  },
+  {
+   "baseline": 1.0,
+   "diff": 0.0,
+   "n_baseline": 2,
+   "n_window": 1,
+   "seller_id": "a6bd7d1ccdac48c6b33b28596b7eb122",
+   "value": 1.0
+  }
+ ],
+ "source": null,
+ "sql": "WITH rel_order_seller AS (\n  SELECT oi.order_id, MIN(oi.seller_id) AS seller_id\n  FROM orders.order_items oi\n  JOIN orders.products p ON p.product_id = oi.product_id\n  WHERE p.product_category_name = 'relogios_presentes'\n  GROUP BY oi.order_id\n),\nrel_reviews AS (\n  SELECT r.review_score, r.review_creation_date, ros.seller_id\n  FROM reviews.order_reviews r\n  JOIN rel_order_seller ros ON ros.order_id = r.order_id\n  WHERE r.review_score IS NOT NULL\n),\nwindow_stats AS (\n  SELECT seller_id,\n         ROUND(AVG(review_score)::DOUBLE, 4) AS value,\n         COUNT(*) AS n_window\n  FROM rel_reviews\n  WHERE review_creation_date >= DATE '2018-01-01'\n    AND review_creation_date < DATE '2018-02-01'\n  GROUP BY seller_id\n),\nbaseline_stats AS (\n  SELECT seller_id,\n         ROUND(AVG(review_score)::DOUBLE, 4) AS baseline,\n         COUNT(*) AS n_baseline\n  FROM rel_reviews\n  WHERE review_creation_date >= DATE '2017-12-01'\n    AND review_creation_date < DATE '2018-01-01'\n  GROUP BY seller_id\n)\nSELECT\n  w.seller_id,\n  w.value,\n  b.baseline,\n  ROUND(w.value - b.baseline, 4) AS diff,\n  w.n_window,\n  b.n_baseline\nFROM window_stats w\nJOIN baseline_stats b ON b.seller_id = w.seller_id\nORDER BY ABS(w.value - b.baseline) DESC, w.n_window DESC\nLIMIT 30;",
+ "truncated": false
+}

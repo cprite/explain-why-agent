@@ -1,0 +1,16 @@
+{
+ "columns": [
+  "value",
+  "baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 304.5714,
+   "value": 1675
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_orders AS (SELECT COUNT(DISTINCT order_id) AS order_count FROM orders.orders WHERE order_purchase_timestamp >= DATE '2017-11-24' AND order_purchase_timestamp < DATE '2017-11-26'), baseline_orders AS (SELECT COUNT(DISTINCT order_id) AS order_count FROM orders.orders WHERE order_purchase_timestamp >= DATE '2017-11-17' AND order_purchase_timestamp < DATE '2017-11-25') SELECT w.order_count AS value, ROUND(b.order_count / 7.0, 4) AS baseline FROM window_orders w, baseline_orders b;",
+ "truncated": false
+}

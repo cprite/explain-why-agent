@@ -1,0 +1,26 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_completed",
+  "window_late",
+  "baseline_completed",
+  "baseline_late",
+  "diff"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0251,
+   "baseline_completed": 1434,
+   "baseline_late": 36,
+   "diff": 0.0756,
+   "value": 0.1007,
+   "window_completed": 606,
+   "window_late": 61
+  }
+ ],
+ "source": null,
+ "sql": "WITH delivered AS (\n  SELECT\n    CAST(o.order_delivered_customer_date AS DATE) AS delivery_date,\n    o.order_estimated_delivery_date,\n    CASE WHEN CAST(o.order_delivered_customer_date AS DATE) > o.order_estimated_delivery_date THEN 1 ELSE 0 END AS is_late\n  FROM orders.orders o\n  WHERE o.order_status = 'delivered'\n    AND o.order_delivered_customer_date IS NOT NULL\n    AND o.order_estimated_delivery_date IS NOT NULL\n),\nwindow_delivered AS (\n  SELECT *\n  FROM delivered\n  WHERE delivery_date >= DATE '2018-05-28' AND delivery_date < DATE '2018-06-04'\n),\nbaseline_delivered AS (\n  SELECT *\n  FROM delivered\n  WHERE delivery_date >= DATE '2018-05-21' AND delivery_date < DATE '2018-05-28'\n),\nwindow_stats AS (\n  SELECT\n    COUNT(*) AS completed,\n    SUM(is_late) AS late\n  FROM window_delivered\n),\nbaseline_stats AS (\n  SELECT\n    COUNT(*) AS completed,\n    SUM(is_late) AS late\n  FROM baseline_delivered\n)\nSELECT\n  ROUND(CAST(w.late AS DOUBLE) / NULLIF(w.completed, 0), 4) AS value,\n  ROUND(CAST(b.late AS DOUBLE) / NULLIF(b.completed, 0), 4) AS baseline,\n  w.completed AS window_completed,\n  w.late AS window_late,\n  b.completed AS baseline_completed,\n  b.late AS baseline_late,\n  ROUND(CAST(w.late AS DOUBLE) / NULLIF(w.completed, 0) - CAST(b.late AS DOUBLE) / NULLIF(b.completed, 0), 4) AS diff\nFROM window_stats w, baseline_stats b;",
+ "truncated": false
+}

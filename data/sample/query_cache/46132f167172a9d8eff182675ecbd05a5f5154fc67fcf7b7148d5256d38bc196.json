@@ -1,0 +1,225 @@
+{
+ "columns": [
+  "seller_id",
+  "value",
+  "baseline",
+  "window_orders",
+  "baseline_orders"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "40db9e9aa57f7bb151bcda6b0f9bdbb7",
+   "value": 1837.79,
+   "window_orders": 1
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "2bf6a2c1e71bbd29a4ad64e6d3c3629f",
+   "value": 1120.22,
+   "window_orders": 2
+  },
+  {
+   "baseline": 81.53,
+   "baseline_orders": 1,
+   "seller_id": "e882b2a25a10b9c057cc49695f222c19",
+   "value": 1167.85,
+   "window_orders": 2
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "270297ead4c65a6cd2593960d2af6b21",
+   "value": 1067.97,
+   "window_orders": 1
+  },
+  {
+   "baseline": 960.49,
+   "baseline_orders": 1,
+   "seller_id": "17f51e7198701186712e53a39c564617",
+   "value": null,
+   "window_orders": null
+  },
+  {
+   "baseline": 925.38,
+   "baseline_orders": 1,
+   "seller_id": "8a1ff5c35f6595a73fef4c7b96e4908a",
+   "value": null,
+   "window_orders": null
+  },
+  {
+   "baseline": 872.52,
+   "baseline_orders": 1,
+   "seller_id": "b839e41795b7f3ad94cc2014a52f6796",
+   "value": null,
+   "window_orders": null
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "8f2ce03f928b567e3d56181ae20ae952",
+   "value": 776.32,
+   "window_orders": 1
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "30829ded4523ab9224b93bc49a62c95f",
+   "value": 769.88,
+   "window_orders": 1
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "8a43128d7f9a3db592b866e6861a6cce",
+   "value": 748.18,
+   "window_orders": 1
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "f62d7bb4a613ec758a03342d46b580b2",
+   "value": 700.83,
+   "window_orders": 1
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "ade45994b717ccee333492330fbf037b",
+   "value": 663.4367,
+   "window_orders": 3
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "cc5a78bbad32776dc4e3af205218368c",
+   "value": 654.12,
+   "window_orders": 1
+  },
+  {
+   "baseline": 606.59,
+   "baseline_orders": 1,
+   "seller_id": "72c5da29406b4234927b81855e7b64f6",
+   "value": null,
+   "window_orders": null
+  },
+  {
+   "baseline": 594.79,
+   "baseline_orders": 1,
+   "seller_id": "bce6a5ecf98e99fd2a8868b15c51f04b",
+   "value": null,
+   "window_orders": null
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "aba1721a889e04decc910aa13b768ef4",
+   "value": 570.94,
+   "window_orders": 1
+  },
+  {
+   "baseline": 561.92,
+   "baseline_orders": 1,
+   "seller_id": "cb41bfbcbda0aea354a834ab222f9a59",
+   "value": null,
+   "window_orders": null
+  },
+  {
+   "baseline": 524.48,
+   "baseline_orders": 1,
+   "seller_id": "49cdc90518a4f82676b38b3c1aa43ff6",
+   "value": null,
+   "window_orders": null
+  },
+  {
+   "baseline": 506.97,
+   "baseline_orders": 1,
+   "seller_id": "391fc6631aebcf3004804e51b40bcf1e",
+   "value": null,
+   "window_orders": null
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "f97e2b0650c2068227e1d366140eb62f",
+   "value": 455.91,
+   "window_orders": 1
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "17a053fcb14bd219540cbde0df490be0",
+   "value": 455.74,
+   "window_orders": 1
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "0691148aee60ca47977c187804f935ae",
+   "value": 439.36,
+   "window_orders": 1
+  },
+  {
+   "baseline": 420.07,
+   "baseline_orders": 1,
+   "seller_id": "4a3ccda38b2129705f3fb522db62ca31",
+   "value": null,
+   "window_orders": null
+  },
+  {
+   "baseline": 396.9,
+   "baseline_orders": 1,
+   "seller_id": "e5e33c0d8e7e002f398f5dc4cbbb338f",
+   "value": null,
+   "window_orders": null
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "1b65c144b17e607c0f37f10bb7dfec8d",
+   "value": 386.81,
+   "window_orders": 1
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "06df0c10d34e459d9672bc77388742eb",
+   "value": 373.37,
+   "window_orders": 1
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "985c92cc412091f8529c12d7f23d3fef",
+   "value": 362.92,
+   "window_orders": 1
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "dbec9a0a7efeff029d4d9dce7dc4cc95",
+   "value": 358.14,
+   "window_orders": 1
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "1336efc61c316ddf92c899eb817f7cae",
+   "value": 354.81,
+   "window_orders": 1
+  },
+  {
+   "baseline": null,
+   "baseline_orders": null,
+   "seller_id": "916c9de0b5ad957346eeeb12f332687e",
+   "value": 349.24,
+   "window_orders": 1
+  }
+ ],
+ "source": null,
+ "sql": "WITH order_payments AS (\n  SELECT order_id, SUM(payment_value) AS order_payment\n  FROM payments.order_payments\n  GROUP BY order_id\n),\nrj_window_orders AS (\n  SELECT DISTINCT o.order_id, oi.seller_id\n  FROM orders.orders o\n  JOIN orders.customers c ON c.customer_id = o.customer_id\n  JOIN orders.order_items oi ON oi.order_id = o.order_id\n  WHERE c.customer_state = 'RJ'\n    AND o.order_purchase_timestamp >= DATE '2018-06-12'\n    AND o.order_purchase_timestamp < DATE '2018-07-01'\n),\nrj_baseline_orders AS (\n  SELECT DISTINCT o.order_id, oi.seller_id\n  FROM orders.orders o\n  JOIN orders.customers c ON c.customer_id = o.customer_id\n  JOIN orders.order_items oi ON oi.order_id = o.order_id\n  WHERE c.customer_state = 'RJ'\n    AND o.order_purchase_timestamp >= DATE '2018-06-01'\n    AND o.order_purchase_timestamp < DATE '2018-06-12'\n),\nwindow_seller_stats AS (\n  SELECT rwo.seller_id,\n         AVG(op.order_payment) AS avg_payment,\n         COUNT(*) AS n_orders\n  FROM rj_window_orders rwo\n  JOIN order_payments op ON op.order_id = rwo.order_id\n  GROUP BY rwo.seller_id\n),\nbaseline_seller_stats AS (\n  SELECT rbo.seller_id,\n         AVG(op.order_payment) AS avg_payment,\n         COUNT(*) AS n_orders\n  FROM rj_baseline_orders rbo\n  JOIN order_payments op ON op.order_id = rbo.order_id\n  GROUP BY rbo.seller_id\n)\nSELECT\n  COALESCE(w.seller_id, b.seller_id) AS seller_id,\n  ROUND(w.avg_payment, 4) AS value,\n  ROUND(b.avg_payment, 4) AS baseline,\n  w.n_orders AS window_orders,\n  b.n_orders AS baseline_orders\nFROM window_seller_stats w\nFULL OUTER JOIN baseline_seller_stats b ON w.seller_id = b.seller_id\nORDER BY ABS(COALESCE(w.avg_payment, 0) - COALESCE(b.avg_payment, 0)) DESC\nLIMIT 30;",
+ "truncated": false
+}

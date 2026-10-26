@@ -1,0 +1,197 @@
+{
+ "columns": [
+  "seller_id",
+  "window_completed",
+  "baseline_completed",
+  "window_late",
+  "baseline_late",
+  "window_late_share",
+  "baseline_late_share"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline_completed": 48,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "955fee9216a65b617aa5c0531780ce60",
+   "window_completed": 21,
+   "window_late": 3,
+   "window_late_share": 0.1429
+  },
+  {
+   "baseline_completed": 32,
+   "baseline_late": 2,
+   "baseline_late_share": 0.0625,
+   "seller_id": "1025f0e2d44d7041d6cf58b6550e0bfa",
+   "window_completed": 15,
+   "window_late": 2,
+   "window_late_share": 0.1333
+  },
+  {
+   "baseline_completed": 25,
+   "baseline_late": 1,
+   "baseline_late_share": 0.04,
+   "seller_id": "8b321bb669392f5163d04c59e235e066",
+   "window_completed": 13,
+   "window_late": 0,
+   "window_late_share": 0.0
+  },
+  {
+   "baseline_completed": 8,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "7c67e1448b00f6e969d365cea6b010ab",
+   "window_completed": 12,
+   "window_late": 0,
+   "window_late_share": 0.0
+  },
+  {
+   "baseline_completed": 21,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "6560211a19b47992c3666cc44a7e94c0",
+   "window_completed": 11,
+   "window_late": 0,
+   "window_late_share": 0.0
+  },
+  {
+   "baseline_completed": 27,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "4869f7a5dfa277a7dca6462dcf3b52b2",
+   "window_completed": 10,
+   "window_late": 0,
+   "window_late_share": 0.0
+  },
+  {
+   "baseline_completed": 14,
+   "baseline_late": 1,
+   "baseline_late_share": 0.0714,
+   "seller_id": "de722cd6dad950a92b7d4f82673f8833",
+   "window_completed": 9,
+   "window_late": 0,
+   "window_late_share": 0.0
+  },
+  {
+   "baseline_completed": 13,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "2eb70248d66e0e3ef83659f71b244378",
+   "window_completed": 8,
+   "window_late": 1,
+   "window_late_share": 0.125
+  },
+  {
+   "baseline_completed": 12,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "da8622b14eb17ae2831f4ac5b9dab84a",
+   "window_completed": 8,
+   "window_late": 1,
+   "window_late_share": 0.125
+  },
+  {
+   "baseline_completed": 55,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "7d13fca15225358621be4086e1eb0964",
+   "window_completed": 8,
+   "window_late": 3,
+   "window_late_share": 0.375
+  },
+  {
+   "baseline_completed": 23,
+   "baseline_late": 3,
+   "baseline_late_share": 0.1304,
+   "seller_id": "06a2c3af7b3aee5d69171b0e14f0ee87",
+   "window_completed": 7,
+   "window_late": 2,
+   "window_late_share": 0.2857
+  },
+  {
+   "baseline_completed": 10,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "f8db351d8c4c4c22c6835c19a46f01b0",
+   "window_completed": 7,
+   "window_late": 1,
+   "window_late_share": 0.1429
+  },
+  {
+   "baseline_completed": 4,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "9d4db00d65d7760644ac0c14edb5fd86",
+   "window_completed": 7,
+   "window_late": 0,
+   "window_late_share": 0.0
+  },
+  {
+   "baseline_completed": 1,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "8f119a0aee85c0c8fc534629734e94fd",
+   "window_completed": 6,
+   "window_late": 1,
+   "window_late_share": 0.1667
+  },
+  {
+   "baseline_completed": 7,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "1f50f920176fa81dab994f9023523100",
+   "window_completed": 6,
+   "window_late": 0,
+   "window_late_share": 0.0
+  },
+  {
+   "baseline_completed": 24,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "4a3ca9315b744ce9f8e9374361493884",
+   "window_completed": 6,
+   "window_late": 1,
+   "window_late_share": 0.1667
+  },
+  {
+   "baseline_completed": 3,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "2ff97219cb8622eaf3cd89b7d9c09824",
+   "window_completed": 6,
+   "window_late": 0,
+   "window_late_share": 0.0
+  },
+  {
+   "baseline_completed": 7,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "53e4c6e0f4312d4d2107a8c9cddf45cd",
+   "window_completed": 6,
+   "window_late": 0,
+   "window_late_share": 0.0
+  },
+  {
+   "baseline_completed": 5,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "0241d4d5d36f10f80c644447315af0bd",
+   "window_completed": 6,
+   "window_late": 0,
+   "window_late_share": 0.0
+  },
+  {
+   "baseline_completed": 4,
+   "baseline_late": 0,
+   "baseline_late_share": 0.0,
+   "seller_id": "ef0ace09169ac090589d85746e3e036f",
+   "window_completed": 5,
+   "window_late": 1,
+   "window_late_share": 0.2
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_stats AS (\n  SELECT\n    oi.seller_id,\n    COUNT(DISTINCT o.order_id) AS window_completed,\n    COUNT(DISTINCT CASE WHEN o.order_delivered_customer_date > o.order_estimated_delivery_date THEN o.order_id END) AS window_late\n  FROM orders.orders AS o\n  JOIN orders.order_items AS oi ON oi.order_id = o.order_id\n  WHERE o.order_status = 'delivered'\n    AND o.order_delivered_customer_date >= DATE '2018-05-28'\n    AND o.order_delivered_customer_date < DATE '2018-06-04'\n  GROUP BY oi.seller_id\n),\nbaseline_stats AS (\n  SELECT\n    oi.seller_id,\n    COUNT(DISTINCT o.order_id) AS baseline_completed,\n    COUNT(DISTINCT CASE WHEN o.order_delivered_customer_date > o.order_estimated_delivery_date THEN o.order_id END) AS baseline_late\n  FROM orders.orders AS o\n  JOIN orders.order_items AS oi ON oi.order_id = o.order_id\n  WHERE o.order_status = 'delivered'\n    AND o.order_delivered_customer_date >= DATE '2018-05-21'\n    AND o.order_delivered_customer_date < DATE '2018-05-28'\n  GROUP BY oi.seller_id\n),\ncombined AS (\n  SELECT\n    COALESCE(w.seller_id, b.seller_id) AS seller_id,\n    COALESCE(w.window_completed, 0) AS window_completed,\n    COALESCE(b.baseline_completed, 0) AS baseline_completed,\n    COALESCE(w.window_late, 0) AS window_late,\n    COALESCE(b.baseline_late, 0) AS baseline_late\n  FROM window_stats AS w\n  FULL OUTER JOIN baseline_stats AS b ON w.seller_id = b.seller_id\n)\nSELECT\n  seller_id,\n  window_completed,\n  baseline_completed,\n  window_late,\n  baseline_late,\n  ROUND(window_late::DOUBLE / NULLIF(window_completed, 0), 4) AS window_late_share,\n  ROUND(baseline_late::DOUBLE / NULLIF(baseline_completed, 0), 4) AS baseline_late_share\nFROM combined\nORDER BY window_completed DESC\nLIMIT 20;",
+ "truncated": false
+}

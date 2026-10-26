@@ -1,0 +1,20 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_n",
+  "baseline_n"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0307,
+   "baseline_n": 1434,
+   "value": 0.132,
+   "window_n": 606
+  }
+ ],
+ "source": null,
+ "sql": "WITH completed AS (\n  SELECT\n    o.order_id,\n    o.order_delivered_customer_date,\n    o.order_estimated_delivery_date\n  FROM orders.orders o\n  WHERE o.order_status = 'delivered'\n    AND o.order_delivered_customer_date IS NOT NULL\n    AND o.order_estimated_delivery_date IS NOT NULL\n),\nwindow_share AS (\n  SELECT\n    ROUND(CAST(SUM(CASE WHEN order_delivered_customer_date > order_estimated_delivery_date THEN 1 ELSE 0 END) AS DOUBLE) / COUNT(*), 4) AS value,\n    COUNT(*) AS n\n  FROM completed\n  WHERE order_delivered_customer_date >= DATE '2018-05-28'\n    AND order_delivered_customer_date < DATE '2018-06-04'\n),\nbaseline_share AS (\n  SELECT\n    ROUND(CAST(SUM(CASE WHEN order_delivered_customer_date > order_estimated_delivery_date THEN 1 ELSE 0 END) AS DOUBLE) / COUNT(*), 4) AS value,\n    COUNT(*) AS n\n  FROM completed\n  WHERE order_delivered_customer_date >= DATE '2018-05-21'\n    AND order_delivered_customer_date < DATE '2018-05-28'\n)\nSELECT\n  ws.value AS value,\n  bs.value AS baseline,\n  ws.n AS window_n,\n  bs.n AS baseline_n\nFROM window_share ws, baseline_share bs;",
+ "truncated": false
+}

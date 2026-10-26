@@ -1,0 +1,155 @@
+{
+ "columns": [
+  "seller_id",
+  "window_orders",
+  "baseline_avg_daily_orders",
+  "extra_orders",
+  "share_of_total_extra"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline_avg_daily_orders": 6.8,
+   "extra_orders": 68.2,
+   "seller_id": "1f50f920176fa81dab994f9023523100",
+   "share_of_total_extra": 0.0802,
+   "window_orders": 75
+  },
+  {
+   "baseline_avg_daily_orders": 7.5,
+   "extra_orders": 31.5,
+   "seller_id": "cc419e0650a3c5ba77189a1882b7556a",
+   "share_of_total_extra": 0.037,
+   "window_orders": 39
+  },
+  {
+   "baseline_avg_daily_orders": 2.5,
+   "extra_orders": 27.5,
+   "seller_id": "1025f0e2d44d7041d6cf58b6550e0bfa",
+   "share_of_total_extra": 0.0323,
+   "window_orders": 30
+  },
+  {
+   "baseline_avg_daily_orders": 3.75,
+   "extra_orders": 26.25,
+   "seller_id": "ea8482cd71df3c1969d7b9473ff13abc",
+   "share_of_total_extra": 0.0309,
+   "window_orders": 30
+  },
+  {
+   "baseline_avg_daily_orders": 3.5,
+   "extra_orders": 25.5,
+   "seller_id": "6560211a19b47992c3666cc44a7e94c0",
+   "share_of_total_extra": 0.03,
+   "window_orders": 29
+  },
+  {
+   "baseline_avg_daily_orders": 6.0,
+   "extra_orders": 25.0,
+   "seller_id": "4a3ca9315b744ce9f8e9374361493884",
+   "share_of_total_extra": 0.0294,
+   "window_orders": 31
+  },
+  {
+   "baseline_avg_daily_orders": 2.0,
+   "extra_orders": 24.0,
+   "seller_id": "8160255418d5aaa7dbdc9f4c64ebda44",
+   "share_of_total_extra": 0.0282,
+   "window_orders": 26
+  },
+  {
+   "baseline_avg_daily_orders": 2.75,
+   "extra_orders": 16.25,
+   "seller_id": "da8622b14eb17ae2831f4ac5b9dab84a",
+   "share_of_total_extra": 0.0191,
+   "window_orders": 19
+  },
+  {
+   "baseline_avg_daily_orders": 5.0,
+   "extra_orders": 13.0,
+   "seller_id": "46dc3b2cc0980fb8ec44634e21d2718e",
+   "share_of_total_extra": 0.0153,
+   "window_orders": 18
+  },
+  {
+   "baseline_avg_daily_orders": 2.6,
+   "extra_orders": 11.4,
+   "seller_id": "4869f7a5dfa277a7dca6462dcf3b52b2",
+   "share_of_total_extra": 0.0134,
+   "window_orders": 14
+  },
+  {
+   "baseline_avg_daily_orders": 1.3333,
+   "extra_orders": 10.6667,
+   "seller_id": "54965bbe3e4f07ae045b90b0b8541f52",
+   "share_of_total_extra": 0.0125,
+   "window_orders": 12
+  },
+  {
+   "baseline_avg_daily_orders": 1.5,
+   "extra_orders": 10.5,
+   "seller_id": "391fc6631aebcf3004804e51b40bcf1e",
+   "share_of_total_extra": 0.0123,
+   "window_orders": 12
+  },
+  {
+   "baseline_avg_daily_orders": 1.6667,
+   "extra_orders": 9.3333,
+   "seller_id": "53e4c6e0f4312d4d2107a8c9cddf45cd",
+   "share_of_total_extra": 0.011,
+   "window_orders": 11
+  },
+  {
+   "baseline_avg_daily_orders": 1.0,
+   "extra_orders": 9.0,
+   "seller_id": "891071be6ba827b591264c90c2ae8a63",
+   "share_of_total_extra": 0.0106,
+   "window_orders": 10
+  },
+  {
+   "baseline_avg_daily_orders": 1.0,
+   "extra_orders": 9.0,
+   "seller_id": "85d9eb9ddc5d00ca9336a2219c97bb13",
+   "share_of_total_extra": 0.0106,
+   "window_orders": 10
+  },
+  {
+   "baseline_avg_daily_orders": 2.25,
+   "extra_orders": 8.75,
+   "seller_id": "37515688008a7a40ac93e3b2e4ab203f",
+   "share_of_total_extra": 0.0103,
+   "window_orders": 11
+  },
+  {
+   "baseline_avg_daily_orders": 1.6667,
+   "extra_orders": 8.3333,
+   "seller_id": "620c87c171fb2a6dd6e8bb4dec959fc6",
+   "share_of_total_extra": 0.0098,
+   "window_orders": 10
+  },
+  {
+   "baseline_avg_daily_orders": 2.0,
+   "extra_orders": 8.0,
+   "seller_id": "a1043bafd471dff536d0c462352beb48",
+   "share_of_total_extra": 0.0094,
+   "window_orders": 10
+  },
+  {
+   "baseline_avg_daily_orders": 1.0,
+   "extra_orders": 8.0,
+   "seller_id": "7d76b645482be4a332374e8223836592",
+   "share_of_total_extra": 0.0094,
+   "window_orders": 9
+  },
+  {
+   "baseline_avg_daily_orders": 2.25,
+   "extra_orders": 7.75,
+   "seller_id": "17e34d8224d27a541263c4c64b11a56b",
+   "share_of_total_extra": 0.0091,
+   "window_orders": 10
+  }
+ ],
+ "source": null,
+ "sql": "WITH window_orders AS (\n  SELECT o.order_id, oi.seller_id\n  FROM orders.orders o\n  JOIN orders.order_items oi ON oi.order_id = o.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-24'\n    AND o.order_purchase_timestamp < DATE '2017-11-25'\n),\nwindow_seller AS (\n  SELECT seller_id, COUNT(DISTINCT order_id) AS window_orders\n  FROM window_orders\n  GROUP BY 1\n),\nbaseline_orders AS (\n  SELECT o.order_id, oi.seller_id, CAST(o.order_purchase_timestamp AS DATE) AS d\n  FROM orders.orders o\n  JOIN orders.order_items oi ON oi.order_id = o.order_id\n  WHERE o.order_purchase_timestamp >= DATE '2017-11-17'\n    AND o.order_purchase_timestamp < DATE '2017-11-24'\n),\nbaseline_seller_daily AS (\n  SELECT seller_id, d, COUNT(DISTINCT order_id) AS daily_orders\n  FROM baseline_orders\n  GROUP BY 1, 2\n),\nbaseline_seller_avg AS (\n  SELECT seller_id, AVG(daily_orders) AS avg_daily_orders\n  FROM baseline_seller_daily\n  GROUP BY 1\n),\nseller_compare AS (\n  SELECT\n    ws.seller_id,\n    ws.window_orders,\n    COALESCE(bsa.avg_daily_orders, 0) AS baseline_avg_daily_orders,\n    ws.window_orders - COALESCE(bsa.avg_daily_orders, 0) AS extra_orders\n  FROM window_seller ws\n  LEFT JOIN baseline_seller_avg bsa ON bsa.seller_id = ws.seller_id\n)\nSELECT\n  seller_id,\n  ROUND(window_orders, 4) AS window_orders,\n  ROUND(baseline_avg_daily_orders, 4) AS baseline_avg_daily_orders,\n  ROUND(extra_orders, 4) AS extra_orders,\n  ROUND(extra_orders / NULLIF(SUM(extra_orders) OVER (), 0), 4) AS share_of_total_extra\nFROM seller_compare\nORDER BY extra_orders DESC\nLIMIT 20;",
+ "truncated": false
+}

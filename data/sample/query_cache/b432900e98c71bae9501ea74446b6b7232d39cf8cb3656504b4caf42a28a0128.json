@@ -1,0 +1,28 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_total_payments",
+  "baseline_total_payments",
+  "window_boleto_payments",
+  "baseline_boleto_payments",
+  "window_total_per_day",
+  "baseline_total_per_day"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.2004,
+   "baseline_boleto_payments": 103,
+   "baseline_total_payments": 514,
+   "baseline_total_per_day": 18.36,
+   "value": 0.0997,
+   "window_boleto_payments": 77,
+   "window_total_payments": 772,
+   "window_total_per_day": 27.57
+  }
+ ],
+ "source": null,
+ "sql": "WITH mg AS (SELECT o.order_purchase_timestamp::DATE AS purchase_date, p.payment_type FROM payments.order_payments AS p JOIN orders.orders AS o ON o.order_id = p.order_id JOIN orders.customers AS c ON c.customer_id = o.customer_id WHERE c.customer_state = 'MG' AND o.order_purchase_timestamp >= DATE '2018-02-01' AND o.order_purchase_timestamp < DATE '2018-04-01'), periods AS (SELECT purchase_date, CASE WHEN purchase_date >= DATE '2018-03-01' THEN 'window' ELSE 'baseline' END AS period, COUNT(*) AS total_payments, COUNT(*) FILTER (WHERE payment_type = 'boleto') AS boleto_payments FROM mg GROUP BY purchase_date, period) SELECT ROUND(SUM(CASE WHEN period = 'window' THEN boleto_payments::DOUBLE END) / NULLIF(SUM(CASE WHEN period = 'window' THEN total_payments END), 0), 4) AS value, ROUND(SUM(CASE WHEN period = 'baseline' THEN boleto_payments::DOUBLE END) / NULLIF(SUM(CASE WHEN period = 'baseline' THEN total_payments END), 0), 4) AS baseline, SUM(CASE WHEN period = 'window' THEN total_payments END) AS window_total_payments, SUM(CASE WHEN period = 'baseline' THEN total_payments END) AS baseline_total_payments, SUM(CASE WHEN period = 'window' THEN boleto_payments END) AS window_boleto_payments, SUM(CASE WHEN period = 'baseline' THEN boleto_payments END) AS baseline_boleto_payments, ROUND(SUM(CASE WHEN period = 'window' THEN total_payments::DOUBLE END) / NULLIF(COUNT(DISTINCT CASE WHEN period = 'window' THEN purchase_date END), 0), 2) AS window_total_per_day, ROUND(SUM(CASE WHEN period = 'baseline' THEN total_payments::DOUBLE END) / NULLIF(COUNT(DISTINCT CASE WHEN period = 'baseline' THEN purchase_date END), 0), 2) AS baseline_total_per_day FROM periods;",
+ "truncated": false
+}

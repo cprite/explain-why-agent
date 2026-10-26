@@ -1,0 +1,22 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spread",
+  "n",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 136.5714,
+   "n": 1176,
+   "n_baseline": 956,
+   "spread": 116.4288,
+   "value": 1176
+  }
+ ],
+ "source": null,
+ "sql": "WITH baseline_daily AS (\n  SELECT\n    CAST(order_purchase_timestamp AS DATE) AS d,\n    COUNT(DISTINCT order_id) AS cnt\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-17'\n    AND order_purchase_timestamp < DATE '2017-11-24'\n  GROUP BY 1\n),\nbaseline_stats AS (\n  SELECT\n    AVG(cnt) AS baseline_avg,\n    stddev_pop(cnt) AS baseline_spread,\n    SUM(cnt) AS n_baseline\n  FROM baseline_daily\n),\nwindow_agg AS (\n  SELECT\n    COUNT(DISTINCT order_id) AS value,\n    COUNT(*) AS n\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-11-24'\n    AND order_purchase_timestamp < DATE '2017-11-25'\n)\nSELECT\n  wa.value,\n  ROUND(bs.baseline_avg, 4) AS baseline,\n  ROUND(bs.baseline_spread, 4) AS spread,\n  wa.n,\n  bs.n_baseline\nFROM window_agg wa, baseline_stats bs;",
+ "truncated": false
+}

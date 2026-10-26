@@ -1,0 +1,194 @@
+{
+ "columns": [
+  "product_id",
+  "value",
+  "baseline",
+  "share_change"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0341,
+   "product_id": "a62e25e09e05e6faf31d90c6ec1aa3d1",
+   "share_change": 0.0419,
+   "value": 0.076
+  },
+  {
+   "baseline": 0.0052,
+   "product_id": "a92930c327948861c015c919a0bcb4a8",
+   "share_change": 0.0343,
+   "value": 0.0395
+  },
+  {
+   "baseline": 0.0394,
+   "product_id": "e0d64dcfaa3b6db5c54ca298ae101d05",
+   "share_change": -0.0333,
+   "value": 0.0061
+  },
+  {
+   "baseline": 0.0157,
+   "product_id": "0a57f7d2c983bcf8188589a5fea4a8da",
+   "share_change": 0.0269,
+   "value": 0.0426
+  },
+  {
+   "baseline": 0.0315,
+   "product_id": "c5b72065154ec27c2d1ed8a654c3348f",
+   "share_change": -0.0254,
+   "value": 0.0061
+  },
+  {
+   "baseline": 0.0367,
+   "product_id": "461f43be3bdf8844e65b62d9ac2c7a5a",
+   "share_change": -0.0215,
+   "value": 0.0152
+  },
+  {
+   "baseline": 0.0472,
+   "product_id": "7a10781637204d8d10485c71a6108a2e",
+   "share_change": 0.0166,
+   "value": 0.0638
+  },
+  {
+   "baseline": 0.0236,
+   "product_id": "d285360f29ac7fd97640bf0baef03de0",
+   "share_change": -0.0145,
+   "value": 0.0091
+  },
+  {
+   "baseline": 0.0079,
+   "product_id": "3225c54bb2785c33f49f50398fcdb88c",
+   "share_change": 0.0134,
+   "value": 0.0213
+  },
+  {
+   "baseline": 0.0079,
+   "product_id": "f819f0c84a64f02d3a5606ca95edd272",
+   "share_change": 0.0103,
+   "value": 0.0182
+  },
+  {
+   "baseline": 0.0131,
+   "product_id": "202bd859659a841de892b00c341300ff",
+   "share_change": -0.0101,
+   "value": 0.003
+  },
+  {
+   "baseline": 0.0052,
+   "product_id": "d04e48982547095af81c231c3d581cb6",
+   "share_change": 0.01,
+   "value": 0.0152
+  },
+  {
+   "baseline": 0.0052,
+   "product_id": "2ffdf10e724b958c0f7ea69e97d32f64",
+   "share_change": 0.01,
+   "value": 0.0152
+  },
+  {
+   "baseline": 0.0157,
+   "product_id": "2136c70bbe723d338fab53da3c03e6dc",
+   "share_change": -0.0096,
+   "value": 0.0061
+  },
+  {
+   "baseline": 0.0157,
+   "product_id": "186fe07c8b8005ec6a498587ffbc1352",
+   "share_change": -0.0096,
+   "value": 0.0061
+  },
+  {
+   "baseline": 0.0105,
+   "product_id": "dc52f0f5d3ec37a93eaf956cde4e5d2c",
+   "share_change": 0.0077,
+   "value": 0.0182
+  },
+  {
+   "baseline": 0.0052,
+   "product_id": "e6d3e381889aa6e9d222ad50cb30ac43",
+   "share_change": 0.007,
+   "value": 0.0122
+  },
+  {
+   "baseline": 0.0026,
+   "product_id": "1600dcf1cea8c0c83702e07b577ab231",
+   "share_change": 0.0065,
+   "value": 0.0091
+  },
+  {
+   "baseline": 0.0026,
+   "product_id": "8bef2f3e34f2cc22c908921e6e9eebee",
+   "share_change": 0.0065,
+   "value": 0.0091
+  },
+  {
+   "baseline": 0.0026,
+   "product_id": "87cb507e0daa37bbf34956fd59eba832",
+   "share_change": 0.0065,
+   "value": 0.0091
+  },
+  {
+   "baseline": 0.0026,
+   "product_id": "6c50c87e36d8641d67fbcceed5cfec5e",
+   "share_change": 0.0065,
+   "value": 0.0091
+  },
+  {
+   "baseline": 0.0026,
+   "product_id": "a367f823feb49954fedb4f4a43ad9db2",
+   "share_change": 0.0065,
+   "value": 0.0091
+  },
+  {
+   "baseline": 0.0079,
+   "product_id": "7e6c4a0bf900e259f50ba63331fd2785",
+   "share_change": -0.0049,
+   "value": 0.003
+  },
+  {
+   "baseline": 0.0079,
+   "product_id": "17ad136b7421ea8690fded631b651158",
+   "share_change": -0.0049,
+   "value": 0.003
+  },
+  {
+   "baseline": 0.0079,
+   "product_id": "5c692818d313aa12864b48ac0c2472c2",
+   "share_change": -0.0049,
+   "value": 0.003
+  },
+  {
+   "baseline": 0.0026,
+   "product_id": "10335f29114548c89998eb43398f58e5",
+   "share_change": 0.0035,
+   "value": 0.0061
+  },
+  {
+   "baseline": 0.0026,
+   "product_id": "5403528d987ad26e8d7cb25940411987",
+   "share_change": 0.0035,
+   "value": 0.0061
+  },
+  {
+   "baseline": 0.0026,
+   "product_id": "4b6b3a7072d549354c3743dedbf4170a",
+   "share_change": 0.0035,
+   "value": 0.0061
+  },
+  {
+   "baseline": 0.0026,
+   "product_id": "e2bb00220a167d9e60b6776ac33717bc",
+   "share_change": 0.0035,
+   "value": 0.0061
+  },
+  {
+   "baseline": 0.0026,
+   "product_id": "103cc8c441a717d9a54fca312ae8ec3c",
+   "share_change": 0.0035,
+   "value": 0.0061
+  }
+ ],
+ "source": null,
+ "sql": "WITH filtered AS (\n  SELECT r.review_id,\n         p.product_id,\n         CASE\n           WHEN r.review_creation_date >= DATE '2018-01-01' AND r.review_creation_date < DATE '2018-02-01' THEN 'window'\n           WHEN r.review_creation_date >= DATE '2017-12-01' AND r.review_creation_date < DATE '2018-01-01' THEN 'baseline'\n         END AS period\n  FROM reviews.order_reviews AS r\n  JOIN orders.order_items AS oi ON oi.order_id = r.order_id\n  JOIN orders.products AS p ON p.product_id = oi.product_id\n  WHERE p.product_category_name = 'relogios_presentes'\n    AND r.review_creation_date IS NOT NULL\n    AND (\n      (r.review_creation_date >= DATE '2018-01-01' AND r.review_creation_date < DATE '2018-02-01')\n      OR (r.review_creation_date >= DATE '2017-12-01' AND r.review_creation_date < DATE '2018-01-01')\n    )\n),\nproduct_counts AS (\n  SELECT product_id,\n         period,\n         COUNT(*) AS cnt\n  FROM filtered\n  GROUP BY product_id, period\n),\nperiod_totals AS (\n  SELECT period,\n         COUNT(*) AS total_cnt\n  FROM filtered\n  GROUP BY period\n),\nshares AS (\n  SELECT fc.product_id,\n         fc.period,\n         ROUND(fc.cnt::DOUBLE / pt.total_cnt, 4) AS share\n  FROM product_counts fc\n  JOIN period_totals pt ON pt.period = fc.period\n)\nSELECT product_id,\n       MAX(CASE WHEN period = 'window' THEN share END) AS value,\n       MAX(CASE WHEN period = 'baseline' THEN share END) AS baseline,\n       ROUND(MAX(CASE WHEN period = 'window' THEN share END) - MAX(CASE WHEN period = 'baseline' THEN share END), 4) AS share_change\nFROM shares\nGROUP BY product_id\nORDER BY ABS(share_change) DESC\nLIMIT 30;",
+ "truncated": false
+}

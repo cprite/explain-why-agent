@@ -1,0 +1,22 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "spread",
+  "n",
+  "n_baseline"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 113,
+   "n": 111,
+   "n_baseline": 113,
+   "spread": null,
+   "value": 111
+  }
+ ],
+ "source": null,
+ "sql": "WITH daily AS (\n  SELECT\n    CAST(order_purchase_timestamp AS DATE) AS d,\n    COUNT(*) AS cnt\n  FROM orders.orders\n  WHERE order_purchase_timestamp >= DATE '2017-09-20'\n    AND order_purchase_timestamp < DATE '2017-09-22'\n  GROUP BY 1\n),\nwindow_stats AS (\n  SELECT cnt AS value, cnt AS n\n  FROM daily\n  WHERE d = DATE '2017-09-21'\n),\nbaseline_stats AS (\n  SELECT cnt AS baseline, cnt AS n_baseline\n  FROM daily\n  WHERE d = DATE '2017-09-20'\n),\nspread_calc AS (\n  SELECT\n    CASE WHEN COUNT(*) >= 2 THEN STDDEV(cnt) ELSE NULL END AS spread\n  FROM daily\n  WHERE d >= DATE '2017-09-20' AND d < DATE '2017-09-21'\n)\nSELECT\n  ROUND(w.value, 4) AS value,\n  ROUND(b.baseline, 4) AS baseline,\n  ROUND(s.spread, 4) AS spread,\n  w.n,\n  b.n_baseline\nFROM window_stats w, baseline_stats b, spread_calc s;",
+ "truncated": false
+}

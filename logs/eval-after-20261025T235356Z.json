@@ -1,0 +1,335 @@
+{
+  "timestamp": "20261025T235356Z",
+  "sample_mode": true,
+  "loop": "markovian",
+  "label": "after",
+  "model_routes": [
+    "meterless:nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+    "meterless:nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b"
+  ],
+  "question_timeout_seconds": 600,
+  "total_timeout_seconds": 3600,
+  "run_time_seconds": 31.19,
+  "found": 5,
+  "total": 10,
+  "answered": 10,
+  "no_cache": 0,
+  "errors": 0,
+  "score_line": "Score: 5/10 (answered 10, no_cache 0, errors 0)",
+  "cause_type_not_in_vocabulary": {
+    "incident-04": [
+      "freight_cost"
+    ]
+  },
+  "incidents": [
+    {
+      "id": "incident-01",
+      "status": "found",
+      "found": true,
+      "checks": {
+        "cause_type": {
+          "pass": true,
+          "reason": "rank-1 volume; causes ['volume'] cover ['volume']"
+        },
+        "segment": {
+          "pass": true,
+          "reason": "matches: 'all' vs national 'all sellers'"
+        },
+        "window": {
+          "pass": true,
+          "reason": "overlaps: 2017-11-24..2017-11-24 (end 2017-11-25 exclusive) vs key 2017-11-24..2017-11-25"
+        },
+        "wrong_explanation": {
+          "pass": true,
+          "reason": "data_artefact ruled out"
+        }
+      },
+      "error": null,
+      "run_time_seconds": 2.725,
+      "tokens": 344621,
+      "trace_file": "logs/trace-eval-20261025T235356Z-incident-01.jsonl",
+      "query_log": "logs/queries-eval-20261025T235356Z-incident-01.jsonl",
+      "model_routes": [
+        "meterless:nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+        "meterless:nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b"
+      ],
+      "run_id": "eval-20261025T235356Z-incident-01"
+    },
+    {
+      "id": "incident-02",
+      "status": "found",
+      "found": true,
+      "checks": {
+        "cause_type": {
+          "pass": true,
+          "reason": "rank-1 logistics_delay; causes ['logistics_delay'] cover ['logistics_delay']"
+        },
+        "segment": {
+          "pass": true,
+          "reason": "matches: 'all' vs national 'multiple states and sellers'"
+        },
+        "window": {
+          "pass": true,
+          "reason": "overlaps: 2018-05-28..2018-06-03 (end 2018-06-04 exclusive) vs key 2018-05-28..2018-06-04"
+        },
+        "wrong_explanation": {
+          "pass": true,
+          "reason": "single_seller ruled out"
+        }
+      },
+      "error": null,
+      "run_time_seconds": 3.135,
+      "tokens": 545237,
+      "trace_file": "logs/trace-eval-20261025T235356Z-incident-02.jsonl",
+      "query_log": "logs/queries-eval-20261025T235356Z-incident-02.jsonl",
+      "model_routes": [
+        "meterless:nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+        "meterless:nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b"
+      ],
+      "run_id": "eval-20261025T235356Z-incident-02"
+    },
+    {
+      "id": "incident-03",
+      "status": "not_found",
+      "found": false,
+      "checks": {
+        "cause_type": {
+          "pass": false,
+          "reason": "result asserts no cause"
+        },
+        "segment": {
+          "pass": true,
+          "reason": "matches: 'seller f8db351d8c4c4c22c6835c19a46f01b0' vs seller 'f8db351d8c4c4c22c6835c19a46f01b0'"
+        },
+        "window": {
+          "pass": true,
+          "reason": "overlaps: 2018-01-10..2018-01-19 (end 2018-01-20 exclusive) vs key 2018-01-08..2018-01-21"
+        },
+        "wrong_explanation": {
+          "pass": true,
+          "reason": "volume ruled out"
+        }
+      },
+      "error": null,
+      "run_time_seconds": 2.849,
+      "tokens": 120800,
+      "trace_file": "logs/trace-eval-20261025T235356Z-incident-03.jsonl",
+      "query_log": "logs/queries-eval-20261025T235356Z-incident-03.jsonl",
+      "model_routes": [
+        "meterless:nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+        "meterless:nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b"
+      ],
+      "run_id": "eval-20261025T235356Z-incident-03"
+    },
+    {
+      "id": "incident-04",
+      "status": "not_found",
+      "found": false,
+      "checks": {
+        "cause_type": {
+          "pass": false,
+          "reason": "result asserts no cause; cause_type_not_in_vocabulary: freight_cost"
+        },
+        "segment": {
+          "pass": false,
+          "reason": "result has no segment"
+        },
+        "window": {
+          "pass": false,
+          "reason": "result has no change (window)"
+        },
+        "wrong_explanation": {
+          "pass": true,
+          "reason": "mix_shift ruled out"
+        }
+      },
+      "error": null,
+      "cause_type_not_in_vocabulary": [
+        "freight_cost"
+      ],
+      "run_time_seconds": 3.665,
+      "tokens": 629710,
+      "trace_file": "logs/trace-eval-20261025T235356Z-incident-04.jsonl",
+      "query_log": "logs/queries-eval-20261025T235356Z-incident-04.jsonl",
+      "model_routes": [
+        "meterless:nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+        "meterless:nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b"
+      ],
+      "run_id": "eval-20261025T235356Z-incident-04"
+    },
+    {
+      "id": "incident-05",
+      "status": "found",
+      "found": true,
+      "checks": {
+        "cause_type": {
+          "pass": true,
+          "reason": "rank-1 mix_shift; causes ['mix_shift'] cover ['mix_shift']"
+        },
+        "segment": {
+          "pass": true,
+          "reason": "matches: \"Minas Gerais customers (customer_state = 'MG')\" vs state 'MG'"
+        },
+        "window": {
+          "pass": true,
+          "reason": "overlaps: 2018-03-01..2018-03-31 (end 2018-04-01 exclusive) vs key 2018-03-05..2018-03-25"
+        },
+        "wrong_explanation": {
+          "pass": false,
+          "reason": "volume not in ruled_out ['data_artefact', 'single_seller']"
+        }
+      },
+      "error": null,
+      "run_time_seconds": 3.213,
+      "tokens": 487239,
+      "trace_file": "logs/trace-eval-20261025T235356Z-incident-05.jsonl",
+      "query_log": "logs/queries-eval-20261025T235356Z-incident-05.jsonl",
+      "model_routes": [
+        "meterless:nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+        "meterless:nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b"
+      ],
+      "run_id": "eval-20261025T235356Z-incident-05"
+    },
+    {
+      "id": "incident-06",
+      "status": "not_found",
+      "found": false,
+      "checks": {
+        "cause_type": {
+          "pass": false,
+          "reason": "result asserts no cause"
+        },
+        "segment": {
+          "pass": true,
+          "reason": "matches: 'relogios_presentes' vs category 'relogios_presentes'"
+        },
+        "window": {
+          "pass": true,
+          "reason": "overlaps: 2018-01-01..2018-01-31 (end 2018-02-01 exclusive) vs key 2018-01-01..2018-01-31"
+        },
+        "wrong_explanation": {
+          "pass": false,
+          "reason": "logistics_delay not in ruled_out ['data_artefact', 'mix_shift']"
+        }
+      },
+      "error": null,
+      "run_time_seconds": 3.327,
+      "tokens": 554650,
+      "trace_file": "logs/trace-eval-20261025T235356Z-incident-06.jsonl",
+      "query_log": "logs/queries-eval-20261025T235356Z-incident-06.jsonl",
+      "model_routes": [
+        "meterless:nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+        "meterless:nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b"
+      ],
+      "run_id": "eval-20261025T235356Z-incident-06"
+    },
+    {
+      "id": "incident-07",
+      "status": "not_found",
+      "found": false,
+      "checks": {
+        "cause_type": {
+          "pass": false,
+          "reason": "result asserts no cause"
+        },
+        "segment": {
+          "pass": true,
+          "reason": "matches: \"Sellers acquired via paid_search in March 2018 (marketing_qualified_leads.origin = 'paid_search' with won_date in March 2018, joined to closed_deals to obtain seller_id).\" vs marketing_cohort 'sellers closed via paid_search in 2018-03'"
+        },
+        "window": {
+          "pass": false,
+          "reason": "no overlap: 2018-03-01..2018-03-31 (end 2018-04-01 exclusive) vs key 2018-04-01..2018-05-31"
+        },
+        "wrong_explanation": {
+          "pass": false,
+          "reason": "volume not in ruled_out []"
+        }
+      },
+      "error": null,
+      "run_time_seconds": 2.987,
+      "tokens": 112729,
+      "trace_file": "logs/trace-eval-20261025T235356Z-incident-07.jsonl",
+      "query_log": "logs/queries-eval-20261025T235356Z-incident-07.jsonl",
+      "model_routes": [
+        "meterless:nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+        "meterless:nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b"
+      ],
+      "run_id": "eval-20261025T235356Z-incident-07"
+    },
+    {
+      "id": "incident-08",
+      "status": "not_found",
+      "found": false,
+      "checks": {
+        "cause_type": {
+          "pass": false,
+          "reason": "rank-1 price_discount ok but ['volume'] missing from causes ['price_discount']"
+        },
+        "segment": {
+          "pass": false,
+          "reason": "result has no segment"
+        },
+        "window": {
+          "pass": false,
+          "reason": "result has no change (window)"
+        },
+        "wrong_explanation": {
+          "pass": true,
+          "reason": "single_seller ruled out"
+        }
+      },
+      "error": null,
+      "run_time_seconds": 3.221,
+      "tokens": 370121,
+      "trace_file": "logs/trace-eval-20261025T235356Z-incident-08.jsonl",
+      "query_log": "logs/queries-eval-20261025T235356Z-incident-08.jsonl",
+      "model_routes": [
+        "meterless:nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+        "meterless:nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b"
+      ],
+      "run_id": "eval-20261025T235356Z-incident-08"
+    },
+    {
+      "id": "incident-09",
+      "status": "found",
+      "found": true,
+      "checks": {
+        "undeterminable": {
+          "pass": true,
+          "reason": "determinable false, no cause asserted"
+        }
+      },
+      "error": null,
+      "run_time_seconds": 2.323,
+      "tokens": 80939,
+      "trace_file": "logs/trace-eval-20261025T235356Z-incident-09.jsonl",
+      "query_log": "logs/queries-eval-20261025T235356Z-incident-09.jsonl",
+      "model_routes": [
+        "meterless:nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+        "meterless:nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b"
+      ],
+      "run_id": "eval-20261025T235356Z-incident-09"
+    },
+    {
+      "id": "incident-10",
+      "status": "found",
+      "found": true,
+      "checks": {
+        "undeterminable": {
+          "pass": true,
+          "reason": "determinable false, no cause asserted"
+        }
+      },
+      "error": null,
+      "run_time_seconds": 3.715,
+      "tokens": 578053,
+      "trace_file": "logs/trace-eval-20261025T235356Z-incident-10.jsonl",
+      "query_log": "logs/queries-eval-20261025T235356Z-incident-10.jsonl",
+      "model_routes": [
+        "meterless:nvidia/nvidia/nemotron-3.5-lightning-30b-a3b",
+        "meterless:nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b"
+      ],
+      "run_id": "eval-20261025T235356Z-incident-10"
+    }
+  ]
+}

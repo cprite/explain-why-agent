@@ -1,0 +1,27 @@
+{
+  "key": "2816f852eccb2b4688c0f2586a192c078c597ebb4662a0e4e471f6f1d8135bf0",
+  "role": "investigator",
+  "schema": "ObservationDraft",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are the Investigator. You ran a query to test a hypothesis (or the change check). Read the rows\nin the INPUT and record what they show.\n\n- `finding`: one sentence with the actual numbers from the rows, the window and the baseline.\n- `value` and `baseline`: the measure in the window and in the baseline, copied from the rows.\n- `effect`: value / baseline - 1 when both exist, otherwise empty.\n- `supports`: true if the rows support the hypothesis, false if they refute it, empty if they cannot\n  tell. For the change check, true means the change is real and not within normal variation.\n\nReport only what the rows show. Do not add numbers that are not in the rows."
+    },
+    {
+      "role": "user",
+      "content": "INPUT:\n{\"columns\":[\"value\",\"baseline\",\"window_avg_payment_per_order\",\"baseline_avg_payment_per_order_per_day\",\"window_items\",\"baseline_items_per_day\"],\"plan\":{\"baseline_window\":{\"end\":\"2017-11-24\",\"start\":\"2017-11-17\"},\"metric\":\"Daily count of distinct orders (order_id) measured by order_purchase_timestamp\",\"question\":\"Why did order volume spike on 24 November 2017?\",\"segment\":\"all\",\"window\":{\"end\":\"2017-11-25\",\"start\":\"2017-11-24\"}},\"rows\":[{\"baseline\":19.3604,\"baseline_avg_payment_per_order_per_day\":26.3754,\"baseline_items_per_day\":158.857,\"value\":111.752,\"window_avg_payment_per_order\":152.381,\"window_items\":1366}],\"rows_returned\":1,\"sql\":\"WITH window_orders AS (\\n  SELECT order_id\\n  FROM orders.orders\\n  WHERE order_purchase_timestamp >= DATE '2017-11-24'\\n    AND order_purchase_timestamp < DATE '2017-11-25'\\n),\\nbaseline_orders AS (\\n  SELECT order_id\\n  FROM orders.orders\\n  WHERE order_purchase_timestamp >= DATE '2017-11-17'\\n    AND order_purchase_timestamp < DATE '2017-11-24'\\n),\\nwindow_item_stats AS (\\n  SELECT AVG(oi.price) AS avg_price, COUNT(*) AS n_items\\n  FROM window_orders wo\\n  JOIN orders.order_items oi ON oi.order_id = wo.order_id\\n),\\nbaseline_item_stats AS (\\n  SELECT AVG(oi.price) AS avg_price, COUNT(*) AS n_items\\n  FROM baseline_orders bo\\n  JOIN orders.order_items oi ON oi.order_id = bo.order_id\\n),\\nwindow_payment_stats AS (\\n  SELECT AVG(order_payment) AS avg_payment\\n  FROM (\\n    SELECT wo.order_id, SUM(op.payment_value) AS order_payment\\n    FROM window_orders wo\\n    JOIN payments.order_payments op ON op.order_id = wo.order_id\\n    GROUP BY wo.order_id\\n  ) p\\n),\\nbaseline_payment_stats AS (\\n  SELECT AVG(order_payment) AS avg_payment\\n  FROM (\\n    SELECT bo.order_id, SUM(op.payment_value) AS order_payment\\n    FROM baseline_orders bo\\n    JOIN payments.order_payments op ON op.order_id = bo.order_id\\n    GROUP BY bo.order_id\\n  ) p\\n)\\nSELECT\\n  ROUND(wis.avg_price, 4) AS value,\\n  ROUND(bis.avg_price / 7, 4) AS baseline,\\n  ROUND(wps.avg_payment, 4) AS window_avg_payment_per_order,\\n  ROUND(bps.avg_payment / 7, 4) AS baseline_avg_payment_per_order_per_day,\\n  wis.n_items AS window_items,\\n  bis.n_items / 7.0 AS baseline_items_per_day\\nFROM window_item_stats wis, baseline_item_stats bis, window_payment_stats wps, baseline_payment_stats bps;\",\"task\":{\"family\":\"price_discount\",\"id\":\"H4\",\"kind\":\"hypothesis\",\"statement\":\"Lower prices or discounts on 24 Nov encouraged more customers to place orders, driving the volume spike.\",\"test\":{\"description\":\"Compare average price per order item and average payment value per order on 24 Nov versus the baseline daily average.\",\"sources\":[\"orders.orders\",\"orders.order_items\",\"payments.order_payments\"]}},\"truncated\":false}"
+    }
+  ],
+  "reply": "{\"finding\":\"On 24 November 2017, the average price per order item was 111.752 compared with a baseline daily average of 19.3604 over 17–23 November 2017, while average payment per order rose to 152.381 from 26.3754 per day.\",\"value\":111.752,\"baseline\":19.3604,\"effect\":4.7722,\"supports\":false}",
+  "provider": "meterless",
+  "model_requested": "meterless/fast",
+  "model_routed": "nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b",
+  "receipt_id": "rcpt_req_ymyrp4zy",
+  "usage": {
+    "prompt_tokens": 3814,
+    "completion_tokens": 4155,
+    "total_tokens": 7969
+  },
+  "recorded_with": "meterless",
+  "recorded_at": "2026-10-25T22:56:16.195540+00:00"
+}

@@ -1,0 +1,27 @@
+{
+  "key": "c41fdd1a6e11d1ce5ecad6229ba1b9eb64aa4e906b6efa6595c16de541dbe4c4",
+  "role": "investigator",
+  "schema": "ObservationDraft",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are the Investigator. You ran a query to test a hypothesis (or the change check). Read the rows\nin the INPUT and record what they show.\n\n- `finding`: one sentence with the actual numbers from the rows, the window and the baseline.\n- `value` and `baseline`: the measure in the window and in the baseline, copied from the rows.\n- `effect`: value / baseline - 1 when both exist, otherwise empty.\n- `supports`: true if the rows support the hypothesis, false if they refute it, empty if they cannot\n  tell. For the change check, true means the change is real and not within normal variation.\n\nReport only what the rows show. Do not add numbers that are not in the rows."
+    },
+    {
+      "role": "user",
+      "content": "INPUT:\n{\"columns\":[\"value\",\"baseline\"],\"plan\":{\"baseline_window\":{\"end\":\"2017-08-01\",\"start\":\"2017-07-01\"},\"metric\":\"Average order value: SUM(payment_value) per order (payments.order_payments grouped by order_id) averaged across all orders, measured over orders.order_purchase_timestamp.\",\"question\":\"Why has average order value been declining since August 2017?\",\"segment\":\"all\",\"window\":{\"end\":\"2017-09-01\",\"start\":\"2017-08-01\"}},\"rows\":[{\"baseline\":109.699,\"value\":142.692}],\"rows_returned\":1,\"sql\":\"WITH order_values AS (\\n  SELECT\\n    o.order_id,\\n    CAST(o.order_purchase_timestamp AS DATE) AS order_date,\\n    SUM(p.payment_value) AS order_value\\n  FROM orders.orders o\\n  JOIN payments.order_payments p ON p.order_id = o.order_id\\n  WHERE o.order_purchase_timestamp >= DATE '2017-07-01'\\n    AND o.order_purchase_timestamp < DATE '2017-09-01'\\n  GROUP BY o.order_id, CAST(o.order_purchase_timestamp AS DATE)\\n)\\nSELECT\\n  ROUND(AVG(CASE WHEN order_date >= DATE '2017-08-01' THEN order_value END)::DOUBLE, 4) AS value,\\n  ROUND(AVG(CASE WHEN order_date >= DATE '2017-07-01' AND order_date < DATE '2017-08-01' THEN order_value END)::DOUBLE, 4) AS baseline\\nFROM order_values;\",\"task\":{\"family\":\"volume\",\"id\":\"H5\",\"kind\":\"hypothesis\",\"statement\":\"Average order value may have declined in periods after September 2017 due to changing order volume or customer base.\",\"test\":{\"description\":\"Follow-up requested by the Critic: Measure price‑discount flag proportion on orders in the August and September–October windows.\",\"sources\":[\"orders+payments\"]}},\"truncated\":false}"
+    }
+  ],
+  "reply": "{\"finding\":\"Average order value was 142.692 in the August 2017 window and 109.699 in the July 2017 baseline.\",\"value\":142.692,\"baseline\":109.699,\"effect\":0.300759,\"supports\":false}",
+  "provider": "meterless",
+  "model_requested": "meterless/fast",
+  "model_routed": "nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b",
+  "receipt_id": "rcpt_req_5ylv0i0d",
+  "usage": {
+    "prompt_tokens": 3232,
+    "completion_tokens": 6147,
+    "total_tokens": 9379
+  },
+  "recorded_with": "meterless",
+  "recorded_at": "2026-10-25T20:21:36.718850+00:00"
+}

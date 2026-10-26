@@ -1,0 +1,20 @@
+{
+ "columns": [
+  "value",
+  "baseline",
+  "window_completed",
+  "baseline_completed"
+ ],
+ "limit": null,
+ "rows": [
+  {
+   "baseline": 0.0251,
+   "baseline_completed": 1434,
+   "value": 0.1007,
+   "window_completed": 606
+  }
+ ],
+ "source": null,
+ "sql": "WITH delivered AS (\n  SELECT\n    CASE\n      WHEN CAST(o.order_delivered_customer_date AS DATE) >= DATE '2018-05-28' AND CAST(o.order_delivered_customer_date AS DATE) < DATE '2018-06-04' THEN 'window'\n      WHEN CAST(o.order_delivered_customer_date AS DATE) >= DATE '2018-05-21' AND CAST(o.order_delivered_customer_date AS DATE) < DATE '2018-05-28' THEN 'baseline'\n    END AS period,\n    CASE WHEN CAST(o.order_delivered_customer_date AS DATE) > o.order_estimated_delivery_date THEN 1 ELSE 0 END AS is_late\n  FROM orders.orders o\n  WHERE o.order_status = 'delivered'\n    AND o.order_delivered_customer_date IS NOT NULL\n    AND o.order_estimated_delivery_date IS NOT NULL\n    AND (CAST(o.order_delivered_customer_date AS DATE) >= DATE '2018-05-21'\n      AND CAST(o.order_delivered_customer_date AS DATE) < DATE '2018-06-04')\n),\nagg AS (\n  SELECT\n    period,\n    COUNT(*) AS completed,\n    SUM(is_late) AS late_count,\n    ROUND(CAST(SUM(is_late) AS DOUBLE) / NULLIF(COUNT(*), 0), 4) AS late_share\n  FROM delivered\n  GROUP BY period\n)\nSELECT\n  MAX(CASE WHEN period = 'window' THEN late_share END) AS value,\n  MAX(CASE WHEN period = 'baseline' THEN late_share END) AS baseline,\n  MAX(CASE WHEN period = 'window' THEN completed END) AS window_completed,\n  MAX(CASE WHEN period = 'baseline' THEN completed END) AS baseline_completed\nFROM agg;",
+ "truncated": false
+}
