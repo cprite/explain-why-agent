@@ -107,10 +107,15 @@ const EW = (() => {
 
   function renderCause(cause) {
     const evidence = cause.evidence || [];
-    return el("li", { className: "cause" }, [
+    const pct = Math.round(Number(cause.confidence) * 100);
+    return el("li", { className: cause.rank === 1 ? "cause top" : "cause" }, [
       el("div", { className: "cause-head" }, [
+        el("span", { className: "ring", attrs: { style: `--p:${Number.isFinite(pct) ? pct : 0}`, "aria-hidden": "true" } }, [
+          el("span", { text: Number.isFinite(pct) ? `${pct}` : "?" }),
+        ]),
+        el("span", { className: "cause-rank", text: `#${cause.rank}` }),
         el("span", { className: "cause-type", text: cause.type }),
-        el("span", { className: "confidence", text: `confidence ${Math.round(Number(cause.confidence) * 100)}%` }),
+        el("span", { className: "confidence", text: `confidence ${pct}%` }),
       ]),
       el("p", { className: "cause-summary", text: cause.summary }),
       el("p", { className: "label", text: `Evidence (${evidence.length})` }),
@@ -128,7 +133,17 @@ const EW = (() => {
       const significant = c.significant === true ? "yes" : c.significant === false ? "no" : "not checked";
       const rows = [["Metric", c.metric], ["Segment", c.segment], ["Window", c.window],
         ["Baseline", fmt(c.baseline)], ["Observed", fmt(c.observed)], ["Significant", significant]];
-      root.appendChild(section("The change", "change", [
+      const base = Number(c.baseline);
+      const obs = Number(c.observed);
+      const rel = base && Number.isFinite(base) && Number.isFinite(obs) ? (obs - base) / Math.abs(base) : null;
+      const dir = rel === null ? "" : rel >= 0 ? " rise" : " fall";
+      root.appendChild(section("The change", `change${dir}`, [
+        el("div", { className: "headline" }, [
+          el("span", { className: "from", text: fmt(c.baseline) }),
+          el("span", { className: "arrow", text: "→" }),
+          el("span", { className: "to", text: fmt(c.observed) }),
+          rel === null ? null : el("span", { className: "pct", text: signed(`${Math.round(Math.abs(rel) * 100)}%`, rel) }),
+        ]),
         el("dl", {}, rows.flatMap(([k, v]) => [el("dt", { text: k }), el("dd", { text: v })])),
       ]));
     }
@@ -150,7 +165,7 @@ const EW = (() => {
     const ruled = result.ruled_out || [];
     root.appendChild(section("Ruled out", "ruled-out", [
       ruled.length
-        ? el("ul", {}, ruled.map((r) => el("li", {}, [
+        ? el("ul", {}, ruled.map((r) => el("li", { className: "ruled" }, [
           el("span", { className: "ruled-type", text: r.type }),
           el("span", { text: `: ${r.why}` }),
           r.evidence && r.evidence.length ? el("span", { className: "query-ids", text: ` (queries ${r.evidence.join(", ")})` }) : null,
@@ -188,6 +203,10 @@ const EW = (() => {
   const HYP_RE = /(H\d+)\s+([a-z_]+):\s*([^"…]*)/g;
 
   function agentName(raw) { return AGENT_NAMES[raw] || raw || ""; }
+
+  function agentTag(name) {
+    return el("span", { className: `ag ag-${String(name).toLowerCase().replace(/[^a-z]+/g, "-")}`, text: name });
+  }
 
   function clip(text, n) {
     const s = String(text === null || text === undefined ? "" : text).replace(/\s+/g, " ").trim();
@@ -335,7 +354,7 @@ const EW = (() => {
           active = "Investigator";
           break;
         case "chunk":
-          step(null, null, `Step ${e.chunk}/${e.max_chunks}${e.rounds_left !== undefined ? ` · ${e.rounds_left} rounds left` : ""}`,
+          step(null, null, `Step ${e.chunk}/${e.max_chunks}${e.rounds_left !== undefined ? ` · ${e.rounds_left} ${Number(e.rounds_left) === 1 ? "round" : "rounds"} left` : ""}`,
                { kind: "divider" });
           active = to || active;
           break;
@@ -380,12 +399,12 @@ const EW = (() => {
     TEAM.forEach((name, i) => {
       if (i) team.appendChild(el("span", { className: "team-arrow", text: "→" }));
       const state = view.active === name ? " active" : view.seen.has(name) ? " seen" : "";
-      team.appendChild(el("span", { className: `agent${state}`, text: name }));
+      team.appendChild(el("span", { className: `agent ag-${name.toLowerCase().replace(/[^a-z]+/g, "-")}${state}`, text: name }));
     });
     const root = el("div", { className: "live-body" }, [team]);
     if (view.active && !view.finished) {
       const since = o.now && view.lastAt ? ` ${duration(o.now - view.lastAt)}` : "";
-      root.appendChild(el("p", { className: "thinking" }, [
+      root.appendChild(el("p", { className: `thinking ag-${view.active.toLowerCase().replace(/[^a-z]+/g, "-")}` }, [
         el("span", { className: "dot" }),
         el("span", { text: `${view.active} is working…` }),
         el("span", { className: "clock", text: since }),
@@ -399,10 +418,13 @@ const EW = (() => {
         el("span", { className: "hyp-state", text: VERDICT_MARK[h.state] || h.state }),
       ]))));
     }
-    const feed = el("ol", { className: "feed" }, view.steps.map((s) => {
-      const who = s.from && s.to ? `${s.from} → ${s.to}` : s.kind === "divider" ? "" : s.from || "";
-      const item = el("li", { className: `step ${s.kind || "note"} ${s.tone}` }, [
-        who ? el("span", { className: "who", text: who }) : null,
+    const fresh = Number.isInteger(o.fresh) ? o.fresh : 0; // steps from this index on are new: they slide in
+    const feed = el("ol", { className: "feed" }, view.steps.map((s, i) => {
+      const who = s.kind === "divider" || !s.from ? null
+        : el("span", { className: "who" }, s.to ? [agentTag(s.from), el("span", { className: "to", text: " → " }), agentTag(s.to)]
+          : [agentTag(s.from)]);
+      const item = el("li", { className: `step ${s.kind || "note"} ${s.tone}${i >= fresh ? " new" : ""}` }, [
+        who,
         el("span", { className: "what", text: s.text }),
       ]);
       if (s.code) item.appendChild(el("details", {}, [el("summary", { text: "SQL" }), el("pre", { text: s.code })]));
@@ -480,10 +502,13 @@ const EW = (() => {
 
     // The live view: redrawn when the trace grows; the "working" clock ticks on its own so an open
     // SQL box is not closed every second.
+    let drawnSteps = 0;
     function drawLive(events, done) {
       const view = readTrace(events);
+      const fresh = view.steps.length >= drawnSteps ? drawnSteps : 0;
+      drawnSteps = view.steps.length;
       const children = [el("h2", { text: done ? "How the agents worked it out" : "Agents at work" }),
-        renderLive(view, { now: done ? null : Date.now() })];
+        renderLive(view, { now: done ? null : Date.now(), fresh: done ? view.steps.length : fresh })];
       if (done && events.length) {
         const replay = el("button", { className: "replay", text: "Replay step by step", attrs: { type: "button" } });
         replay.addEventListener("click", () => replayTrace(events));
@@ -499,6 +524,7 @@ const EW = (() => {
     function replayTrace(events) {
       clearInterval(replaying);
       let shown = 0;
+      drawnSteps = 0;
       replaying = setInterval(() => {
         shown += 1;
         if (shown >= events.length) { clearInterval(replaying); replaying = null; drawLive(events, true); return; }
@@ -540,6 +566,7 @@ const EW = (() => {
       setProgress(label);
       const runId = newRunId();
       const state = { done: false, events: [], view: null };
+      drawnSteps = 0;
       followTrace(runId, state);
       const clock = setInterval(() => tickLive(state), 1000);
       const r = await requestJson("/run", {
