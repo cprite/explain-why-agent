@@ -184,7 +184,7 @@ const EW = (() => {
   const AGENT_NAMES = { planner: "Planner", investigator: "Investigator", critic: "Critic", reporter: "Reporter",
                         DataLayer: "Data", WorldModel: "World Model" };
   const VERDICT_MARK = { supported: "✔ supported", refuted: "✘ refuted", insufficient: "? not enough evidence",
-                         testing: "… testing", untested: "untested" };
+                         testing: "… testing", untested: "untested", tested: "tested" };
   const HYP_RE = /(H\d+)\s+([a-z_]+):\s*([^"…]*)/g;
 
   function agentName(raw) { return AGENT_NAMES[raw] || raw || ""; }
@@ -310,7 +310,7 @@ const EW = (() => {
           break;
         case "observe":
           step("Investigator", "World Model", failed ? `no finding: ${clip(out, 120)}` : clip(out, 220),
-               { kind: "finding", tone: failed ? "bad" : "info" });
+               { kind: "observation", tone: failed ? "bad" : "info" });
           active = "World Model";
           break;
         case "ingest":
@@ -345,6 +345,14 @@ const EW = (() => {
         case "report": {
           const text = String(out || "");
           const causes = [...text.matchAll(/"\d+\.\s*([a-z_]+)/g)].map((m) => m[1]);
+          const ruled = /"ruled_out":\s*\[([^\]]*)/.exec(text);
+          const ruledOut = ruled ? [...ruled[1].matchAll(/"([a-z_]+)"/g)].map((m) => m[1]) : [];
+          // Without the Critic (simple loop) the answer is what settles each hypothesis.
+          for (const h of hyps.values()) {
+            if (h.state !== "testing" && h.state !== "untested") continue;
+            if (causes.includes(h.family)) h.state = "supported";
+            else if (ruledOut.includes(h.family)) h.state = "refuted";
+          }
           step("Reporter", "Orchestrator", failed ? `could not write the answer: ${clip(out, 120)}`
             : /"determinable":\s*false/.test(text) ? "Answer: cannot be determined from the data"
               : `Answer drafted${causes.length ? `: ${causes.join(", ")}` : ""}`,
@@ -354,6 +362,7 @@ const EW = (() => {
         }
         case "finish":
           finished = true;
+          for (const h of hyps.values()) if (h.state === "testing") h.state = "tested";
           active = null;
           step("Orchestrator", null, `Finished (${e.stop_reason || e.status})`, { kind: "divider" });
           break;
@@ -391,7 +400,7 @@ const EW = (() => {
       ]))));
     }
     const feed = el("ol", { className: "feed" }, view.steps.map((s) => {
-      const who = s.from && s.to ? `${s.from} → ${s.to}` : s.from || "";
+      const who = s.from && s.to ? `${s.from} → ${s.to}` : s.kind === "divider" ? "" : s.from || "";
       const item = el("li", { className: `step ${s.kind || "note"} ${s.tone}` }, [
         who ? el("span", { className: "who", text: who }) : null,
         el("span", { className: "what", text: s.text }),

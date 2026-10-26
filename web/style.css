@@ -10,6 +10,7 @@
   color: var(--ink);
 }
 
+[hidden] { display: none !important; }
 body { margin: 0 auto; max-width: 1200px; padding: 1.5rem; line-height: 1.4; }
 header h1 { margin: 0 0 0.25rem; font-size: 1.6rem; }
 .sub { margin: 0; color: var(--muted); }
@@ -101,13 +102,13 @@ footer { margin-top: 2rem; color: var(--muted); font-size: 0.85rem; }
 .hyp.insufficient { border-left-color: #c99a10; }
 .hyp.testing { border-left-color: var(--accent); } .hyp.testing .hyp-state { color: var(--accent); }
 .feed { list-style: none; margin: 0; padding: 0; max-height: 26rem; overflow-y: auto; border-top: 1px solid var(--line); }
-.step { display: grid; grid-template-columns: 13rem 1fr; gap: 0.75rem; padding: 0.35rem 0.25rem;
+.step { display: grid; grid-template-columns: 15rem 1fr; gap: 0.75rem; padding: 0.35rem 0.25rem;
         border-bottom: 1px solid #eef0f4; font-size: 0.88rem; animation: arrive 0.35s ease-out; }
 @keyframes arrive { from { opacity: 0; transform: translateY(4px); } }
 .step .who { font-weight: 600; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .step.model { color: var(--muted); font-size: 0.8rem; }
 .step.model .who { color: var(--muted); font-weight: 400; }
-.step.finding .what { font-style: italic; }
+.step.observation .what { font-style: italic; }
 .step.verdict.good .what, .step.handoff.good .what { color: var(--rise); font-weight: 600; }
 .step.bad .what { color: var(--fall); }
 .step.verdict.warn .what, .step.warn .what { color: #8a6500; }
