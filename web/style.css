@@ -91,7 +91,7 @@ footer { margin-top: 2rem; color: var(--muted); font-size: 0.85rem; }
 .dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--accent); animation: blink 1s infinite; }
 @keyframes blink { 50% { opacity: 0.2; } }
 .hyps { list-style: none; padding: 0; margin: 0 0 0.75rem; display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.4rem; }
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.4rem; }
 .hyp { display: flex; gap: 0.4rem; align-items: baseline; padding: 0.35rem 0.5rem; border-radius: 6px;
        border: 1px solid var(--line); border-left-width: 4px; font-size: 0.85rem; background: var(--panel); }
 .hyp-id { font-weight: 700; }
