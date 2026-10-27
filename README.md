@@ -12,6 +12,7 @@ behind it, the explanations it ruled out, and the limits of the answer. The inve
 two Meterless engines (World Model and Markovian) inside this repository, and every model call goes
 through Meterless Nightshift to NVIDIA Nemotron. Every step is written to a JSONL trace.
 Hackathon track: **Track 02, "The Agent That Can Explain Why"**.
+Pitch deck (PDF): <https://hackathon-server.genai.works/api/v1/cdn/proxy/hackathon/6668d73e2b0e4dd5b058cddfa55c157c.pdf>
 
 | The agents at work (replay of a recorded Nemotron run) | The answer |
 |---|---|
@@ -289,7 +290,7 @@ replays replies recorded live from Nemotron through Nightshift, committed in
 | Scanner: rank of the one planted incident it flags (incident-06) | overall rank 37 of 206 | `docs/sprints/12-anomaly-scanner.md` |
 | Run time, sample mode, Day 1 question (quick-start command, Markovian loop, stub-recorded replies) | 0.214 s | `docs/sprints/15-readme-metadata.md` |
 | Run time, sample mode, Markovian loop (plan check J question, stub-recorded replies) | 0.205 s | `docs/sprints/15-readme-metadata.md` |
-| Run time, live (Nightshift and Zetaris) | not measured yet | none committed |
+| Run time, live, full investigation (Nightshift and Zetaris; the timed no-change run is in [Limitations](#limitations)) | not measured yet | none committed |
 | Tokens of the live Day 1 run through Nightshift, the `recorded_with: meterless` cache entries (simple loop, model usage summed from the trace; sample mode no longer replays this recording) | 129113 | `docs/sprints/11-evaluation.md` |
 | Markovian token report, Day 1 quick-start run (standard estimate vs Markovian actual, saving) | 9939 vs 5217, 47.5 % | `docs/sprints/15-readme-metadata.md` |
 | Markovian token report, plan check J (standard estimate vs Markovian actual, saving) | 7948 vs 4153, 47.7 % | `docs/sprints/15-readme-metadata.md` |
