@@ -41,12 +41,10 @@ ls -l logs/result-quickstart.json logs/trace-quickstart.jsonl logs/queries-quick
   recorded reply (`model_routed`), how it was recorded (`recorded_with`) and the receipt id.
 - **These replies are not a model's.** Since Sprint 11c the replies this question replays were
   recorded from the deterministic stand-in in `app/llm/stub.py`: every model-call line reads
-  `recorded_with: stub`, `model_routed: scripted-stub`, `receipt_id: null`. The run shows the agents,
-  the Markovian loop, the queries and the trace working end to end, not Nemotron's reasoning. The
-  live Nightshift replies on Nemotron are the 15 cache entries marked `"recorded_with": "meterless"`
-  (see [NVIDIA](#nvidia)); the prompts changed after they were recorded, so they no longer replay.
-  The question was re-recorded through Nightshift on 25 Oct with the other evaluation questions:
-  add `LLM_CACHE_DIR=data/recorded/nemotron/llm_cache` to the command to replay Nemotron's replies.
+  `recorded_with: stub`, `model_routed: scripted-stub`, `receipt_id: null`. So the run shows the
+  agents, the Markovian loop, the queries and the trace working end to end, not Nemotron's reasoning.
+  To replay Nemotron's replies, recorded through Nightshift on 25 Oct, add
+  `LLM_CACHE_DIR=data/recorded/nemotron/llm_cache` to the command.
 - The query log is `logs/queries-quickstart.jsonl`: every SQL statement with its source, adapter,
   duration and row count.
 - The command uses the default Markovian loop with the Critic. The same question also replays on the
@@ -73,7 +71,7 @@ In a second terminal, from the repository root:
 curl -s -X POST http://localhost:8000/run -H "Content-Type: application/json" -d @input_examples/example_1.json
 ```
 
-The answer is the result JSON (`"status": "success"`, `"sample_mode": true`, rank-1 cause `volume`);
+It returns the result JSON (`"status": "success"`, `"sample_mode": true`, rank-1 cause `volume`);
 the web page is at http://localhost:8000/. CI builds and runs the image on every push (job
 `docker-check`, "Plan check P": the three example inputs, HTTP 200 and a schema-valid result each,
 and example 1 again with `--network none`). For full mode pass the settings at run time with
@@ -188,10 +186,10 @@ per-incident table and a `Score:` line; the report goes to `logs/eval-<timestamp
 | Why did delivery lateness spike for deliveries completed the week of 28 May 2018? | `SAMPLE_MODE=true python run.py "<question>"` | Markovian loop with the Critic: chunks, carryover, token report |
 | Why did review scores for watches/gifts (relogios_presentes) fall in 2018-01? | `SAMPLE_MODE=true python run.py "<question>"` | The Critic refutes the leading explanation and promotes the next one |
 
-Every reply these questions replay (and those of the two "cannot be determined" questions that
-CI's plan check N runs, incident-09 and incident-10) is recorded from the deterministic stand-in
-model in `app/llm/stub.py`, marked `"recorded_with": "stub"` in each cache file. They show the loop's
-mechanics, not a model's reasoning. Any other question gives `cache_miss` in sample mode.
+These three, and the two "cannot be determined" questions CI's plan check N runs (incident-09 and
+incident-10), replay replies from the deterministic stand-in in `app/llm/stub.py`
+(`"recorded_with": "stub"` in each cache file). They show how the loop works, not how a model
+reasons. Any other question gives `cache_miss` in sample mode.
 
 Where the files are:
 
@@ -222,8 +220,9 @@ Agent roles (prompts in `app/agents/prompts/`):
   observation whose query id and SQL come from the data layer, not from the model.
 - **Critic** (`app/agents/critic.py`): tries to disprove each explanation with five checks
   (alternative cause, concentration, sample size, date basis, data artefact) and scores it 0–3 on
-  three points. The verdict is decided in code: contradicted is refuted, 7 of 9 or more is supported,
-  less sends it back for one revision with follow-up tests, and a second failure demotes it.
+  three points. The verdict is decided in code: a contradicted explanation is refuted, 7 of 9 or more
+  is supported, anything less goes back for one revision with follow-up tests, and a second failure
+  demotes it.
 - **Reporter** (`app/agents/reporter.py`): writes the result. Only causes the Critic supported are
   kept, each with its evidence.
 - **Anomaly scanner and attribution** (`app/scanner/`): not an agent. A deterministic job that finds
@@ -232,7 +231,7 @@ Agent roles (prompts in `app/agents/prompts/`):
 
 The loop (Markovian orchestrator, `app/engines/markovian/orchestrator.py`):
 
-1. Chunk one: the Planner's plan and the change check. Within normal variation, the run ends with "no significant change".
+1. Chunk one: the Planner's plan and the change check. If the change is within normal variation, the run ends there with "no significant change".
 2. Each later chunk is one round on one hypothesis, built from the goal, a compressed carryover and the evidence the World Model selects, within a fixed character budget.
 3. The Investigator measures, the result goes into the World Model with `supports` or `refutes` edges, and the Critic judges it.
 4. A refuted leader promotes the next hypothesis; an insufficient one gets one revision chunk.
@@ -396,8 +395,8 @@ CI steps too: `pytest -q -s tests/test_world_context.py::test_plan_check_task9_c
 - **Primary provider.** Every agent call goes through the Meterless Runtime (Nightshift) by default
   (`MODEL_PROVIDER=meterless`). `app/llm/generator.py` implements Meterless's provider contract:
   OpenAI-compatible `/v1/chat/completions`, `Authorization: Bearer <runtime token>`,
-  `meterless-app: explain-why` on every request and `meterless-scope: user` on chat; online,
-  unauthorized or offline is decided from `GET /v1/models`.
+  `meterless-app: explain-why` on every request and `meterless-scope: user` on chat. `GET /v1/models`
+  tells it whether the Runtime is online, refuses the token, or is offline.
 - **How the app connects.** `METERLESS_BASE_URL` and `METERLESS_RUNTIME_TOKEN`; routing modes per
   role (`meterless/deep` for Planner and Reporter, `meterless/fast` for Investigator and Critic).
   Replies are streamed (`MODEL_STREAM=true`), because Nightshift answers a buffered request that
@@ -440,8 +439,8 @@ is optional under the 22 Oct rule change, so the project does not depend on it.
 - One USL joins four separately owned source systems, so the agents ask cross-source questions
   (orders with payments with reviews) in one statement, with a per-query local fallback that is
   marked in the result.
-- The World Model is not just memory: the Critic's evidence, for and against, is selected from it
-  with a reason per item, and every verdict is stored with edges to the observations it relied on.
+- The Critic's evidence, for and against, is selected from the World Model with a reason per item,
+  and every verdict is stored with edges to the observations it relied on.
 - The Markovian engine bounds the whole investigation (chunks, budgets, timeouts) and reports its
   own token saving against a growing conversation.
 - Every live model call carries Nightshift's route and receipt into the trace and into the
@@ -538,11 +537,9 @@ is what an analyst needs to trust the answer.
   a single uvicorn worker. It has no authentication; set `API_HOST=127.0.0.1` where that matters.
 - **Sample mode answers only recorded questions, and by default those replies are the stand-in model's.** Every
   question with a recording (the Day 1 question, incident-02, -06, -09, -10 and the 21 September
-  no-change question) replays stub-recorded replies, not a live model's. The live Nemotron recording
-  of 23 Oct is kept in the cache but no longer replays since the Sprint 11c prompt changes. The ten
-  evaluation questions were re-recorded through Nightshift on 25 Oct; set
-  `LLM_CACHE_DIR=data/recorded/nemotron/llm_cache` to replay the model instead of the stand-in.
-  Explaining a scanner card in sample mode gives `cache_miss`.
+  no-change question) replays stub-recorded replies, not a live model's. To replay Nemotron instead,
+  set `LLM_CACHE_DIR=data/recorded/nemotron/llm_cache` (the ten evaluation questions, recorded
+  through Nightshift on 25 Oct). Explaining a scanner card in sample mode gives `cache_miss`.
 - **The real-model score is a replay of one recorded run.** Every question was recorded once through
   Nightshift (Nemotron) and is replayed from `data/recorded/nemotron/llm_cache/`; a new live run can
   answer differently. The prompts were tuned against the same ten incidents they are scored on, so
