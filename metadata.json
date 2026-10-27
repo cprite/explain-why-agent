@@ -44,15 +44,15 @@
       "role": "primary AI provider",
       "required": true,
       "code": ["app/llm/generator.py"],
-      "evidence": ["data/sample/llm_cache/"],
-      "evidence_note": "cache entries with \"recorded_with\": \"meterless\" (live Day 1 run, routed model and receipt per call); the questions sample mode replays today are stub-recorded"
+      "evidence": ["data/sample/llm_cache/", "data/recorded/nemotron/llm_cache/"],
+      "evidence_note": "data/recorded/nemotron/llm_cache/ holds 206 Nemotron replies recorded through Nightshift on 25 Oct for the ten evaluation questions (routed model and receipt per call); replayed with LLM_CACHE_DIR they give the 5/10 score in the README Results. data/sample/llm_cache/ keeps the 15 replies of the live Day 1 run of 23 Oct; the questions default sample mode replays are stub-recorded"
     },
     {
       "sponsor": "NVIDIA",
       "models": ["nvidia/nvidia/nemotron-3.5-super-vl-120b-a12b", "nvidia/nvidia/nemotron-3.5-lightning-30b-a3b"],
       "via": "Meterless Nightshift",
-      "evidence": ["data/sample/llm_cache/"],
-      "evidence_note": "cache entries with \"recorded_with\": \"meterless\" (live Day 1 run, routed model and receipt per call); the questions sample mode replays today are stub-recorded"
+      "evidence": ["data/sample/llm_cache/", "data/recorded/nemotron/llm_cache/"],
+      "evidence_note": "data/recorded/nemotron/llm_cache/ holds 206 Nemotron replies recorded through Nightshift on 25 Oct for the ten evaluation questions (routed model and receipt per call); replayed with LLM_CACHE_DIR they give the 5/10 score in the README Results. data/sample/llm_cache/ keeps the 15 replies of the live Day 1 run of 23 Oct; the questions default sample mode replays are stub-recorded"
     },
     {
       "sponsor": "Cursor",
